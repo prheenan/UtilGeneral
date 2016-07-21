@@ -39,8 +39,6 @@ function p_pyinstall(){
     sudo pip install --upgrade "$@"
 }
 
-
-
 # setup the install
 p_setup
 # install emacs( i know, i know)...
@@ -71,8 +69,8 @@ p_pyinstall  scikit-learn
 p_pyinstall  h5py
 # for sql stuff 
 p_pyinstall  sqlalchemy
-# move the utilities folder, if we need to
-mv ~/prhUtil/ ~/utilities/
+# install the igor package
+p_pyinstall igor 
 
 
 
