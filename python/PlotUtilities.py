@@ -24,6 +24,11 @@ plt.rcParams['font.sans-serif'] = 'Georgia'
 plt.rcParams['font.family'] = 'sans-serif'
 # to get a list of all fonts:
 
+
+def LegendAndSave(Fig,SaveName,loc="upper right",frameon=True):
+    legend(loc=loc,frameon=frameon)
+    savefig(Fig,SaveName,close=False)
+
 def addColorbar(fig,cmap,nPoints,colorRange=None,left=0.80,bottom=0.15,
                 width=0.03,height=0.7,tickLabels=None,
                 orientation='vertical',tickOffsets=None,
