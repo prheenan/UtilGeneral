@@ -49,6 +49,8 @@ p_install mysql-server
 p_install cifs-utils
 # get windbind so we can recognize windows names
 p_install libnss-winbind
+# install gnome libraries for opening things easier
+p_install libgnome2-bin
 ## install pip
 p_install python-pip python-dev build-essential 
 p_pyinstall pip 
@@ -71,6 +73,8 @@ p_pyinstall  h5py
 p_pyinstall  sqlalchemy
 # install the igor package
 p_pyinstall igor 
+# install snakeviz, for profiling
+p_pyinstall snakeviz
 
 
 
