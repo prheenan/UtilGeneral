@@ -62,6 +62,19 @@ def addColorbar(fig,cmap,nPoints,colorRange=None,left=0.80,bottom=0.15,
             cbar.ax.set_xticklabels(tickLabels)
     tickAxisFont(ax=mAx)
 
+def colorbar(label,labelpad=10,rotation=270):
+    """
+    Makes a simple color bar on the current plot, assuming that something
+    like hist2d has already been called:
+    
+    Args:
+        label: what to put on the colorpad
+        labelpad,rotation: see cbar.set_label: 
+ matplotlib.org/api/colorbar_api.html#matplotlib.colorbar.ColorbarBase.set_label
+    """
+    cbar = plt.colorbar()
+    cbar.set_label(label,labelpad=labelpad,rotation=rotation)
+    return cbar
 
 def errorbar(x,y,yerr,label,fmt=None,alpha=0.1,ecolor='r',markersize=3.0,
              *args,**kwargs):
