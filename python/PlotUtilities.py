@@ -110,18 +110,48 @@ def intLim(vals,xAxis=True,factor=0.5):
         plt.gca().set_ylim(minV-fudge,maxV+fudge)
 
 def genLabel(func,label,fontsize=g_font_label,fontweight='bold',**kwargs):
-    func(label,fontsize=fontsize,fontweight=fontweight,**kwargs)
+    return func(label,fontsize=fontsize,fontweight=fontweight,**kwargs)
         
-def xlabel(lab,**kwargs):
-    genLabel(plt.xlabel,lab,**kwargs)
-
-def ylabel(lab,**kwargs):
-    genLabel(plt.ylabel,lab,**kwargs)
-
-def zlabel(lab,ax=None,**kwargs):
+def xlabel(lab,ax=None,**kwargs):
+    """
+    Sets the x label 
+    
+    Args:
+         lab: the abel to use
+         ax: the axis to label. defaults to current
+         **kwargs:  see genLabel
+    Returns:
+         Label
+    """
     if (ax is None):
         ax = plt.gca()
-    genLabel(ax.set_zlabel,lab,**kwargs)
+    return genLabel(ax.set_xlabel,lab,**kwargs)
+
+def ylabel(lab,ax=None,**kwargs):
+    """
+    Sets the y label
+     
+    Args: 
+        See xlabel
+    Returns:
+        See xlabel
+    """
+    if (ax is None):
+        ax = plt.gca()
+    return genLabel(ax.set_ylabel,lab,**kwargs)
+
+def zlabel(lab,ax=None,**kwargs):
+    """
+    Sets the z label
+     
+    Args: 
+        See xlabel
+    Returns:
+        See xlabel
+    """
+    if (ax is None):
+        ax = plt.gca()
+    return genLabel(ax.set_zlabel,lab,**kwargs)
 
 def title(lab,fontsize=g_font_title,**kwargs):
     plt.title(lab,fontsize=fontsize,**kwargs)
@@ -129,6 +159,24 @@ def title(lab,fontsize=g_font_title,**kwargs):
 def lazyLabel(xlab,ylab,titLab,yrotation=90,titley=1.0,
               frameon=False,loc='best',
               useLegend=True,zlab=None,legendBgColor=None,**kwargs):
+    """
+    Easy method of setting the x,y, and title, and adding a legend
+    
+    Args:
+         xlab: the x label to use
+         ylab: the y label to use
+         titLab: the title to use
+         yrotation: angle to rotate. Default is vertical
+         titley: where to position the title 
+         frameon: for the legend; if true, adds a frame (and background)
+         to the legend
+       
+         zlab: the z label, for the third axis
+         legendBgColor: the color for the legend, if present. Default is white
+         **kwargs: passed to te labels and legend (e.g. font size
+    Returns: 
+         nothings
+    """
     # set the labels and title
     xlabel(xlab,**kwargs)
     ylabel(ylab,rotation=yrotation,**kwargs)
@@ -208,8 +256,6 @@ def addColorBar(cax,ticks,labels,oritentation='vertical'):
 
 # add a second axis to ax.
 def secondAxis(ax,label,limits,secondY =True,color="Black",scale=None):
-    #copies the first axis (ax) and uses it to overlay an axis of limits
-    axOpt = dict(fontsize=g_font_label)
     if (scale is None):
         if secondY:
             scale = ax.get_yscale() 
@@ -220,7 +266,7 @@ def secondAxis(ax,label,limits,secondY =True,color="Black",scale=None):
         ax2.set_yscale(scale, nonposy='clip')
         ax2.set_ylim(limits)
         # set the y axis to the appropriate label
-        lab = ax2.set_ylabel(label,**axOpt)
+        lab = ylabel(label,ax=ax2)
         tickLabels = ax2.get_yticklabels()
         tickLims =  ax2.get_yticks()
     else:
@@ -228,7 +274,7 @@ def secondAxis(ax,label,limits,secondY =True,color="Black",scale=None):
         ax2.set_xscale(scale, nonposy='clip')
         ax2.set_xlim(limits)
         # set the x axis to the appropriate label
-        lab = ax2.set_xlabel(label,**axOpt)
+        lab = xlabel(label,ax=ax2)
         tickLabels = ax2.get_xticklabels()
         tickLims =  ax2.get_xticks()
     [i.set_color(color) for i in tickLabels]
