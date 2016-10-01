@@ -86,10 +86,12 @@ def errorbar(x,y,yerr,label,fmt=None,alpha=0.1,ecolor='r',markersize=3.0,
     plt.plot(x, y+yerr,'b--')
     plt.plot(x, y-yerr,'b--')
     
-def legend(fontsize=g_font_legend,loc=None,frameon=False,**kwargs):
+def legend(fontsize=g_font_legend,loc=None,frameon=False,
+           bbox_to_anchor=None,**kwargs):
     if (loc is None):
         loc = 'best'
-    return plt.legend(fontsize=fontsize,loc=loc,frameon=frameon,**kwargs)
+    return plt.legend(fontsize=fontsize,loc=loc,frameon=frameon,
+                      bbox_to_anchor=bbox_to_anchor,**kwargs)
 
 
 def intLim(vals,xAxis=True,factor=0.5):
@@ -157,7 +159,7 @@ def title(lab,fontsize=g_font_title,**kwargs):
     plt.title(lab,fontsize=fontsize,**kwargs)
 
 def lazyLabel(xlab,ylab,titLab,yrotation=90,titley=1.0,
-              frameon=False,loc='best',
+              frameon=False,loc='best',bbox_to_anchor=None,
               useLegend=True,zlab=None,legendBgColor=None,**kwargs):
     """
     Easy method of setting the x,y, and title, and adding a legend
@@ -170,7 +172,10 @@ def lazyLabel(xlab,ylab,titLab,yrotation=90,titley=1.0,
          titley: where to position the title 
          frameon: for the legend; if true, adds a frame (and background)
          to the legend
-       
+         
+         loc: legend location
+         bbox_to_anchor: where to anchor the legend
+         useLegend : boolean, true: add a legend
          zlab: the z label, for the third axis
          legendBgColor: the color for the legend, if present. Default is white
          **kwargs: passed to te labels and legend (e.g. font size
@@ -187,7 +192,8 @@ def lazyLabel(xlab,ylab,titLab,yrotation=90,titley=1.0,
     if (zlab is not None):
         zlabel(zlab,**kwargs)
     if (useLegend):
-        leg = legend(frameon=frameon,loc=loc,**kwargs)
+        leg = legend(frameon=frameon,loc=loc,bbox_to_anchor=bbox_to_anchor,
+                     **kwargs)
         if (legendBgColor is not None):
             setLegendBackground(leg,legendBgColor)
 
