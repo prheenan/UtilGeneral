@@ -1,5 +1,5 @@
 export PS1="Speak 'Friend' and Enter: "
-home="/Users/patrickheenan/utilities/bash/"
+home="$HOME"
 # where the profile is 
 base="$home"
 profile=".profile"
@@ -19,7 +19,8 @@ alias g++='g++ ${flags}'
 
 ARCHFLAGS="-arch x86_64" # Ensure user-installed binaries take precedence expor 
 PATH=/usr/local/bin:/usr/local/mysql/bin/:$PATH # Load .bashrc/mysql if it exists
-utilDir="/Users/patrickheenan/utilities/"
+utilDir="$home/src_prh/GeneralUtil/"
+ProfileDir="$utilDir/bash/"
 
 RefCypherDebug()
 {
@@ -152,7 +153,7 @@ gui()
 
 res()
 {
-    cd ~/Documents/education/boulder_files/rotations_year_1/3_perkins/
+    cd ~/src_prh/Research/Perkins/Projects
 }
 
 p.()
@@ -245,18 +246,24 @@ compute()
 
 ref()
 {
-    source $base/$profile
+    source $ProfileDir/.profile
 }
 
 ed()
 {
-    open -a emacs $@;
+    open -a /Applications/Emacs.app/ $@;
 }
+
+edn()
+{
+    Open -n -a /Applications/Emacs.app/ $@;
+}
+
 
 nu()
 {
-	ed $base/$profile	
-	ref
+    ed $ProfileDir/.profile
+    ref
 }
 
 # added by Anaconda3 2.1.0 installer
