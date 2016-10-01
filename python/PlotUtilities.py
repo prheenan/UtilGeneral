@@ -158,9 +158,9 @@ def zlabel(lab,ax=None,**kwargs):
 def title(lab,fontsize=g_font_title,**kwargs):
     plt.title(lab,fontsize=fontsize,**kwargs)
 
-def lazyLabel(xlab,ylab,titLab,yrotation=90,titley=1.0,
-              frameon=False,loc='best',bbox_to_anchor=None,
-              useLegend=True,zlab=None,legendBgColor=None,**kwargs):
+def lazyLabel(xlab,ylab,titLab,yrotation=90,titley=1.0,bbox_to_anchor=None
+              frameon=False,loc='best',axis_kwargs=dict(),legend_kwargs=dict(),
+              useLegend=True,zlab=None,legendBgColor=None):
     """
     Easy method of setting the x,y, and title, and adding a legend
     
@@ -178,22 +178,20 @@ def lazyLabel(xlab,ylab,titLab,yrotation=90,titley=1.0,
          useLegend : boolean, true: add a legend
          zlab: the z label, for the third axis
          legendBgColor: the color for the legend, if present. Default is white
-         **kwargs: passed to te labels and legend (e.g. font size
     Returns: 
          nothings
     """
     # set the labels and title
-    xlabel(xlab,**kwargs)
-    ylabel(ylab,rotation=yrotation,**kwargs)
-    title(titLab,y=titley,**kwargs)
+    xlabel(xlab,**axis_kwargs)
+    ylabel(ylab,rotation=yrotation,**axis_kwargs)
+    title(titLab,y=titley,**axis_kwargs)
     # set the font
     tickAxisFont(**kwargs)
     # if we have a z or a legemd, set those too.
     if (zlab is not None):
         zlabel(zlab,**kwargs)
     if (useLegend):
-        leg = legend(frameon=frameon,loc=loc,bbox_to_anchor=bbox_to_anchor,
-                     **kwargs)
+        leg = legend(frameon=frameon,loc=loc,**legend_kwargs)
         if (legendBgColor is not None):
             setLegendBackground(leg,legendBgColor)
 
@@ -244,6 +242,15 @@ def tickLabels(xRange,labels,xAxis,tickWidth=g_tick_thickness,**kwargs):
         ax.spines[l].set_linewidth(tickWidth)
 
 def cmap(num,cmap = plt.cm.gist_earth_r):
+    """
+    Get a color map with the specified number of colors and mapping
+
+    Args:
+        num: number of colors
+        cmap: color map to use, from plt.cm
+    Returns:
+        color map to use
+    """
     return cmap(np.linspace(0, 1, num))
 
 def useTex():
