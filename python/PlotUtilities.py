@@ -158,7 +158,7 @@ def zlabel(lab,ax=None,**kwargs):
 def title(lab,fontsize=g_font_title,**kwargs):
     plt.title(lab,fontsize=fontsize,**kwargs)
 
-def lazyLabel(xlab,ylab,titLab,yrotation=90,titley=1.0,bbox_to_anchor=None
+def lazyLabel(xlab,ylab,titLab,yrotation=90,titley=1.0,bbox_to_anchor=None,
               frameon=False,loc='best',axis_kwargs=dict(),legend_kwargs=dict(),
               useLegend=True,zlab=None,legendBgColor=None):
     """
@@ -186,10 +186,10 @@ def lazyLabel(xlab,ylab,titLab,yrotation=90,titley=1.0,bbox_to_anchor=None
     ylabel(ylab,rotation=yrotation,**axis_kwargs)
     title(titLab,y=titley,**axis_kwargs)
     # set the font
-    tickAxisFont(**kwargs)
+    tickAxisFont(**axis_kwargs)
     # if we have a z or a legemd, set those too.
     if (zlab is not None):
-        zlabel(zlab,**kwargs)
+        zlabel(zlab,**axis_kwargs)
     if (useLegend):
         leg = legend(frameon=frameon,loc=loc,**legend_kwargs)
         if (legendBgColor is not None):
