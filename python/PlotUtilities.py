@@ -80,10 +80,12 @@ def errorbar(x,y,yerr,label,fmt=None,alpha=0.1,ecolor='r',markersize=3.0,
     plt.plot(x, y+yerr,'b--')
     plt.plot(x, y-yerr,'b--')
     
-def legend(fontsize=g_font_legend,loc=None,frameon=False,**kwargs):
+def legend(fontsize=g_font_legend,loc=None,frameon=False,
+           bbox_to_anchor=None,**kwargs):
     if (loc is None):
         loc = 'best'
-    return plt.legend(fontsize=fontsize,loc=loc,frameon=frameon,**kwargs)
+    return plt.legend(fontsize=fontsize,loc=loc,frameon=frameon,
+                      bbox_to_anchor=bbox_to_anchor,**kwargs)
 
 
 def intLim(vals,xAxis=True,factor=0.5):
@@ -150,7 +152,8 @@ def zlabel(lab,ax=None,**kwargs):
 def title(lab,fontsize=g_font_title,**kwargs):
     plt.title(lab,fontsize=fontsize,**kwargs)
 
-def lazyLabel(xlabel,ylabel,title,yrotation=90,titley=1.0,
+
+def lazyLabel(xlab,ylab,titLab,yrotation=90,titley=1.0,bbox_to_anchor=None
               frameon=False,loc='best',axis_kwargs=dict(),legend_kwargs=dict(),
               useLegend=True,zlab=None,legendBgColor=None):
     """
@@ -164,7 +167,10 @@ def lazyLabel(xlabel,ylabel,title,yrotation=90,titley=1.0,
          titley: where to position the title 
          frameon: for the legend; if true, adds a frame (and background)
          to the legend
-       
+         
+         loc: legend location
+         bbox_to_anchor: where to anchor the legend
+         useLegend : boolean, true: add a legend
          zlab: the z label, for the third axis
          legendBgColor: the color for the legend, if present. Default is white
     Returns: 
