@@ -25,42 +25,36 @@ plt.rcParams['font.family'] = 'sans-serif'
 # to get a list of all fonts:
 
 
-def LegendAndSave(Fig,SaveName,loc="upper right",frameon=True):
-    legend(loc=loc,frameon=frameon)
-    savefig(Fig,SaveName,close=False)
+def LegendAndSave(Fig,SaveName,loc="upper right",frameon=True,close=False):
+    """
+    Refreshes the legend on the given figure, saves it *without* closing
+    by default
 
-def addColorbar(fig,cmap,nPoints,colorRange=None,left=0.80,bottom=0.15,
-                width=0.03,height=0.7,tickLabels=None,
-                orientation='vertical',tickOffsets=None,
-                ticklocation='right',**kwargs):
-    # XXX for now, assume the color bar is on the right; only need to 
-    # adjust right
-    fig.subplots_adjust(right=left-width)
-        # add in a colorbar 
-    cbar_axis = fig.add_axes([left,bottom,width,height])
-    m = plt.cm.ScalarMappable(cmap=cmap)
-    mArr = [0,1.]
-    if (colorRange is not None):
-        mArr = colorRange
-    # figure out where to put the ticks
-    # by default, just assume we space things linearly
-    if (tickOffsets is None):
-        # get an array going from the start of the array to the 
-        # end uniformly
-        mArrOffsets = np.linspace(mArr[0],mArr[-1],len(tickLabels),
-                                  endpoint=True)
-        tickOffsets = mArrOffsets
-    m.set_array(mArr)
-    cbar = fig.colorbar(cax= cbar_axis,mappable=m,orientation=orientation,
-                        ticklocation=ticklocation,ticks=tickOffsets)
-    mAx = cbar.ax
-    # add the labels, if we need them.
-    if (tickLabels is not None):
-        if (orientation == 'vertical'):
-            cbar.ax.set_yticklabels(tickLabels)
-        else:
-            cbar.ax.set_xticklabels(tickLabels)
-    tickAxisFont(ax=mAx)
+    Args:
+        fig: the figure hangle to use
+        SaveName: what to save this as 
+        ... : see legend
+    Returns:
+        Nothing
+    """
+    legend(loc=loc,frameon=frameon)
+    savefig(Fig,SaveName,close=close)
+
+def LegendSaveAndIncr(Fig,Base,Number=0,ext=".pdf",**kwargs):
+    """
+    Same as legend and save, except takes a "base" 
+
+    Args:
+         Fig: See LegendAndSave
+         Base:  base name to use
+         Number: which figure iteration; we just count up
+         ext: extension for the filename
+         **kwargs: see LegendAndSave
+    Returns:
+        Number+1
+    """
+    LegendAndSave(Fig,Base+Number + ext,**kwargs)
+    return Number + 1
 
 def colorbar(label,labelpad=10,rotation=270):
     """
@@ -156,7 +150,7 @@ def zlabel(lab,ax=None,**kwargs):
 def title(lab,fontsize=g_font_title,**kwargs):
     plt.title(lab,fontsize=fontsize,**kwargs)
 
-def lazyLabel(xlab,ylab,titLab,yrotation=90,titley=1.0,
+def lazyLabel(xlabel,ylabel,title,yrotation=90,titley=1.0,
               frameon=False,loc='best',axis_kwargs=dict(),legend_kwargs=dict(),
               useLegend=True,zlab=None,legendBgColor=None):
     """
