@@ -24,6 +24,32 @@ plt.rcParams['font.sans-serif'] = 'Georgia'
 plt.rcParams['font.family'] = 'sans-serif'
 # to get a list of all fonts:
 
+from string import ascii_lowercase
+
+def AddSubplotLabels(fig=None,axs=None,
+                     xloc=-0.03,yloc=1,fontsize=30,fontweight='bold',
+                     bbox=dict(facecolor='none', edgecolor='black',
+                              boxstyle='round,pad=0.2')):
+    """
+    Adds labels to current subplot in their fig.axes order
+
+    Args:
+        fig: where to add; adds sequentially to all subplots, if no axs
+        axs: if present, only add to these subplots)
+        All the rest: see ax.text arguments
+    """
+    # get the axes we are adding...
+    if (axs is None):
+        if (fig is None):
+            fig = plt.gcf()
+        axs = fig.axes
+    lim = len(axs)
+    labels = [c for c in ascii_lowercase[:lim]]
+    for ax,label in zip(axs,labels):
+        ax.text(xloc, yloc, label, transform=ax.transAxes,
+                fontsize=fontsize, fontweight=fontweight, va='top', ha='right',
+                bbox=bbox)
+
 
 def LegendAndSave(Fig,SaveName,loc="upper right",frameon=True,close=False):
     """
@@ -38,7 +64,7 @@ def LegendAndSave(Fig,SaveName,loc="upper right",frameon=True,close=False):
         Nothing
     """
     legend(loc=loc,frameon=frameon)
-    savefig(Fig,SaveName,close=close)
+    savefig(Fig,SaveName,close=close,tight=True)
 
 def LegendSaveAndIncr(Fig,Base,Number=0,ext=".pdf",**kwargs):
     """
@@ -53,7 +79,7 @@ def LegendSaveAndIncr(Fig,Base,Number=0,ext=".pdf",**kwargs):
     Returns:
         Number+1
     """
-    LegendAndSave(Fig,Base+Number + ext,**kwargs)
+    LegendAndSave(Fig,Base+str(Number) + ext,**kwargs)
     return Number + 1
 
 def colorbar(label,labelpad=10,rotation=270):
@@ -299,13 +325,25 @@ def pm(stdOrMinMax,mean=None,fmt=".3g"):
         delta = np.mean(np.abs(arr-mean))
     return ("{:"+ fmt + "}+/-{:.2g}").format(mean,delta)
 
-def savefig(figure,fileName,close=True,tight=True,**kwargs):
-    # source : where to save the output iunder the output folder
-    # filename: what to save the file as. automagically saved as high res pdf
-    # override IO: if true, ignore any path infomation in the file name stuff.
-    # close: if true, close the figure after saving.
+def savefig(figure,fileName,close=True,tight=True,subplots_adjust=None,
+            **kwargs):
+    """
+    Saves the given figure with the options and filenames
+    
+    Args:
+        figure: what figure to use
+        fileName: what to save the figure out as
+        close: if true (def), clsoes the figure
+        tight: if true, reverts to the tight layour
+        subplot_adjust: if not none, a dictionary to give to plt.subplots_adjust
+        **kwargs: passed to figure savefig
+    Returns:
+        nothing
+    """
     if (tight):
         plt.tight_layout(True)
+    if (subplots_adjust is not None):
+        plt.subplots_adjust(**subplots_adjust)
     baseName = util.getFileFromPath(fileName)
     if ("." not in baseName):
         formatStr = ".svg"
