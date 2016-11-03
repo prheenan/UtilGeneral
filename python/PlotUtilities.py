@@ -261,6 +261,16 @@ def axis_locator(ax,n_major,n_minor):
     
 def tick_axis_number(ax=None,num_x_major=5,num_x_minor=15,num_y_major=5,
                      num_y_minor=15):
+    """
+    Sets the locators on the x and y ticks
+
+    Args:
+        ax: what axis to use
+        num_<x/y>_major: how many major ticks to put on the x,y
+        num_<x/y>_minor: how many minor ticks to put on the x,y
+    Returns:
+        Nothing
+    """
     if (ax is None):
         ax = plt.gca()
     axis_locator(ax.xaxis,num_x_major,num_x_minor)
@@ -272,6 +282,15 @@ def tickAxisFont(fontsize=g_font_label,
                  minor_tick_width=g_minor_tick_width,
                  minor_tick_length=g_minor_tick_length,
                  ax=None):
+    """
+    sets the tick axis font and tick sizes
+
+    Args:
+         ax: what tick to use 
+         fontsize: for the ticks
+         <major/minor>_tick_<width/length>: the length or width for the minor 
+         or major ticks. 
+    """
     if (ax is None):
         ax = plt.gca()
     ax.tick_params('both', length=major_tick_length, width=major_tick_width,
