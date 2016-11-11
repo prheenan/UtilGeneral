@@ -223,7 +223,7 @@ def GetYNameAndType(names):
         yName = FILE_END_Y_DEFL_METERS
     else:
         raise KeyError("Don't recognize a y value amoung {:s}".\
-                       format(lowerNames))
+                       format(names))
     return yType,SanitSingle(yName)
 
 def GetXNameAndType(names):

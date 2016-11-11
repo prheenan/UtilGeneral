@@ -131,6 +131,9 @@ def SavitskyFilter(inData,nSmooth = None,degree=2):
     if (nSmooth % 2 == 0):
         # must be odd
         nSmooth += 1
+    # make sure we have enough data...
+    if (inData.size <= nSmooth):
+        return inData
     # get the filtered version of the data
     return savgol_filter(inData,nSmooth,degree)    
 
