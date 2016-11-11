@@ -13,8 +13,10 @@ import os
 g_font_label = 20
 g_font_title = 22
 g_font_legend = 18
-g_tick_thickness = 3
-g_tick_length = 12
+g_tick_thickness = 1.75
+g_tick_length = 10
+g_minor_tick_width = 1.25
+g_minor_tick_length= 4
 
 # based on :http://stackoverflow.com/questions/18699027/write-an-upright-mu-in-matplotlib
 #plt.rc('font', **{'sans-serif' : 'Arial', 'family' : 'sans-serif'})
@@ -25,8 +27,52 @@ plt.rcParams['font.family'] = 'sans-serif'
 # see: http://matplotlib.org/examples/pylab_examples/usetex_baseline_test.html
 # this line makes it slow, etc plt.rcParams['text.usetex'] = True
 
+from string import ascii_lowercase
+from matplotlib.ticker import LogLocator,MaxNLocator
 
-def LegendAndSave(Fig,SaveName,loc="upper right",frameon=True,close=False):
+
+def FormatImageAxis(ax=None,aspect='auto'):
+    """
+    Formats the given (default current) axis for displaying an image 
+    (no ticks,etc)
+
+    Args:
+         ax: the axis to format
+    """
+    if (ax is None):
+        ax = plt.gca()
+    # Turn off axes and set axes limits
+    ax.axis('off')
+    ax.set_aspect(aspect)
+
+
+def AddSubplotLabels(fig=None,axs=None,skip=0,
+                     xloc=-0.03,yloc=1,fontsize=30,fontweight='bold',
+                     bbox=dict(facecolor='none', edgecolor='black',
+                               boxstyle='round,pad=0.2')):
+    """
+    Adds labels to current subplot in their fig.axes order
+
+    Args:
+        fig: where to add; adds sequentially to all subplots, if no axs
+        axs: if present, only add to these subplots)
+        All the rest: see ax.text arguments
+    """
+    # get the axes we are adding...
+    if (axs is None):
+        if (fig is None):
+            fig = plt.gcf()
+        axs = fig.axes
+    lim = len(axs)
+    labels = [c for c in ascii_lowercase[skip:][:lim]]
+    for ax,label in zip(axs,labels):
+        ax.text(xloc, yloc, label, transform=ax.transAxes,
+                fontsize=fontsize, fontweight=fontweight, va='top', ha='right',
+                bbox=bbox)
+
+
+def LegendAndSave(Fig,SaveName,loc="upper right",frameon=True,close=False,
+                  tight=True,**kwargs):
     """
     Refreshes the legend on the given figure, saves it *without* closing
     by default
@@ -39,9 +85,9 @@ def LegendAndSave(Fig,SaveName,loc="upper right",frameon=True,close=False):
         Nothing
     """
     legend(loc=loc,frameon=frameon)
-    savefig(Fig,SaveName,close=close)
+    savefig(Fig,SaveName,close=close,tight=tight,**kwargs)
 
-def LegendSaveAndIncr(Fig,Base,Number=0,ext=".pdf",**kwargs):
+def LegendSaveAndIncr(Fig,Base,Number=0,ext=".png",**kwargs):
     """
     Same as legend and save, except takes a "base" 
 
@@ -54,7 +100,7 @@ def LegendSaveAndIncr(Fig,Base,Number=0,ext=".pdf",**kwargs):
     Returns:
         Number+1
     """
-    LegendAndSave(Fig,Base+Number + ext,**kwargs)
+    LegendAndSave(Fig,Base+str(Number) + ext,**kwargs)
     return Number + 1
 
 def colorbar(label,labelpad=10,rotation=270):
@@ -153,9 +199,9 @@ def zlabel(lab,ax=None,**kwargs):
 def title(lab,fontsize=g_font_title,**kwargs):
     plt.title(lab,fontsize=fontsize,**kwargs)
 
-
 def lazyLabel(xlab,ylab,titLab,yrotation=90,titley=1.0,bbox_to_anchor=None,
-              frameon=False,loc='best',axis_kwargs=dict(),legend_kwargs=dict(),
+              frameon=False,loc='best',axis_kwargs=dict(),tick_kwargs=dict(),
+              legend_kwargs=dict(),
               useLegend=True,zlab=None,legendBgColor=None):
     """
     Easy method of setting the x,y, and title, and adding a legend
@@ -182,7 +228,7 @@ def lazyLabel(xlab,ylab,titLab,yrotation=90,titley=1.0,bbox_to_anchor=None,
     ylabel(ylab,rotation=yrotation,**axis_kwargs)
     title(titLab,y=titley,**axis_kwargs)
     # set the font
-    tickAxisFont(**axis_kwargs)
+    tickAxisFont(**tick_kwargs)
     # if we have a z or a legemd, set those too.
     if (zlab is not None):
         zlabel(zlab,**axis_kwargs)
@@ -205,13 +251,53 @@ def setLegendBackground(legend,color):
     """
     legend.get_frame().set_facecolor(color)
 
-def tickAxisFont(fontsize=g_font_label,ax=None):
+def axis_locator(ax,n_major,n_minor):
+    if (ax.get_scale() == 'log'):
+        ax.set_major_locator(LogLocator(numticks=n_major))
+        ax.set_minor_locator(LogLocator(numticks=n_minor))
+    else:
+        ax.set_major_locator(MaxNLocator(n_major))
+        ax.set_minor_locator(MaxNLocator(n_minor))
+    
+    
+def tick_axis_number(ax=None,num_x_major=5,num_x_minor=15,num_y_major=5,
+                     num_y_minor=15):
+    """
+    Sets the locators on the x and y ticks
+
+    Args:
+        ax: what axis to use
+        num_<x/y>_major: how many major ticks to put on the x,y
+        num_<x/y>_minor: how many minor ticks to put on the x,y
+    Returns:
+        Nothing
+    """
     if (ax is None):
         ax = plt.gca()
-    ax.tick_params(axis='both', which='major', labelsize=fontsize)
-    ax.tick_params(axis='both', which='minor', labelsize=fontsize)
-    ax.xaxis.set_tick_params(width=g_tick_thickness,length=g_tick_length)
-    ax.yaxis.set_tick_params(width=g_tick_thickness,length=g_tick_length)
+    axis_locator(ax.xaxis,num_x_major,num_x_minor)
+    axis_locator(ax.yaxis,num_y_major,num_y_minor)
+    
+def tickAxisFont(fontsize=g_font_label,
+                 major_tick_width=g_tick_thickness,
+                 major_tick_length=g_tick_length,
+                 minor_tick_width=g_minor_tick_width,
+                 minor_tick_length=g_minor_tick_length,
+                 ax=None):
+    """
+    sets the tick axis font and tick sizes
+
+    Args:
+         ax: what tick to use 
+         fontsize: for the ticks
+         <major/minor>_tick_<width/length>: the length or width for the minor 
+         or major ticks. 
+    """
+    if (ax is None):
+        ax = plt.gca()
+    ax.tick_params('both', length=major_tick_length, width=major_tick_width,
+                   labelsize=fontsize,which='major')
+    ax.tick_params('both', length=minor_tick_length, width=minor_tick_width,
+                   which='minor')
     if (hasattr(ax, 'zaxis') and ax.zaxis is not None):
         ax.zaxis.set_tick_params(width=g_tick_thickness,length=g_tick_length)
 
@@ -301,13 +387,25 @@ def pm(stdOrMinMax,mean=None,fmt=".3g"):
         delta = np.mean(np.abs(arr-mean))
     return ("{:"+ fmt + "}+/-{:.2g}").format(mean,delta)
 
-def savefig(figure,fileName,close=True,tight=True,**kwargs):
-    # source : where to save the output iunder the output folder
-    # filename: what to save the file as. automagically saved as high res pdf
-    # override IO: if true, ignore any path infomation in the file name stuff.
-    # close: if true, close the figure after saving.
+def savefig(figure,fileName,close=True,tight=True,subplots_adjust=None,
+            **kwargs):
+    """
+    Saves the given figure with the options and filenames
+    
+    Args:
+        figure: what figure to use
+        fileName: what to save the figure out as
+        close: if true (def), clsoes the figure
+        tight: if true, reverts to the tight layour
+        subplot_adjust: if not none, a dictionary to give to plt.subplots_adjust
+        **kwargs: passed to figure savefig
+    Returns:
+        nothing
+    """
     if (tight):
         plt.tight_layout(True)
+    if (subplots_adjust is not None):
+        plt.subplots_adjust(**subplots_adjust)
     baseName = util.getFileFromPath(fileName)
     if ("." not in baseName):
         formatStr = ".svg"
