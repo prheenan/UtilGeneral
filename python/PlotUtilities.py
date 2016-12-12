@@ -70,6 +70,23 @@ def AddSubplotLabels(fig=None,axs=None,skip=0,
                 fontsize=fontsize, fontweight=fontweight, va='top', ha='right',
                 bbox=bbox)
 
+def _ScaleBarAxis(ax,x,y,text_args,linewidth=5,color="k"):
+    """
+    see: 
+    stackoverflow.com/questions/12998430/remove-xticks-in-a-matplot-lib-plot
+    """
+    plt.plot(x,y,linewidth=linewidth,color=color)
+    ax.text(**text_args)
+    
+def ScaleBar(x_kwargs,y_kwargs,text_x=dict(),text_y=dict(),kill_axis=True,
+             ax=None):
+    if (ax is None):
+        ax = plt.gca()
+    if (kill_axis):
+        ax.axis('off')
+    _ScaleBarAxis(ax,text_args=text_x,**x_kwargs)
+    _ScaleBarAxis(ax,text_args=text_y,**y_kwargs)
+        
 
 def LegendAndSave(Fig,SaveName,loc="upper right",frameon=True,close=False,
                   tight=True,**kwargs):
