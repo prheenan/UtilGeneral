@@ -49,6 +49,7 @@ git_act()
 
 }
 
+# XXX these dont quite work...
 git_pull()
 {
     git_act pull
