@@ -5,7 +5,6 @@ import numpy as np
 import matplotlib.pyplot as plt
 # import the patrick-specific utilities
 import GeneralUtil.python.GenUtilities  as pGenUtil
-import GeneralUtil.python.PlotUtilities as pPlotUtil
 import GeneralUtil.python.CheckpointUtilities as pCheckUtil
 from scipy.signal import savgol_filter
 DEF_FILTER_CONST = 0.005 # 0.5%
@@ -158,82 +157,7 @@ def SplitIntoApproachAndRetract(sep,force,sepToSplit=None):
     sepRetr = sep[retrIdx:]
     return sepAppr,sepRetr,forceAppr,forceRetr
 
-def NormalizeSepForce(sep,force,surfIdx=None,normalizeSep=True,
-                      normalizeFor=True,sensibleUnits=True):
-    if (sensibleUnits):
-        sepUnits = sep * 1e9
-        forceUnits = force * 1e12
-    else:
-        sepUnits = sep
-        forceUnits= force
-    if (surfIdx is None):
-        surfIdx = np.argmin(sep)
-    if (normalizeSep):
-        sepUnits -= sepUnits[surfIdx]
-    if (normalizeFor):
-        # reverse: sort low to high
-        sortIdx = np.argsort(sep)[::-1]
-        # get the percentage of points we want
-        percent = 0.05
-        nPoints = int(percent*sortIdx.size)
-        idxForMedian = sortIdx[:nPoints]
-        # get the median force at these indices
-        forceMedUnits = np.median(forceUnits[idxForMedian])
-        # correct the force
-        forceUnits -= forceMedUnits
-        # multiply it by -1 (flip)
-        forceUnits *= -1
-    return sepUnits,forceUnits
-
-        
-# plot a force extension curve with approach and retract
-def PlotFec(sep,force,surfIdx = None,normalizeSep=True,normalizeFor=True,
-            filterN=None,sensibleUnits=True):
-    """
-    Plot a force extension curve
-
-    :param sep: The separation in meters
-    :param force: The force in meters
-    :param surfIdx: The index between approach and retract. if not present, 
-    intuits approximate index from minmmum Sep
-    :param normalizeSep: If true, then zeros sep to its minimum 
-    :paran normalizeFor: If true, then zeros force to the median-filtered last
-    5% of data, by separation (presummably, already detached) 
-    :param filterT: Plots the raw data in grey, and filters 
-    the force to the Number of points given. If none, assumes default % of curve
-    :param sensibleUnits: Plots in nm and pN, defaults to true
-    """
-    if (surfIdx is None):
-        surfIdx = np.argmin(sep)
-    sepUnits,forceUnits = NormalizeSepForce(sep,force,surfIdx,normalizeSep,
-                                            normalizeFor,sensibleUnits)
-    if (filterN is None):
-        filterN = int(np.ceil(DEF_FILTER_CONST*sepUnits.size))
-    # POST: go ahead and normalize/color
-    sepAppr = sepUnits[:surfIdx]
-    sepRetr = sepUnits[surfIdx:]
-    forceAppr = forceUnits[:surfIdx]
-    forceRetr = forceUnits[surfIdx:]
-    PlotFilteredSepForce(sepAppr,forceAppr,filterN=filterN,color='r',
-                         label="Approach")
-    PlotFilteredSepForce(sepRetr,forceRetr,filterN=filterN,color='b',
-                         label="Retract")
-    plt.xlim([min(sepUnits),max(sepUnits)])
-    pPlotUtil.lazyLabel("Separation [nm]","Force [pN]","Force Extension Curve")
-    return sepUnits,forceUnits
-
 def filterForce(force,filterN=None):
     if (filterN is None):
         filterN = int(np.ceil(DEF_FILTER_CONST*force.size))
     return savitskyFilter(force,filterN)
-
-def PlotFilteredSepForce(sep,force,filterN=None,labelRaw=None,
-                         linewidthFilt=2.0,color='r',**kwargs):
-    forceFilt =filterForce(force,filterN)
-    plt.plot(sep,forceFilt,color=color,lw=linewidthFilt,**kwargs)
-    # plot the raw data as grey
-    plt.plot(sep,force,color='k',label=labelRaw,alpha=0.3)
-    return forceFilt
-    
-
-

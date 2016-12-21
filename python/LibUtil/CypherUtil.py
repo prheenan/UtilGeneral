@@ -223,7 +223,7 @@ def GetYNameAndType(names):
         yName = FILE_END_Y_DEFL_METERS
     else:
         raise KeyError("Don't recognize a y value amoung {:s}".\
-                       format(lowerNames))
+                       format(names))
     return yType,SanitSingle(yName)
 
 def GetXNameAndType(names):
@@ -280,7 +280,11 @@ def Sanit(x):
     Returns:
          sanitized list
     """
-    return map(SanitSingle,x)
+    FirstPass =  map(SanitSingle,x)
+    # eliminate anything after the first underscore...
+    # if there is no underscore, this doesnt do anything.
+    # useful if someone has like "Image0001force_towd" to get just "force"
+    return [n.split("_")[0] for n in FirstPass]
     
 def GetForce(WaveDict):
     """
