@@ -45,6 +45,7 @@ def FormatImageAxis(ax=None,aspect='auto'):
     ax.set_aspect(aspect)
 
 
+
 def AddSubplotLabels(fig=None,axs=None,skip=0,
                      xloc=-0.03,yloc=1,fontsize=30,fontweight='bold',
                      bbox=dict(facecolor='none', edgecolor='black',
@@ -200,7 +201,7 @@ def title(lab,fontsize=g_font_title,**kwargs):
 
 def lazyLabel(xlab,ylab,titLab,yrotation=90,titley=1.0,bbox_to_anchor=None,
               frameon=False,loc='best',axis_kwargs=dict(),tick_kwargs=dict(),
-              legend_kwargs=dict(),
+              legend_kwargs=dict(),title_kwargs=dict(),
               useLegend=True,zlab=None,legendBgColor=None):
     """
     Easy method of setting the x,y, and title, and adding a legend
@@ -225,7 +226,7 @@ def lazyLabel(xlab,ylab,titLab,yrotation=90,titley=1.0,bbox_to_anchor=None,
     # set the labels and title
     xlabel(xlab,**axis_kwargs)
     ylabel(ylab,rotation=yrotation,**axis_kwargs)
-    title(titLab,y=titley,**axis_kwargs)
+    title(titLab,y=titley,**title_kwargs)
     # set the font
     tickAxisFont(**tick_kwargs)
     # if we have a z or a legemd, set those too.
@@ -348,8 +349,21 @@ def addColorBar(cax,ticks,labels,oritentation='vertical'):
     # horizontal colorbar
     cbar.ax.set_yticklabels(labels,fontsize=g_font_label)
 
-# add a second axis to ax.
 def secondAxis(ax,label,limits,secondY =True,color="Black",scale=None):
+    """
+    Adds a second axis to the named axis
+
+    Args:
+        ax: which axis to use
+        label: what to label the new axis
+        limits: limits to put on the new axis (data units)
+        secondY: if true, uses the y axis, else the x
+        color: what to color the new axis
+        scale: for the axis. if None, defaults to the already present one
+    Returns:
+        new axis
+    """
+    current = ax
     if (scale is None):
         if secondY:
             scale = ax.get_yscale() 
@@ -374,6 +388,7 @@ def secondAxis(ax,label,limits,secondY =True,color="Black",scale=None):
     [i.set_color(color) for i in tickLabels]
     lab.set_color(color)
     tickAxisFont(ax=ax2)
+    plt.sca(current)
     return ax2
 
 def pm(stdOrMinMax,mean=None,fmt=".3g"):
