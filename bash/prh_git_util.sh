@@ -31,14 +31,19 @@ function Ids
 	cd "$current"
 } 
 
+setup_ids()
+{
+    Ids "$ResDir"
+    Ids "$FitDir"
+    Ids "$IgorDir"
+}
+
 git_setup()
 {
     git clone --progress -v https://github.com/prheenan/Research "$ResDir"
     git clone --progress -v https://github.com/prheenan/BioModel "$FitDir"
     git clone --progress -v https://github.com/prheenan/IgorUtil "$IgorDir"
-    Ids "$ResDir"
-    Ids "$FitDir"
-    Ids "$IgorDir"
+    setup_ids
 }
 
 git_act()
@@ -60,3 +65,5 @@ git_push()
     git_act push
 }
 
+setup_ids || true
+git_setup
