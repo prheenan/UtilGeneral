@@ -1,3 +1,5 @@
+# copy this file into ~/.profile to have bash use it on login, e.g.:
+# cp GeneralUtil/bash/.profile ~/.profile
 export PS1="Speak 'Friend' and Enter: "
 home="$HOME"
 # where the profile is 
@@ -21,6 +23,11 @@ ARCHFLAGS="-arch x86_64" # Ensure user-installed binaries take precedence expor
 PATH=/usr/local/bin:/usr/local/mysql/bin/:$PATH # Load .bashrc/mysql if it exists
 utilDir="$home/src_prh/GeneralUtil/"
 ProfileDir="$utilDir/bash/"
+
+notepad()
+{
+	/c/Program\ Files\ \(x86\)/Notepad++/notepad++.exe $@
+}
 
 RefCypherDebug()
 {
