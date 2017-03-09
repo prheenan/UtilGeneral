@@ -1,6 +1,6 @@
 # copy this file into ~/.profile to have bash use it on login, e.g.:
 # cp GeneralUtil/bash/.profile ~/.profile
-export PS1="Speak 'Friend' and Enter: "
+export PS1="$: "
 home="$HOME"
 # where the profile is 
 base="$home"
@@ -12,8 +12,6 @@ export HISTSIZE="GOTCHA"
 export PATH=$PATH:/Library/TeX/Distributions/.DefaultTeX/Contents/Programs/texbin
 GOOD_RET=0
 BAS_RET=1
-
-alias python='python2.7'
 # use very strict compilationg for c/c++
 flags="-Wall -Wpedantic -Wextra"
 alias gcc='gcc ${flags}'
@@ -24,7 +22,7 @@ PATH=/usr/local/bin:/usr/local/mysql/bin/:$PATH # Load .bashrc/mysql if it exist
 utilDir="$home/src_prh/GeneralUtil/"
 ProfileDir="$utilDir/bash/"
 
-notepad()
+npp()
 {
 	/c/Program\ Files\ \(x86\)/Notepad++/notepad++.exe $@
 }
