@@ -1,5 +1,5 @@
 # import utilities for error repoorting etc
-import GenUtilities as util
+import GeneralUtil.python.GenUtilities as util
 # use matplotlib for plotting
 #http://matplotlib.org/faq/usage_faq.html#what-is-a-backend
 import matplotlib.pyplot  as plt
@@ -46,6 +46,29 @@ def FormatImageAxis(ax=None,aspect='auto'):
     ax.set_aspect(aspect)
 
 
+
+def autolabel(rects,label_func=lambda i,r: str(r.get_height()),
+              x_func=None,y_func=None,**kwargs):
+    """
+    Attach a text label above each bar displaying its height
+
+    Args:
+        rects: return from ax.bar
+        label_func: takes a rect and its index, returs the label
+    Returns:
+        nothing, but sets text labels
+    """
+    ax = plt.gca()
+    if (x_func is None):
+        x_func = lambda i,rect: rect.get_x() + rect.get_width()/2.
+    if (y_func is None):
+        y_func = lambda i,rect: rect.get_height() * 1.2
+    for i,rect in enumerate(rects):
+        height = rect.get_height()
+        text = label_func(i,rect)
+        x = x_func(i,rect)
+        y = y_func(i,rect)
+        ax.text(x,y,text,ha='center', va='bottom',**kwargs)
 
 def AddSubplotLabels(fig=None,axs=None,skip=0,
                      xloc=-0.03,yloc=1,fontsize=30,fontweight='bold',
@@ -121,7 +144,7 @@ def LegendSaveAndIncr(Fig,Base,Number=0,ext=".png",**kwargs):
     LegendAndSave(Fig,Base+str(Number) + ext,**kwargs)
     return Number + 1
 
-def colorbar(label,labelpad=10,rotation=270):
+def colorbar(label,labelpad=15,rotation=270):
     """
     Makes a simple color bar on the current plot, assuming that something
     like hist2d has already been called:
@@ -254,6 +277,7 @@ def lazyLabel(xlab,ylab,titLab,yrotation=90,titley=1.0,bbox_to_anchor=None,
         leg = legend(frameon=frameon,loc=loc,**legend_kwargs)
         if (legendBgColor is not None):
             setLegendBackground(leg,legendBgColor)
+        
 
 
 def setLegendBackground(legend,color):
