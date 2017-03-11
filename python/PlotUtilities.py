@@ -45,7 +45,17 @@ def FormatImageAxis(ax=None,aspect='auto'):
     ax.axis('off')
     ax.set_aspect(aspect)
 
+def _remove_ticks(ax):
+    ax.set_ticklabels([])
 
+def no_y_ticks(ax=None):
+    ax = plt.gca() if ax is None else ax
+    _remove_ticks(ax.get_yaxis())
+
+def no_x_ticks(ax=None):
+    ax = plt.gca() if ax is None else ax
+    _remove_ticks(ax.get_xaxis())
+    
 
 def autolabel(rects,label_func=lambda i,r: str(r.get_height()),
               x_func=None,y_func=None,**kwargs):
@@ -302,8 +312,8 @@ def axis_locator(ax,n_major,n_minor):
         ax.set_minor_locator(MaxNLocator(n_minor))
     
     
-def tick_axis_number(ax=None,num_x_major=5,num_x_minor=15,num_y_major=5,
-                     num_y_minor=15):
+def tick_axis_number(ax=None,num_x_major=5,num_x_minor=None,num_y_major=5,
+                     num_y_minor=None):
     """
     Sets the locators on the x and y ticks
 
@@ -316,6 +326,10 @@ def tick_axis_number(ax=None,num_x_major=5,num_x_minor=15,num_y_major=5,
     """
     if (ax is None):
         ax = plt.gca()
+    if (num_x_minor is None):
+        num_x_minor = 2 * num_x_major
+    if (num_y_minor is None):
+        num_y_minor = 2 * num_y_major
     axis_locator(ax.xaxis,num_x_major,num_x_minor)
     axis_locator(ax.yaxis,num_y_major,num_y_minor)
     
