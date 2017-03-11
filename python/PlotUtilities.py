@@ -94,13 +94,15 @@ def AddSubplotLabels(fig=None,axs=None,skip=0,
                 fontsize=fontsize, fontweight=fontweight, va='top', ha='right',
                 bbox=bbox)
 
-def _ScaleBarAxis(ax,x,y,text_args,linewidth=5,color="k"):
+def _ScaleBarAxis(ax,x,y,text_args,linewidth=5,alpha=1,background_alpha=1,
+                  background_color='w',color="k"):
     """
     see: 
     stackoverflow.com/questions/12998430/remove-xticks-in-a-matplot-lib-plot
     """
-    plt.plot(x,y,linewidth=linewidth,color=color)
-    ax.text(**text_args)
+    plt.plot(x,y,linewidth=linewidth,color=color,alpha=alpha)
+    t = ax.text(**text_args)
+    t.set_bbox(dict(alpha=background_alpha,color=background_color))
     
 def ScaleBar(x_kwargs,y_kwargs,text_x=dict(),text_y=dict(),kill_axis=True,
              ax=None):
@@ -144,18 +146,18 @@ def LegendSaveAndIncr(Fig,Base,Number=0,ext=".png",**kwargs):
     LegendAndSave(Fig,Base+str(Number) + ext,**kwargs)
     return Number + 1
 
-def colorbar(label,labelpad=15,rotation=270):
+def colorbar(label,labelpad=25,rotation=270,fontsize=g_font_legend):
     """
     Makes a simple color bar on the current plot, assuming that something
     like hist2d has already been called:
     
     Args:
         label: what to put on the colorpad
-        labelpad,rotation: see cbar.set_label: 
+        labelpad,rotation,fontsize: see cbar.set_label: 
  matplotlib.org/api/colorbar_api.html#matplotlib.colorbar.ColorbarBase.set_label
     """
     cbar = plt.colorbar()
-    cbar.set_label(label,labelpad=labelpad,rotation=rotation)
+    cbar.set_label(label,labelpad=labelpad,rotation=rotation,fontsize=fontsize)
     return cbar
 
 def errorbar(x,y,yerr,label,fmt=None,alpha=0.1,ecolor='r',markersize=3.0,
