@@ -7,6 +7,7 @@ import pickle
 from scipy.sparse import csc_matrix
 
 
+
 def getCheckpoint(filePath,orCall,force,*args,**kwargs):
     """
     gets cache data from a previous checkpoint
@@ -44,6 +45,25 @@ def _npySave(filePath,dataToSave):
     else:
         np.savez(filePath,dataToSave)
 
+def lazy_load(file_path,data,force):
+    """
+    this is a way of caching data, or reading the cached data out if it 
+    already exists
+    
+    Args:
+        see getCheckpoint
+    Returns:
+        see getCheckpoint
+    """
+    data_func = lambda *args,**kwargs: data
+    return getCheckpoint(file_path,orCall=data_func,force=False)
+     
+def lazy_save(file_path,data):
+    return saveFile(file_path,data,useNpy=False)
+
+def lazy_load(file_path):
+    return loadFile(file_path,useNpy=False)
+        
 def saveFile(filePath,dataToSave,useNpy):
     path = pGenUtil.getBasePath(filePath)
     pGenUtil.ensureDirExists(path)
@@ -68,6 +88,18 @@ def loadFile(filePath,useNpy):
         return data
         
 def _checkpointGen(filePath,orCall,force,unpack,useNpy,*args,**kwargs):
+    """
+    this is a way of caching data, or reading the cached data out if it 
+    already exists
+    
+    Args:
+        see getCheckpoint, except:
+        unpack: if we should unpack the data    
+        useNpy: if numpy should be used
+        *args,**kwargs: passedd to orCall if the file doesnt exist
+    Returns:
+        see getCheckpoint
+    """
     # XXX assume pickling now, ends with 'npz'
     # if the file from 'filePath' exists and 'force' is false, loads the file
     # otherwise, calls 'orCall' and saves the result. *args and **kwargs
