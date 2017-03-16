@@ -19,9 +19,7 @@ g_minor_tick_width = 1.25
 g_minor_tick_length= 4
 
 # based on :http://stackoverflow.com/questions/18699027/write-an-upright-mu-in-matplotlib
-#plt.rc('font', **{'sans-serif' : 'Arial', 'family' : 'sans-serif'})
 # following line sets the mathtext to whatever is our font
-plt.rcParams['mathtext.fontset'] = 'custom'
 plt.rcParams['font.sans-serif'] = 'Georgia'
 plt.rcParams['font.family'] = 'sans-serif'
 # see: http://matplotlib.org/examples/pylab_examples/usetex_baseline_test.html
@@ -31,19 +29,74 @@ from string import ascii_lowercase
 from matplotlib.ticker import LogLocator,MaxNLocator
 
 
-def FormatImageAxis(ax=None,aspect='auto'):
+import string
+from itertools import cycle
+from six.moves import zip
+
+def label_axes(fig, labels=None, loc=None, add_bold=False,
+               axis_func= lambda x: x,**kwargs):
+    """
+    Walks through axes and labels each.
+    kwargs are collected and passed to `annotate`
+    Parameters
+    credit: 
+
+    gist.github.com/tacaswell/9643166
+
+    and
+
+    stackoverflow.com/questions/22508590/enumerate-plots-in-matplotlib-figure
+    ----------
+    fig : Figure
+         Figure object to work on
+    labels : iterable or None
+        iterable of strings to use to label the axes.
+        If None, lower case letters are used.
+    loc : len=2 tuple of floats (or list of them, one per axis)
+        Where to put the label in axes-fraction units
+    """
+    if labels is None:
+        labels = ["({:s})".format(s) for s in string.lowercase]
+    # re-use labels rather than stop labeling
+    labels = cycle(labels)
+    n_ax = fig.axes
+    if loc is None:
+        loc = (-1.1, 1.05)
+    if (isinstance(loc,tuple)):
+        loc = [loc for _ in n_ax]
+    for ax, lab,loc_tmp in zip(axis_func(fig.axes), labels,loc):
+        ax.annotate(lab, xy=loc_tmp,
+                    xycoords='axes fraction',**kwargs)
+
+def label_tom(fig,labels=None, loc=None,fontsize=g_font_legend,**kwargs):
+    """
+    labels each subplot in fig
+
+    fig : Figure
+         Figure object to work on
+
+    loc,labels : see label_axes
+    others: passedto text arguments
+    """
+    text_args = dict(horizontalalignment='center',
+                     verticalalignment='center',
+                     fontweight='bold',
+                     fontsize=fontsize,**kwargs)
+    label_axes(fig,labels=labels,loc=loc,**text_args)
+    
+def FormatImageAxis(ax=None):
     """
     Formats the given (default current) axis for displaying an image 
     (no ticks,etc)
 
     Args:
          ax: the axis to format
+         aspect: passed to the axis
     """
     if (ax is None):
         ax = plt.gca()
     # Turn off axes and set axes limits
     ax.axis('off')
-    ax.set_aspect(aspect)
 
 def _remove_ticks(ax):
     ax.set_ticklabels([])
@@ -57,8 +110,8 @@ def no_x_ticks(ax=None):
     _remove_ticks(ax.get_xaxis())
     
 
-def autolabel(rects,label_func=lambda i,r: str(r.get_height()),
-              x_func=None,y_func=None,**kwargs):
+def autolabel(rects,label_func=lambda i,r: "{:.3g}".format(r.get_height()),
+              x_func=None,y_func=None,fontsize=g_font_legend,**kwargs):
     """
     Attach a text label above each bar displaying its height
 
@@ -78,7 +131,7 @@ def autolabel(rects,label_func=lambda i,r: str(r.get_height()),
         text = label_func(i,rect)
         x = x_func(i,rect)
         y = y_func(i,rect)
-        ax.text(x,y,text,ha='center', va='bottom',**kwargs)
+        ax.text(x,y,text,ha='center', va='bottom',fontsize=fontsize,**kwargs)
 
 def AddSubplotLabels(fig=None,axs=None,skip=0,
                      xloc=-0.03,yloc=1,fontsize=30,fontweight='bold',
@@ -306,7 +359,8 @@ def setLegendBackground(legend,color):
     legend.get_frame().set_facecolor(color)
 
 def axis_locator(ax,n_major,n_minor):
-    if (ax.get_scale() == 'log'):
+    scale = ax.get_scale()
+    if (scale == 'log'):
         ax.set_major_locator(LogLocator(numticks=n_major))
         ax.set_minor_locator(LogLocator(numticks=n_minor))
     else:

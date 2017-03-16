@@ -1,9 +1,9 @@
 pipe_fileIdx = 0
 pipe_funcIdx = 1
 
-import GenUtilities as pGenUtil
+import GeneralUtil.python.GenUtilities as pGenUtil
 import numpy as np
-import pickle
+import cPickle
 from scipy.sparse import csc_matrix
 
 
@@ -45,7 +45,7 @@ def _npySave(filePath,dataToSave):
     else:
         np.savez(filePath,dataToSave)
 
-def lazy_load(file_path,data,force):
+def lazy_reload(file_path,data,force):
     """
     this is a way of caching data, or reading the cached data out if it 
     already exists
@@ -74,7 +74,7 @@ def saveFile(filePath,dataToSave,useNpy):
         # open the file in binary format for writing
         with open(filePath, 'wb') as fh:
             # XXX make protocol specifiable?
-            pickle.dump(dataToSave,fh,pickle.HIGHEST_PROTOCOL)
+            cPickle.dump(dataToSave,fh,cPickle.HIGHEST_PROTOCOL)
 
 def loadFile(filePath,useNpy):
     # assuming file exists, loads it. God help you if you dont check existance
@@ -83,7 +83,7 @@ def loadFile(filePath,useNpy):
     else:
         # assume we pickle in binary
         fh = open(filePath,'rb')
-        data = pickle.load(fh)
+        data = cPickle.load(fh)
         fh.close()
         return data
         

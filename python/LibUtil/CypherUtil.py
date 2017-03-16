@@ -98,25 +98,25 @@ def ConstToDeflMeters(InType,SpringConstant,Invols):
         }
     if InType not in mDict:
         ValueError("Bad Type {:s}".format(InType))
-	# POST: have the conversion
+        # POST: have the conversion
     return mDict[InType]
 
 # A function to convert a Y data type to another Y data type
 # Note: If Present, DeflMeters is set with the deflection in meters
 # This is useful, since any X conversion needs the deflection in meters
 def ConvertY(WaveObj,InType,OutType):
-	# Switched based on the input type,  to get the conversion
-	# We will always convert to DeflMeters, then back to Volts
-	# Note: invols and springconstant are in V/nm and N/m respectively
+        # Switched based on the input type,  to get the conversion
+        # We will always convert to DeflMeters, then back to Volts
+        # Note: invols and springconstant are in V/nm and N/m respectively
         InWave = WaveObj.DataY
-	SpringConstant= WaveObj.SpringConstant()
-	Invols = WaveObj.Invols()
-	# POST: we have a real conversion to make
-	ToDeflMeters = ConstToDeflMeters(InType,
+        SpringConstant= WaveObj.SpringConstant()
+        Invols = WaveObj.Invols()
+        # POST: we have a real conversion to make
+        ToDeflMeters = ConstToDeflMeters(InType,
                                          SpringConstant=SpringConstant,
                                          Invols=Invols)
-	# POST: we know how to convert the y type into deflection meters
-	# Detrermine how to convert the y type into the desired output type.
+        # POST: we know how to convert the y type into deflection meters
+        # Detrermine how to convert the y type into the desired output type.
         outDict = {\
             # To convert from meters to volts, multiply by 1/invols
             MOD_Y_TYPE_DEFL_VOLTS: 1/Invols,
@@ -142,15 +142,15 @@ def ConvertY(WaveObj,InType,OutType):
 # with a much smaller function, but the machinery is here for more complicated 
 # conversions, if they become necessary.
 def ConvertX(WaveObj,InType,OutType,DeflMeters):
-	# Determine how to convert to ZSnsr; a factor infront of Deflection
-	# In other words, we will calculate: Out = In + (toZSnr+ fromZSnr)*Defl
-	# Zsnsr = Defl-Sep by Cypher Convention
-	# XXX check output type  parity...
+        # Determine how to convert to ZSnsr; a factor infront of Deflection
+        # In other words, we will calculate: Out = In + (toZSnr+ fromZSnr)*Defl
+        # Zsnsr = Defl-Sep by Cypher Convention
+        # XXX check output type  parity...
         inWave = WaveObj.DataY # note: "DataY" is actually the zsnsr/DeflM
         # first, do we actually need to do anything?
         if (InType == OutType):
             Converted = inWave[:]
-	elif (InType == MOD_X_TYPE_SEP):
+        elif (InType == MOD_X_TYPE_SEP):
             # Converting to Zsnsr
             Converted = DeflMeters[:]-inWave[:]
         elif (InType == MOD_X_TYPE_Z_SENSOR):
