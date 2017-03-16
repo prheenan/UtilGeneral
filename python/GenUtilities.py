@@ -94,7 +94,7 @@ def lineIntersectParam(aThenB1,aThenB2):
 
 def linModel(xData,a,b):
     # y = ax+b
-    return xData*a+b
+    return np.array(xData)*a+b
 
 def GenFit(x,y,model=linModel,**kwargs):
     params,Cov = curve_fit(f=model,xdata=x,ydata=y,**kwargs)

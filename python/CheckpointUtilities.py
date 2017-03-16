@@ -1,9 +1,14 @@
+from __future__ import unicode_literals
 pipe_fileIdx = 0
 pipe_funcIdx = 1
 
 import GeneralUtil.python.GenUtilities as pGenUtil
 import numpy as np
-import cPickle
+try:
+    import cPickle
+except ImportError:
+    import _pickle as cPickle
+
 from scipy.sparse import csc_matrix
 
 

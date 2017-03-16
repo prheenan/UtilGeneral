@@ -61,7 +61,7 @@ def label_axes(fig, labels=None, loc=None, add_bold=False,
     labels = cycle(labels)
     n_ax = fig.axes
     if loc is None:
-        loc = (-1.1, 1.05)
+        loc = (-0.15, 1.05)
     if (isinstance(loc,tuple)):
         loc = [loc for _ in n_ax]
     for ax, lab,loc_tmp in zip(axis_func(fig.axes), labels,loc):
