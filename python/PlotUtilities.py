@@ -12,21 +12,28 @@ import os
 
 g_font_label = 20
 g_font_title = 22
+g_font_tick = 16
 g_font_legend = 18
 g_tick_thickness = 1.75
 g_tick_length = 10
 g_minor_tick_width = 1.25
 g_minor_tick_length= 4
-
+# make the hatches larges
+import matplotlib as mpl
+mpl.rcParams['hatch.linewidth'] = 4
 # based on :http://stackoverflow.com/questions/18699027/write-an-upright-mu-in-matplotlib
 # following line sets the mathtext to whatever is our font
 plt.rcParams['font.sans-serif'] = 'Georgia'
 plt.rcParams['font.family'] = 'sans-serif'
 # see: http://matplotlib.org/examples/pylab_examples/usetex_baseline_test.html
 # this line makes it slow, etc plt.rcParams['text.usetex'] = True
-
 from string import ascii_lowercase
 from matplotlib.ticker import LogLocator,MaxNLocator
+# for the zoom effect
+from mpl_toolkits.axes_grid1.inset_locator import BboxPatch, BboxConnector,\
+    BboxConnectorPatch
+from matplotlib.transforms import Bbox, TransformedBbox, \
+    blended_transform_factory
 
 
 import string
@@ -56,7 +63,7 @@ def label_axes(fig, labels=None, loc=None, add_bold=False,
         Where to put the label in axes-fraction units
     """
     if labels is None:
-        labels = ["({:s})".format(s) for s in string.lowercase]
+        labels = ["{:s}".format(s) for s in string.uppercase]
     # re-use labels rather than stop labeling
     labels = cycle(labels)
     n_ax = fig.axes
@@ -98,17 +105,44 @@ def FormatImageAxis(ax=None):
     # Turn off axes and set axes limits
     ax.axis('off')
 
-def _remove_ticks(ax):
+def _remove_labels(ax):
     ax.set_ticklabels([])
 
-def no_y_ticks(ax=None):
-    ax = plt.gca() if ax is None else ax
-    _remove_ticks(ax.get_yaxis())
+def _remove_grid(ax):
+    ax.set_visible(False)
 
-def no_x_ticks(ax=None):
+def no_y_label(ax=None):
     ax = plt.gca() if ax is None else ax
-    _remove_ticks(ax.get_xaxis())
-    
+    _remove_labels(ax.get_yaxis())
+
+def no_x_label(ax=None):
+    ax = plt.gca() if ax is None else ax
+    _remove_labels(ax.get_xaxis())
+
+def no_x_grid(ax=None):
+    ax = plt.gca() if ax is None else ax
+    _remove_grid(ax.get_xaxis())
+
+def no_y_grid(ax=None):
+    ax = plt.gca() if ax is None else ax
+    _remove_grid(ax.get_yaxis())
+
+def no_x_axis(ax=None):
+    if (ax is None):
+        ax = plt.gca()
+    ax.xaxis.set_visible(False)
+
+def no_x_anything(ax=None):
+    no_x_axis(ax)
+    no_x_grid(ax)
+
+def x_label_on_top(ax=None):
+    if (ax is None):
+        ax = plt.gca()
+    ax.xaxis.set_label_position('top') 
+    ax.xaxis.set_tick_params(labeltop='on',labelbottom='off')
+
+
 
 def autolabel(rects,label_func=lambda i,r: "{:.3g}".format(r.get_height()),
               x_func=None,y_func=None,fontsize=g_font_legend,**kwargs):
@@ -157,27 +191,51 @@ def AddSubplotLabels(fig=None,axs=None,skip=0,
                 fontsize=fontsize, fontweight=fontweight, va='top', ha='right',
                 bbox=bbox)
 
-def _ScaleBarAxis(ax,x,y,text_args,linewidth=5,alpha=1,background_alpha=1,
-                  background_color='w',color="k"):
+def scale_bar_x(x,y,s,**kwargs):
     """
-    see: 
-    stackoverflow.com/questions/12998430/remove-xticks-in-a-matplot-lib-plot
+    makes an x scale bar
+
+    Args:
+        x: where the x center of the text should be
+        y: where the y center of the text should be
+        **kwargs: passed to _scale_bar
     """
-    plt.plot(x,y,linewidth=linewidth,color=color,alpha=alpha)
-    t = ax.text(**text_args)
-    t.set_bbox(dict(alpha=background_alpha,color=background_color))
-    
-def ScaleBar(x_kwargs,y_kwargs,text_x=dict(),text_y=dict(),kill_axis=True,
-             ax=None):
+    _scale_bar(x=x,y=y,s=s,height=0,**kwargs)
+
+def _scale_bar(x,y,s,ax=None,width=None,height=None,color='w',
+               bg_color='k',linewidth=25,fontsize=25,**kwargs):
+    """
+    makes a scale bar
+
+    Args:
+        x: see scale_bar_x 
+        y: see scale_bar_x 
+        ax: where to plot
+        height,width: of the scale bar. 
+        color: of the font
+        bg_color: of the backround for the scale bar
+        linewidth: for the plotted line (which is really the background)
+        **kwargs: passed as font arguments to annotate (e.g. rotation, for y)
+    """
     if (ax is None):
         ax = plt.gca()
-    if (kill_axis):
-        ax.axis('off')
-    _ScaleBarAxis(ax,text_args=text_x,**x_kwargs)
-    _ScaleBarAxis(ax,text_args=text_y,**y_kwargs)
-        
+    xlim,ylim = ax.get_xlim(),ax.get_ylim()
+    default_length_pct = 0.1
+    if (width is None):
+        width = (xlim[1]-xlim[0]) * default_length_pct
+    if (height is None):
+        height = (ylim[1]-ylim[0]) * default_length_pct
+    box_props = dict(color=bg_color,pad=0,**kwargs)
+    font_kwargs = dict(color='w',horizontalalignment='center',
+                       verticalalignment='center',fontsize=fontsize)
+    t = ax.annotate(s, xy=(x,y),bbox=box_props,
+                    **font_kwargs)
+    x_draw = [x-width/2,x+width/2]
+    y_draw = [y-height/2,y+height/2]
+    plt.plot(x_draw,y_draw,color=bg_color,linewidth=linewidth)
 
-def LegendAndSave(Fig,SaveName,loc="upper right",frameon=True,close=False,
+
+def _LegendAndSave(Fig,SaveName,loc="upper right",frameon=True,close=False,
                   tight=True,**kwargs):
     """
     Refreshes the legend on the given figure, saves it *without* closing
@@ -193,7 +251,7 @@ def LegendAndSave(Fig,SaveName,loc="upper right",frameon=True,close=False,
     legend(loc=loc,frameon=frameon)
     savefig(Fig,SaveName,close=close,tight=tight,**kwargs)
 
-def LegendSaveAndIncr(Fig,Base,Number=0,ext=".png",**kwargs):
+def legend_and_save(Fig,Base,Number=0,ext=".png",**kwargs):
     """
     Same as legend and save, except takes a "base" 
 
@@ -206,10 +264,12 @@ def LegendSaveAndIncr(Fig,Base,Number=0,ext=".png",**kwargs):
     Returns:
         Number+1
     """
-    LegendAndSave(Fig,Base+str(Number) + ext,**kwargs)
+    _LegendAndSave(Fig,Base+str(Number) + ext,**kwargs)
     return Number + 1
 
-def colorbar(label,labelpad=25,rotation=270,fontsize=g_font_legend):
+def colorbar(label,labelpad=25,rotation=270,fontsize=g_font_legend,
+             fontsize_ticks=g_font_legend,
+             bar_kwargs=dict()):
     """
     Makes a simple color bar on the current plot, assuming that something
     like hist2d has already been called:
@@ -219,8 +279,9 @@ def colorbar(label,labelpad=25,rotation=270,fontsize=g_font_legend):
         labelpad,rotation,fontsize: see cbar.set_label: 
  matplotlib.org/api/colorbar_api.html#matplotlib.colorbar.ColorbarBase.set_label
     """
-    cbar = plt.colorbar()
+    cbar = plt.colorbar(**bar_kwargs)
     cbar.set_label(label,labelpad=labelpad,rotation=rotation,fontsize=fontsize)
+    cbar.ax.tick_params(labelsize=fontsize_ticks)
     return cbar
 
 def errorbar(x,y,yerr,label,fmt=None,alpha=0.1,ecolor='r',markersize=3.0,
@@ -234,11 +295,11 @@ def errorbar(x,y,yerr,label,fmt=None,alpha=0.1,ecolor='r',markersize=3.0,
     plt.plot(x, y-yerr,'b--')
     
 def legend(fontsize=g_font_legend,loc=None,frameon=False,
-           bbox_to_anchor=None,**kwargs):
+           bbox_to_anchor=None,fancybox=False,**kwargs):
     if (loc is None):
         loc = 'best'
     return plt.legend(fontsize=fontsize,loc=loc,frameon=frameon,
-                      bbox_to_anchor=bbox_to_anchor,**kwargs)
+                      fancybox=fancybox,bbox_to_anchor=bbox_to_anchor,**kwargs)
 
 
 def intLim(vals,xAxis=True,factor=0.5):
@@ -307,7 +368,7 @@ def title(lab,fontsize=g_font_title,**kwargs):
 
 def lazyLabel(xlab,ylab,titLab,yrotation=90,titley=1.0,bbox_to_anchor=None,
               frameon=False,loc='best',axis_kwargs=dict(),tick_kwargs=dict(),
-              legend_kwargs=dict(),title_kwargs=dict(),
+              legend_kwargs=dict(),title_kwargs=dict(),legend_width=5,
               useLegend=True,zlab=None,legendBgColor=None):
     """
     Easy method of setting the x,y, and title, and adding a legend
@@ -342,8 +403,16 @@ def lazyLabel(xlab,ylab,titLab,yrotation=90,titley=1.0,bbox_to_anchor=None,
         leg = legend(frameon=frameon,loc=loc,**legend_kwargs)
         if (legendBgColor is not None):
             setLegendBackground(leg,legendBgColor)
-        
 
+def set_legend_kwargs(ax=None,linewidth=2,background_color='w',
+                      color='k',**kwargs):
+    if (ax is None):
+        ax = plt.gca()
+    leg = ax.get_legend()
+    frame = leg.get_frame()
+    setLegendBackground(leg,background_color)
+    frame.set_linewidth(linewidth)
+    frame.set_edgecolor(color)
 
 def setLegendBackground(legend,color):
     """
@@ -389,7 +458,7 @@ def tick_axis_number(ax=None,num_x_major=5,num_x_minor=None,num_y_major=5,
     axis_locator(ax.xaxis,num_x_major,num_x_minor)
     axis_locator(ax.yaxis,num_y_major,num_y_minor)
     
-def tickAxisFont(fontsize=g_font_label,
+def tickAxisFont(fontsize=g_font_tick,
                  major_tick_width=g_tick_thickness,
                  major_tick_length=g_tick_length,
                  minor_tick_width=g_minor_tick_width,
@@ -406,10 +475,12 @@ def tickAxisFont(fontsize=g_font_label,
     """
     if (ax is None):
         ax = plt.gca()
-    ax.tick_params('both', length=major_tick_length, width=major_tick_width,
-                   labelsize=fontsize,which='major')
-    ax.tick_params('both', length=minor_tick_length, width=minor_tick_width,
-                   which='minor')
+    common = dict(axis='both',direction='in',bottom=True, top=True, 
+                  left=True, right=True)
+    ax.tick_params(length=major_tick_length, width=major_tick_width,
+                   labelsize=fontsize,which='major',**common)
+    ax.tick_params(length=minor_tick_length, width=minor_tick_width,
+                   which='minor',**common)
     if (hasattr(ax, 'zaxis') and ax.zaxis is not None):
         ax.zaxis.set_tick_params(width=g_tick_thickness,length=g_tick_length)
 
@@ -563,6 +634,70 @@ def figure(figsize=None,xSize=10,ySize=8,dpi=100):
 
 def getNStr(n,space = " "):
     return space + "n={:d}".format(n)
+
+def connect_bbox(bbox1, bbox2,
+                 loc1a, loc2a, loc1b, loc2b,
+                 prop_lines, prop_patches=None):
+    """
+    connect the two bboxes see zoom_effect01(ax1, ax2, xmin, xmax)
+    """
+    if prop_patches is None:
+        prop_patches = prop_lines.copy()
+    c1 = BboxConnector(bbox1, bbox2, loc1=loc1a, loc2=loc2a, **prop_lines)
+    c1.set_clip_on(False)
+    c2 = BboxConnector(bbox1, bbox2, loc1=loc1b, loc2=loc2b, **prop_lines)
+    c2.set_clip_on(False)
+    bbox_patch1 = BboxPatch(bbox1, color='k',**prop_patches)
+    bbox_patch2 = BboxPatch(bbox2, color='w',**prop_patches)
+    p = BboxConnectorPatch(bbox1, bbox2,
+                           # loc1a=3, loc2a=2, loc1b=4, loc2b=1,
+                           loc1a=loc1a, loc2a=loc2a, loc1b=loc1b, loc2b=loc2b,
+                           **prop_patches)
+    p.set_clip_on(False)
+
+    return c1, c2, bbox_patch1, bbox_patch2, p
+
+
+def zoom_effect01(ax1, ax2, xmin, xmax, **kwargs):
+    """
+    connect ax1 & ax2. The x-range of (xmin, xmax) in both axes will
+    be marked.  The keywords parameters will be used to create
+    patches.
+
+    Args:
+        ax1 : the main axes
+        ax1 : the zoomed axes
+        (xmin,xmax) : the limits of the colored area in both plot axes.
+    """
+
+    trans1 = blended_transform_factory(ax1.transData, ax1.transAxes)
+    trans2 = blended_transform_factory(ax2.transData, ax2.transAxes)
+
+    bbox = Bbox.from_extents(xmin, 0, xmax, 1)
+
+    mybbox1 = TransformedBbox(bbox, trans1)
+    mybbox2 = TransformedBbox(bbox, trans2)
+
+    prop_patches = kwargs.copy()
+    alpha_path = 0.2
+    alpha_line = 0.7
+    line_width = 3
+    prop_patches["ec"] = "none"
+    prop_patches["alpha"] = alpha_path
+    prop_lines = dict(color='k',alpha=alpha_line,linewidth=line_width,**kwargs)
+    c1, c2, bbox_patch1, bbox_patch2, p = \
+        connect_bbox(mybbox1, mybbox2,
+                     loc1a=3, loc2a=2, loc1b=4, loc2b=1,
+                     prop_lines=prop_lines, prop_patches=prop_patches)
+
+    ax1.add_patch(bbox_patch1)
+    ax2.add_patch(bbox_patch2)
+    ax2.add_patch(c1)
+    ax2.add_patch(c2)
+    ax2.add_patch(p)
+
+    return c1, c2, bbox_patch1, bbox_patch2, p
+
 
 # legacy API. plan is now to mimic matplotlib 
 def colorCyc(num,cmap = plt.cm.winter):
