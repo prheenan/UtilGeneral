@@ -87,9 +87,8 @@ def loadFile(filePath,useNpy):
         return _npyLoad(filePath,unpack)
     else:
         # assume we pickle in binary
-        fh = open(filePath,'rb')
-        data = cPickle.load(fh)
-        fh.close()
+        with open(filePath, 'rb') as fh:
+            data = cPickle.load(fh)
         return data
         
 def _checkpointGen(filePath,orCall,force,unpack,useNpy,*args,**kwargs):

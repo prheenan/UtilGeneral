@@ -23,7 +23,7 @@ import matplotlib as mpl
 mpl.rcParams['hatch.linewidth'] = 4
 # based on :http://stackoverflow.com/questions/18699027/write-an-upright-mu-in-matplotlib
 # following line sets the mathtext to whatever is our font
-plt.rcParams['font.sans-serif'] = 'Georgia'
+plt.rcParams['font.sans-serif'] = 'Arial'
 plt.rcParams['font.family'] = 'sans-serif'
 # see: http://matplotlib.org/examples/pylab_examples/usetex_baseline_test.html
 # this line makes it slow, etc plt.rcParams['text.usetex'] = True
@@ -463,7 +463,7 @@ def tickAxisFont(fontsize=g_font_tick,
                  major_tick_length=g_tick_length,
                  minor_tick_width=g_minor_tick_width,
                  minor_tick_length=g_minor_tick_length,
-                 ax=None):
+                 ax=None,common_dict=None):
     """
     sets the tick axis font and tick sizes
 
@@ -475,12 +475,13 @@ def tickAxisFont(fontsize=g_font_tick,
     """
     if (ax is None):
         ax = plt.gca()
-    common = dict(axis='both',direction='in',bottom=True, top=True, 
-                  left=True, right=True)
+    if (common_dict is None):
+        common_dict = dict(axis='both',direction='in',bottom=True, top=True, 
+                           left=True, right=True)
     ax.tick_params(length=major_tick_length, width=major_tick_width,
-                   labelsize=fontsize,which='major',**common)
+                   labelsize=fontsize,which='major',**common_dict)
     ax.tick_params(length=minor_tick_length, width=minor_tick_width,
-                   which='minor',**common)
+                   which='minor',**common_dict)
     if (hasattr(ax, 'zaxis') and ax.zaxis is not None):
         ax.zaxis.set_tick_params(width=g_tick_thickness,length=g_tick_length)
 
@@ -571,6 +572,10 @@ def secondAxis(ax,label,limits,secondY =True,color="Black",scale=None):
     [i.set_color(color) for i in tickLabels]
     lab.set_color(color)
     tickAxisFont(ax=ax2)
+    if (secondY):
+        current.tick_params(right=False)
+    else:
+        current.tick_params(top=False)
     plt.sca(current)
     return ax2
 
