@@ -127,18 +127,23 @@ def no_y_grid(ax=None):
     ax = plt.gca() if ax is None else ax
     _remove_grid(ax.get_yaxis())
 
-def no_x_axis(ax=None):
-    if (ax is None):
-        ax = plt.gca()
+def no_x_axis(ax=plt.gca()):
     ax.xaxis.set_visible(False)
+    
+def no_y_axis(ax=plt.gca()):
+    ax.yaxis.set_visible(False)    
 
-def no_x_anything(ax=None):
+def no_x_anything(ax=plt.gca()):
     no_x_axis(ax)
     no_x_grid(ax)
+    no_x_label(ax)
+    
+def no_y_anything(ax=plt.gca()):
+    no_y_axis(ax)
+    no_y_grid(ax)    
+    no_y_label(ax)    
 
-def x_label_on_top(ax=None):
-    if (ax is None):
-        ax = plt.gca()
+def x_label_on_top(ax=plt.gca()):
     ax.xaxis.set_label_position('top') 
     ax.xaxis.set_tick_params(labeltop='on',labelbottom='off')
 
@@ -463,7 +468,8 @@ def tickAxisFont(fontsize=g_font_tick,
                  major_tick_length=g_tick_length,
                  minor_tick_width=g_minor_tick_width,
                  minor_tick_length=g_minor_tick_length,
-                 ax=None,common_dict=None):
+                 ax=None,common_dict=None,axis='both',bottom=True,
+                 top=True,left=True,right=True):
     """
     sets the tick axis font and tick sizes
 
@@ -475,9 +481,8 @@ def tickAxisFont(fontsize=g_font_tick,
     """
     if (ax is None):
         ax = plt.gca()
-    if (common_dict is None):
-        common_dict = dict(axis='both',direction='in',bottom=True, top=True, 
-                           left=True, right=True)
+    common_dict = dict(direction='in',
+                       axis=axis,bottom=bottom,top=top,right=right,left=left)
     ax.tick_params(length=major_tick_length, width=major_tick_width,
                    labelsize=fontsize,which='major',**common_dict)
     ax.tick_params(length=minor_tick_length, width=minor_tick_width,
@@ -561,6 +566,9 @@ def secondAxis(ax,label,limits,secondY =True,color="Black",scale=None):
         lab = ylabel(label,ax=ax2)
         tickLabels = ax2.get_yticklabels()
         tickLims =  ax2.get_yticks()
+        axis_opt = dict(axis='y',left=False)
+        other_axis_opt = dict(axis='y',right=False)
+        ax.yaxis.tick_left()
     else:
         ax2 = ax.twiny()
         ax2.set_xscale(scale, nonposy='clip')
@@ -569,13 +577,12 @@ def secondAxis(ax,label,limits,secondY =True,color="Black",scale=None):
         lab = xlabel(label,ax=ax2)
         tickLabels = ax2.get_xticklabels()
         tickLims =  ax2.get_xticks()
+        axis_opt = dict(axis='x',bottom=False)
+        other_axis_opt = dict(axis='x',top=False)
     [i.set_color(color) for i in tickLabels]
     lab.set_color(color)
-    tickAxisFont(ax=ax2)
-    if (secondY):
-        current.tick_params(right=False)
-    else:
-        current.tick_params(top=False)
+    current.tick_params(**other_axis_opt)
+    tickAxisFont(ax=ax2,**axis_opt)
     plt.sca(current)
     return ax2
 
