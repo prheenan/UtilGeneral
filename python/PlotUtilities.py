@@ -9,14 +9,15 @@ import numpy as np
 from itertools import cycle
 import sys
 import os 
-from matplotlib.ticker import FixedLocator
+from matplotlib.ticker import FixedLocator,NullLocator
 
-g_font_label = 11
-g_font_title = 12
-g_font_tick = 9
-g_font_legend = 10
-g_tick_thickness = 1.75
-g_tick_length = 5
+g_font_label = 9
+g_font_title = 10.5
+g_font_subplot_label = 12
+g_font_tick = 8
+g_font_legend = 9
+g_tick_thickness = 1
+g_tick_length = 6
 g_minor_tick_width = 1
 g_minor_tick_length= 3
 # make the hatches larges
@@ -72,16 +73,17 @@ def label_axes(fig, labels=None, loc=None, add_bold=False,
         labels = ["{:s}".format(s) for s in string.uppercase]
     # re-use labels rather than stop labeling
     labels = cycle(labels)
-    n_ax = fig.axes
+    axes = axis_func(fig.axes)
+    n_ax = len(axes)
     if loc is None:
         loc = (-0.15, 1.05)
     if (isinstance(loc,tuple)):
-        loc = [loc for _ in n_ax]
-    for ax, lab,loc_tmp in zip(axis_func(fig.axes), labels,loc):
+        loc = [loc for _ in range(n_ax)]
+    for ax, lab,loc_tmp in zip(axes, labels,loc):
         ax.annotate(lab, xy=loc_tmp,
                     xycoords='axes fraction',**kwargs)
 
-def label_tom(fig,labels=None, loc=None,fontsize=g_font_legend,**kwargs):
+def label_tom(fig,labels=None, loc=None,fontsize=g_font_subplot_label,**kwargs):
     """
     labels each subplot in fig
 
@@ -222,7 +224,7 @@ def round_to_n_sig_figs(x,n=1):
 
 def make_scale_bar(mult=1000,unit="ms",y_frac=0.2,x_frac=0.2,width=0.2,
                    fmt="{:.0f}",label_sig_figs=2,y_label_frac=0.15,
-                   fontsize=g_font_label):
+                   fontsize=g_font_legend,**kwargs):
     """
     Makes an (x) scale bar. All parameters are relative to the graph size
 
@@ -242,6 +244,8 @@ def make_scale_bar(mult=1000,unit="ms",y_frac=0.2,x_frac=0.2,width=0.2,
 
         y_height_frac: fraction of the y limits that the scale bar should be
         under
+
+        kwargs: passed to scale_bar_x
     Returns:
         tuple of <the text box, and the x and y coordinates of the line>
     """
@@ -255,8 +259,8 @@ def make_scale_bar(mult=1000,unit="ms",y_frac=0.2,x_frac=0.2,width=0.2,
     fmt_str = (fmt + "{:s}")
     s = fmt_str.format(round_to_n_sig_figs(width*mult,n=label_sig_figs),unit)
     box,x,y = scale_bar_x(x=x,y=y,s=s,width=width,fontsize=fontsize,
-                          style_line=True,
-                          height=y_diff*y_label_frac)
+                          style_line=True,height=y_diff*y_label_frac,
+                          **kwargs)
     return box,x,y
 
 def _get_tick_locator_fixed(offset,width,lim=plt.xlim()):
@@ -320,7 +324,8 @@ def scale_bar_x(x,y,s,**kwargs):
     return _scale_bar(x=x,y=y,s=s,**kwargs)
 
 def _scale_bar(x,y,s,ax=None,width=None,height=None,color='w',
-               bg_color='k',linewidth=2,fontsize=g_font_label,fontweight='bold',
+               bg_color='k',linewidth=1.25,fontsize=g_font_label,
+               fontweight='bold',
                style_line=False,**kwargs):
     """
     makes a scale bar
@@ -567,19 +572,47 @@ def setLegendBackground(legend,color):
         This is a description of what is returned.
     """
     legend.get_frame().set_facecolor(color)
+                
 
 def axis_locator(ax,n_major,n_minor):
+    """
+    utility function; given an axis, returns sets the locator properly
+
+    Args:
+        see tick_axis_number
+    Returns:
+        nothing
+    """
     scale = ax.get_scale()
     if (scale == 'log'):
-        ax.set_major_locator(LogLocator(numticks=n_major))
-        ax.set_minor_locator(LogLocator(numticks=n_minor))
+        ax.set_major_locator(LogLocator(subs=(1.0,),numticks=n_major))
+        ax.set_minor_locator(NullLocator())
     else:
         ax.set_major_locator(MaxNLocator(n_major))
         ax.set_minor_locator(MaxNLocator(n_minor))
-    
+
+
+def tom_ticks(ax=None,num_major=5,num_minor=None,**kwargs):
+    """
+    Convenience wrapper for tick_axis_number to make ticks like tom likes
+
+    Args:
+        ax: the axis to use
+        num_major: how many ticks to use on the major axis
+        kwargs: see tick_axis_number
+    Returns:
+        nothing
+    """
+    if (ax is None):
+        ax = plt.gca()
+    tick_axis_number(ax=ax,
+                     num_x_major=num_major,
+                     num_x_minor=num_minor,
+                     num_y_major=num_major,
+                     num_y_minor=num_minor,**kwargs)
     
 def tick_axis_number(ax=None,num_x_major=5,num_x_minor=None,num_y_major=5,
-                     num_y_minor=None):
+                     num_y_minor=None,change_x=True,change_y=True):
     """
     Sets the locators on the x and y ticks
 
@@ -587,6 +620,7 @@ def tick_axis_number(ax=None,num_x_major=5,num_x_minor=None,num_y_major=5,
         ax: what axis to use
         num_<x/y>_major: how many major ticks to put on the x,y
         num_<x/y>_minor: how many minor ticks to put on the x,y
+        change_<x/y>: if to apply to x/y
     Returns:
         Nothing
     """
@@ -596,8 +630,10 @@ def tick_axis_number(ax=None,num_x_major=5,num_x_minor=None,num_y_major=5,
         num_x_minor = 2 * num_x_major
     if (num_y_minor is None):
         num_y_minor = 2 * num_y_major
-    axis_locator(ax.xaxis,num_x_major,num_x_minor)
-    axis_locator(ax.yaxis,num_y_major,num_y_minor)
+    if (change_x):
+        axis_locator(ax.xaxis,num_x_major,num_x_minor)
+    if (change_y):
+        axis_locator(ax.yaxis,num_y_major,num_y_minor)
     
 def tickAxisFont(fontsize=g_font_tick,
                  major_tick_width=g_tick_thickness,
@@ -605,7 +641,8 @@ def tickAxisFont(fontsize=g_font_tick,
                  minor_tick_width=g_minor_tick_width,
                  minor_tick_length=g_minor_tick_length,
                  ax=None,common_dict=None,axis='both',bottom=True,
-                 top=True,left=True,right=True,**kwargs):
+                 top=True,left=True,right=True,
+                 **kwargs):
     """
     sets the tick axis font and tick sizes
 
@@ -808,7 +845,8 @@ def connect_bbox(bbox1, bbox2,
     return c1, c2, bbox_patch1, bbox_patch2, p
 
 
-def zoom_effect01(ax1, ax2, xmin, xmax, color='m',alpha=0.3,
+def zoom_effect01(ax1, ax2, xmin, xmax, color='m',alpha_line=0.5,
+                  alpha_patch = 0.15,
                   linestyle='--',linewidth=1.5,**kwargs):
     """
     connect ax1 & ax2. The x-range of (xmin, xmax) in both axes will
@@ -817,7 +855,8 @@ def zoom_effect01(ax1, ax2, xmin, xmax, color='m',alpha=0.3,
 
     Args:
         ax1 : the main axes
-        ax1 : the zoomed axes
+        ax2 : the zoomed axes
+        alpha_<line/patch>: the transparency of the line or patch
         (xmin,xmax) : the limits of the colored area in both plot axes.
         **kwargs: passed to prop_lines
     """
@@ -831,11 +870,9 @@ def zoom_effect01(ax1, ax2, xmin, xmax, color='m',alpha=0.3,
     mybbox2 = TransformedBbox(bbox, trans2)
 
     prop_patches = kwargs.copy()
-    alpha_path = 0.2
-    alpha_line = 0.7
     prop_patches["ec"] = "none"
-    prop_patches["alpha"] = alpha_path
-    prop_lines = dict(color=color,alpha=alpha,linewidth=linewidth,
+    prop_patches["alpha"] = alpha_patch
+    prop_lines = dict(color=color,alpha=alpha_line,linewidth=linewidth,
                       linestyle='--',**kwargs)
     c1, c2, bbox_patch1, bbox_patch2, p = \
         connect_bbox(mybbox1, mybbox2,
