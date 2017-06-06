@@ -11,9 +11,6 @@ home = expanduser("~")
 path= home +"/utilities/python"
 import sys
 sys.path.append(path)
-# import the patrick-specific utilities
-import GeneralUtil.python.GenUtilities  as pGenUtil
-import GeneralUtil.python.PlotUtilities as pPlotUtil
 
 # How to get the Asylum notes values
 ## Constants related to approach and positioning

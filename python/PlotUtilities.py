@@ -585,7 +585,7 @@ def axis_locator(ax,n_major,n_minor):
     """
     scale = ax.get_scale()
     if (scale == 'log'):
-        ax.set_major_locator(LogLocator(subs=(1.0,),numticks=n_major))
+        ax.set_major_locator(LogLocator(numticks=n_major))
         ax.set_minor_locator(NullLocator())
     else:
         ax.set_major_locator(MaxNLocator(n_major))
@@ -885,6 +885,11 @@ def zoom_effect01(ax1, ax2, xmin, xmax, color='m',alpha_line=0.5,
     ax2.add_patch(p)
 
     return c1, c2, bbox_patch1, bbox_patch2, p
+
+
+def save_twice(fig,name1,name2,close_last=True,**kwargs):
+    savefig(fig,name1,close=False,**kwargs)
+    savefig(fig,name2,close=close_last,**kwargs)
 
 
 # legacy API. plan is now to mimic matplotlib 
