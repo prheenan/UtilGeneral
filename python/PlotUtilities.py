@@ -627,7 +627,7 @@ def savefig(figure,fileName,close=True,tight=True,subplots_adjust=None,
     if (close):
         plt.close(figure)
 
-def figure(figsize=None,xSize=10,ySize=8,dpi=100):
+def figure(figsize=None,xSize=10,ySize=8,dpi=300):
     """
     wrapper for figure, allowing easier setting I think
 
