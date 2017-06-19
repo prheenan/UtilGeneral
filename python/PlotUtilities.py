@@ -9,22 +9,29 @@ import numpy as np
 from itertools import cycle
 import sys
 import os 
+from matplotlib.ticker import FixedLocator,NullLocator
 
-g_font_label = 20
-g_font_title = 22
-g_font_tick = 16
-g_font_legend = 18
-g_tick_thickness = 1.75
-g_tick_length = 10
-g_minor_tick_width = 1.25
-g_minor_tick_length= 4
+g_font_label = 9
+g_font_title = 10.5
+g_font_subplot_label = 12
+g_font_tick = 8
+g_font_legend = 9
+g_tick_thickness = 1
+g_tick_length = 6
+g_minor_tick_width = 1
+g_minor_tick_length= 3
 # make the hatches larges
 import matplotlib as mpl
-mpl.rcParams['hatch.linewidth'] = 4
+mpl.rcParams['hatch.linewidth'] = 3
+mpl.rcParams['hatch.color'] = '0.5'
 # based on :http://stackoverflow.com/questions/18699027/write-an-upright-mu-in-matplotlib
 # following line sets the mathtext to whatever is our font
 plt.rcParams['font.sans-serif'] = 'Arial'
 plt.rcParams['font.family'] = 'sans-serif'
+mpl.rcParams['mathtext.fontset'] = 'custom'
+mpl.rcParams['mathtext.rm'] = 'Arial'
+mpl.rcParams['mathtext.it'] = 'Arial:italic'
+mpl.rcParams['mathtext.bf'] = 'Arial:bold'
 # see: http://matplotlib.org/examples/pylab_examples/usetex_baseline_test.html
 # this line makes it slow, etc plt.rcParams['text.usetex'] = True
 from string import ascii_lowercase
@@ -66,16 +73,17 @@ def label_axes(fig, labels=None, loc=None, add_bold=False,
         labels = ["{:s}".format(s) for s in string.uppercase]
     # re-use labels rather than stop labeling
     labels = cycle(labels)
-    n_ax = fig.axes
+    axes = axis_func(fig.axes)
+    n_ax = len(axes)
     if loc is None:
         loc = (-0.15, 1.05)
     if (isinstance(loc,tuple)):
-        loc = [loc for _ in n_ax]
-    for ax, lab,loc_tmp in zip(axis_func(fig.axes), labels,loc):
+        loc = [loc for _ in range(n_ax)]
+    for ax, lab,loc_tmp in zip(axes, labels,loc):
         ax.annotate(lab, xy=loc_tmp,
                     xycoords='axes fraction',**kwargs)
 
-def label_tom(fig,labels=None, loc=None,fontsize=g_font_legend,**kwargs):
+def label_tom(fig,labels=None, loc=None,fontsize=g_font_subplot_label,**kwargs):
     """
     labels each subplot in fig
 
@@ -108,23 +116,22 @@ def FormatImageAxis(ax=None):
 def _remove_labels(ax):
     ax.set_ticklabels([])
 
+def _remove_ticks(ax):
+    ax.set_ticks([])
+
 def _remove_grid(ax):
     ax.set_visible(False)
 
-def no_y_label(ax=None):
-    ax = plt.gca() if ax is None else ax
+def no_y_label(ax=plt.gca()):
     _remove_labels(ax.get_yaxis())
 
-def no_x_label(ax=None):
-    ax = plt.gca() if ax is None else ax
+def no_x_label(ax=plt.gca()):
     _remove_labels(ax.get_xaxis())
 
-def no_x_grid(ax=None):
-    ax = plt.gca() if ax is None else ax
+def no_x_grid(ax=plt.gca()):
     _remove_grid(ax.get_xaxis())
 
-def no_y_grid(ax=None):
-    ax = plt.gca() if ax is None else ax
+def no_y_grid(ax=plt.gca()):
     _remove_grid(ax.get_yaxis())
 
 def no_x_axis(ax=plt.gca()):
@@ -133,15 +140,23 @@ def no_x_axis(ax=plt.gca()):
 def no_y_axis(ax=plt.gca()):
     ax.yaxis.set_visible(False)    
 
+def no_x_ticks(ax=plt.gca()):
+    _remove_ticks(ax.get_xaxis())
+
+def no_y_ticks(ax=plt.gca()):
+    _remove_ticks(ax.get_yaxis())
+
 def no_x_anything(ax=plt.gca()):
     no_x_axis(ax)
     no_x_grid(ax)
     no_x_label(ax)
+
     
 def no_y_anything(ax=plt.gca()):
     no_y_axis(ax)
     no_y_grid(ax)    
-    no_y_label(ax)    
+    no_y_label(ax)   
+    _remove_ticks(ax.get_yaxis()) 
 
 def x_label_on_top(ax=plt.gca()):
     ax.xaxis.set_label_position('top') 
@@ -196,6 +211,105 @@ def AddSubplotLabels(fig=None,axs=None,skip=0,
                 fontsize=fontsize, fontweight=fontweight, va='top', ha='right',
                 bbox=bbox)
 
+def round_to_n_sig_figs(x,n=1):
+    """
+    Rounds 'x' to n significant figures
+
+    Args:
+         x: what to round
+         n: how many sig figs (e.g. n=1 means 51 --> 50, etc)
+    Returns: rounded number 
+    """
+    return round(x, (n-1)-int(np.floor(np.log10(abs(x)))))
+
+def make_scale_bar(mult=1000,unit="ms",y_frac=0.2,x_frac=0.2,width=0.2,
+                   fmt="{:.0f}",label_sig_figs=2,y_label_frac=0.15,
+                   fontsize=g_font_legend,**kwargs):
+    """
+    Makes an (x) scale bar. All parameters are relative to the graph size
+
+    Args:
+        mult: for the *label only*, what should we multiply the width to 
+        conver to <unit>
+
+        unit: of the label. width * diff(plt.xlim()) * mult should be in this
+        unit
+
+        <x/y>_frac: the fraction of the plot size to use for the width, height
+       
+        fmt: the format string to use on  width * diff(plt.xlim()) * mult. 
+        Defaults to juse a round number
+ 
+        label_sig_figs: how many significant figures should be used 
+
+        y_height_frac: fraction of the y limits that the scale bar should be
+        under
+
+        kwargs: passed to scale_bar_x
+    Returns:
+        tuple of <the text box, and the x and y coordinates of the line>
+    """
+    xlim = plt.xlim()
+    x_full = abs(np.diff(xlim))[0]
+    width = width * x_full
+    ylim = plt.ylim()
+    y_diff = abs(np.diff(ylim))
+    y = np.max(ylim) - abs(np.diff(ylim))*y_frac
+    x = np.min(xlim) + abs(x_full) * x_frac
+    fmt_str = (fmt + "{:s}")
+    s = fmt_str.format(round_to_n_sig_figs(width*mult,n=label_sig_figs),unit)
+    box,x,y = scale_bar_x(x=x,y=y,s=s,width=width,fontsize=fontsize,
+                          style_line=True,height=y_diff*y_label_frac,
+                          **kwargs)
+    return box,x,y
+
+def _get_tick_locator_fixed(offset,width,lim=plt.xlim()):
+    """
+    given a (data-units) offset and width, returns tick so that
+    (1) offset is a tick
+    (2) each offset +/- (n * width) for n an integer within lim is a tick.
+
+    Useful for matching ticks to a scale bar 
+
+    Args:
+         offset: point which should have a tick on it
+         width: data units, length between ticks
+         lim: to determine where the ticks should be 
+    Returns:
+         FixedLocator parameter
+    """
+    xmin,xmax = lim
+    # determine how many widths to go before and after
+    n_widths_before = int(np.ceil((offset-xmin)/width))
+    width_before = n_widths_before * width
+    n_widths_after = int(np.ceil((xmax-offset)/width))
+    width_after = n_widths_after * width
+    ticks_after = np.arange(start=offset,stop=offset+width_after,
+                            step=width)
+    ticks_before = np.arange(start=offset,stop=offset+width_before,
+                             step=-width)
+    ticks = list(ticks_before) + list(ticks_after)
+    locator = FixedLocator(locs=ticks, nbins=None)
+    return locator
+
+def x_scale_bar_and_ticks(scale_bar_dict=dict()):
+    """
+    Convenience wrapper to make a scale bar and ticks
+    
+    Args:
+        scale_bar_dict: kwargs to the make_scale_bar function
+    Returns:
+        nothing
+    """
+    box,x,y = make_scale_bar(**scale_bar_dict)
+    width = abs(np.diff(x))
+    offset = min(x)
+    locator_x = _get_tick_locator_fixed(offset=offset,width=width)
+    locator_minor_x = _get_tick_locator_fixed(offset=offset+width/2,
+                                              width=width)
+    plt.gca().xaxis.set_major_locator(locator_x)
+    plt.gca().xaxis.set_minor_locator(locator_minor_x)
+
 def scale_bar_x(x,y,s,**kwargs):
     """
     makes an x scale bar
@@ -204,11 +318,15 @@ def scale_bar_x(x,y,s,**kwargs):
         x: where the x center of the text should be
         y: where the y center of the text should be
         **kwargs: passed to _scale_bar
+    Returns:
+        see _scale_bar
     """
-    _scale_bar(x=x,y=y,s=s,height=0,**kwargs)
+    return _scale_bar(x=x,y=y,s=s,**kwargs)
 
 def _scale_bar(x,y,s,ax=None,width=None,height=None,color='w',
-               bg_color='k',linewidth=25,fontsize=25,**kwargs):
+               bg_color='k',linewidth=1.25,fontsize=g_font_label,
+               fontweight='bold',
+               style_line=False,**kwargs):
     """
     makes a scale bar
 
@@ -219,25 +337,45 @@ def _scale_bar(x,y,s,ax=None,width=None,height=None,color='w',
         height,width: of the scale bar. 
         color: of the font
         bg_color: of the backround for the scale bar
-        linewidth: for the plotted line (which is really the background)
+        linewidth: for the plotted line, if style_line
         **kwargs: passed as font arguments to annotate (e.g. rotation, for y)
+    returns:
+        tuple of the text box, and the x and y coordinates of the 
+        'scalebar' 
     """
     if (ax is None):
         ax = plt.gca()
     xlim,ylim = ax.get_xlim(),ax.get_ylim()
-    default_length_pct = 0.1
+    default_length_pct = 0.2
     if (width is None):
         width = (xlim[1]-xlim[0]) * default_length_pct
     if (height is None):
         height = (ylim[1]-ylim[0]) * default_length_pct
-    box_props = dict(color=bg_color,pad=0,**kwargs)
-    font_kwargs = dict(color='w',horizontalalignment='center',
+    # if we are just plotting a line under the text, then the 
+    # background of the text is transparent
+    if (not style_line):
+        box_props = dict(color=bg_color,alpha=1,pad=0,**kwargs)
+        fontcolor='w'
+    else:
+        box_props = dict(color='w',alpha=0,pad=0,**kwargs)
+        fontcolor='k'
+    font_kwargs = dict(color=fontcolor,horizontalalignment='center',
+                       fontweight=fontweight,
                        verticalalignment='center',fontsize=fontsize)
     t = ax.annotate(s, xy=(x,y),bbox=box_props,
                     **font_kwargs)
+    t = None
     x_draw = [x-width/2,x+width/2]
-    y_draw = [y-height/2,y+height/2]
-    plt.plot(x_draw,y_draw,color=bg_color,linewidth=linewidth)
+    point_y1 = y-height/2
+    point_y2 = y+height/2
+    y_draw = [point_y1,point_y2]
+    if not style_line:
+        y1 = [point_y1 for _ in x_draw]
+        y2 = [point_y2 for _ in x_draw]
+        plt.fill_between(x_draw,y1=y1,y2=y2,color='k')
+    else:
+        plt.plot(x_draw,[point_y1,point_y1],color='k',linewidth=linewidth)
+    return t,x_draw,y_draw
 
 
 def _LegendAndSave(Fig,SaveName,loc="upper right",frameon=True,close=False,
@@ -406,18 +544,21 @@ def lazyLabel(xlab,ylab,titLab,yrotation=90,titley=1.0,bbox_to_anchor=None,
         zlabel(zlab,**axis_kwargs)
     if (useLegend):
         leg = legend(frameon=frameon,loc=loc,**legend_kwargs)
-        if (legendBgColor is not None):
-            setLegendBackground(leg,legendBgColor)
+        if (len(legend_kwargs.keys()) > 0):
+            set_legend_kwargs(**legend_kwargs)
 
-def set_legend_kwargs(ax=None,linewidth=2,background_color='w',
-                      color='k',**kwargs):
+def set_legend_kwargs(ax=None,linewidth=2,background_color=None,
+                      color='k',alpha=1,**kwargs):
     if (ax is None):
         ax = plt.gca()
+    if (background_color is None):
+        background_color = 'w'
     leg = ax.get_legend()
     frame = leg.get_frame()
     setLegendBackground(leg,background_color)
     frame.set_linewidth(linewidth)
     frame.set_edgecolor(color)
+    frame.set_alpha(alpha)
 
 def setLegendBackground(legend,color):
     """
@@ -431,19 +572,47 @@ def setLegendBackground(legend,color):
         This is a description of what is returned.
     """
     legend.get_frame().set_facecolor(color)
+                
 
 def axis_locator(ax,n_major,n_minor):
+    """
+    utility function; given an axis, returns sets the locator properly
+
+    Args:
+        see tick_axis_number
+    Returns:
+        nothing
+    """
     scale = ax.get_scale()
     if (scale == 'log'):
         ax.set_major_locator(LogLocator(numticks=n_major))
-        ax.set_minor_locator(LogLocator(numticks=n_minor))
+        ax.set_minor_locator(NullLocator())
     else:
         ax.set_major_locator(MaxNLocator(n_major))
         ax.set_minor_locator(MaxNLocator(n_minor))
-    
+
+
+def tom_ticks(ax=None,num_major=5,num_minor=None,**kwargs):
+    """
+    Convenience wrapper for tick_axis_number to make ticks like tom likes
+
+    Args:
+        ax: the axis to use
+        num_major: how many ticks to use on the major axis
+        kwargs: see tick_axis_number
+    Returns:
+        nothing
+    """
+    if (ax is None):
+        ax = plt.gca()
+    tick_axis_number(ax=ax,
+                     num_x_major=num_major,
+                     num_x_minor=num_minor,
+                     num_y_major=num_major,
+                     num_y_minor=num_minor,**kwargs)
     
 def tick_axis_number(ax=None,num_x_major=5,num_x_minor=None,num_y_major=5,
-                     num_y_minor=None):
+                     num_y_minor=None,change_x=True,change_y=True):
     """
     Sets the locators on the x and y ticks
 
@@ -451,6 +620,7 @@ def tick_axis_number(ax=None,num_x_major=5,num_x_minor=None,num_y_major=5,
         ax: what axis to use
         num_<x/y>_major: how many major ticks to put on the x,y
         num_<x/y>_minor: how many minor ticks to put on the x,y
+        change_<x/y>: if to apply to x/y
     Returns:
         Nothing
     """
@@ -460,8 +630,10 @@ def tick_axis_number(ax=None,num_x_major=5,num_x_minor=None,num_y_major=5,
         num_x_minor = 2 * num_x_major
     if (num_y_minor is None):
         num_y_minor = 2 * num_y_major
-    axis_locator(ax.xaxis,num_x_major,num_x_minor)
-    axis_locator(ax.yaxis,num_y_major,num_y_minor)
+    if (change_x):
+        axis_locator(ax.xaxis,num_x_major,num_x_minor)
+    if (change_y):
+        axis_locator(ax.yaxis,num_y_major,num_y_minor)
     
 def tickAxisFont(fontsize=g_font_tick,
                  major_tick_width=g_tick_thickness,
@@ -469,7 +641,8 @@ def tickAxisFont(fontsize=g_font_tick,
                  minor_tick_width=g_minor_tick_width,
                  minor_tick_length=g_minor_tick_length,
                  ax=None,common_dict=None,axis='both',bottom=True,
-                 top=True,left=True,right=True):
+                 top=True,left=True,right=True,
+                 **kwargs):
     """
     sets the tick axis font and tick sizes
 
@@ -478,11 +651,13 @@ def tickAxisFont(fontsize=g_font_tick,
          fontsize: for the ticks
          <major/minor>_tick_<width/length>: the length or width for the minor 
          or major ticks. 
+         kwargs: passed directly to tick_params
     """
     if (ax is None):
         ax = plt.gca()
     common_dict = dict(direction='in',
-                       axis=axis,bottom=bottom,top=top,right=right,left=left)
+                       axis=axis,bottom=bottom,top=top,right=right,left=left,
+                       **kwargs)
     ax.tick_params(length=major_tick_length, width=major_tick_width,
                    labelsize=fontsize,which='major',**common_dict)
     ax.tick_params(length=minor_tick_length, width=minor_tick_width,
@@ -627,7 +802,7 @@ def savefig(figure,fileName,close=True,tight=True,subplots_adjust=None,
     if (close):
         plt.close(figure)
 
-def figure(figsize=None,xSize=10,ySize=8,dpi=300):
+def figure(figsize=None,xSize=3.5,ySize=3.5,dpi=400):
     """
     wrapper for figure, allowing easier setting I think
 
@@ -670,7 +845,9 @@ def connect_bbox(bbox1, bbox2,
     return c1, c2, bbox_patch1, bbox_patch2, p
 
 
-def zoom_effect01(ax1, ax2, xmin, xmax, **kwargs):
+def zoom_effect01(ax1, ax2, xmin, xmax, color='m',alpha_line=0.5,
+                  alpha_patch = 0.15,
+                  linestyle='--',linewidth=1.5,**kwargs):
     """
     connect ax1 & ax2. The x-range of (xmin, xmax) in both axes will
     be marked.  The keywords parameters will be used to create
@@ -678,8 +855,10 @@ def zoom_effect01(ax1, ax2, xmin, xmax, **kwargs):
 
     Args:
         ax1 : the main axes
-        ax1 : the zoomed axes
+        ax2 : the zoomed axes
+        alpha_<line/patch>: the transparency of the line or patch
         (xmin,xmax) : the limits of the colored area in both plot axes.
+        **kwargs: passed to prop_lines
     """
 
     trans1 = blended_transform_factory(ax1.transData, ax1.transAxes)
@@ -691,17 +870,14 @@ def zoom_effect01(ax1, ax2, xmin, xmax, **kwargs):
     mybbox2 = TransformedBbox(bbox, trans2)
 
     prop_patches = kwargs.copy()
-    alpha_path = 0.2
-    alpha_line = 0.7
-    line_width = 3
     prop_patches["ec"] = "none"
-    prop_patches["alpha"] = alpha_path
-    prop_lines = dict(color='k',alpha=alpha_line,linewidth=line_width,**kwargs)
+    prop_patches["alpha"] = alpha_patch
+    prop_lines = dict(color=color,alpha=alpha_line,linewidth=linewidth,
+                      linestyle='--',**kwargs)
     c1, c2, bbox_patch1, bbox_patch2, p = \
         connect_bbox(mybbox1, mybbox2,
                      loc1a=3, loc2a=2, loc1b=4, loc2b=1,
                      prop_lines=prop_lines, prop_patches=prop_patches)
-
     ax1.add_patch(bbox_patch1)
     ax2.add_patch(bbox_patch2)
     ax2.add_patch(c1)
@@ -709,6 +885,11 @@ def zoom_effect01(ax1, ax2, xmin, xmax, **kwargs):
     ax2.add_patch(p)
 
     return c1, c2, bbox_patch1, bbox_patch2, p
+
+
+def save_twice(fig,name1,name2,close_last=True,**kwargs):
+    savefig(fig,name1,close=False,**kwargs)
+    savefig(fig,name2,close=close_last,**kwargs)
 
 
 # legacy API. plan is now to mimic matplotlib 
