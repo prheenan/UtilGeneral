@@ -11,6 +11,13 @@ import sys
 
 from GeneralUtil.python.PlotUtilities import *
 
+default_font_dict = dict(fontsize=g_font_label,
+                         fontweight='bold',
+                         color='k',
+                         horizontalalignment='center',
+                         verticalalignment='lower',
+                         bbox=dict(color='w',alpha=0,pad=0))
+
 def round_to_n_sig_figs(x,n=1):
     """
     Rounds 'x' to n significant figures
@@ -22,59 +29,6 @@ def round_to_n_sig_figs(x,n=1):
     """
     return round(x, (n-1)-int(np.floor(np.log10(abs(x)))))
 
-def make_scale_bar(mult=1000,unit="ms",y_frac=0.2,x_frac=0.2,width=0.2,
-                   fmt="{:.0f}",label_sig_figs=2,y_label_frac=0.15,
-                   fontsize=g_font_legend,is_x=True,**kwargs):
-    """
-    Makes an (x) scale bar. All parameters are relative to the graph size
-
-    Args:
-        mult: for the *label only*, what should we multiply the width to 
-        conver to <unit>
-
-        unit: of the label. width * diff(plt.xlim()) * mult should be in this
-        unit
-
-        <x/y>_frac: the fraction of the plot size to use for the width, height
-       
-        fmt: the format string to use on  width * diff(plt.xlim()) * mult. 
-        Defaults to juse a round number
- 
-        label_sig_figs: how many significant figures should be used 
-
-        y_height_frac: fraction of the y limits that the scale bar should be
-        under
-        
-        is_x: if true, then this is an x scale bar 
-
-        kwargs: passed to scale_bar_x
-    Returns:
-        tuple of <the text box, and the x and y coordinates of the line>
-    """
-    xlim = plt.xlim()
-    x_full = abs(np.diff(xlim))[0]
-    if (is_x):            
-        width = width * x_full
-    else:
-        width = 0
-    ylim = plt.ylim()
-    y_diff = abs(np.diff(ylim))
-    y_full = np.diff(ylim)[0]
-    # get the location of the text...
-    y = np.max(ylim) - abs(y_full)*y_frac
-    x = np.min(xlim) + abs(x_full) * x_frac
-    fmt_str = (fmt + "{:s}")
-    height = y_full*y_label_frac    
-    if (is_x):                
-        value = width*mult
-    else:
-        value = height*mult    
-    s = fmt_str.format(round_to_n_sig_figs(value,n=label_sig_figs),unit)        
-    kwarg_dict = dict(x=x,y=y,s=s,width=width,fontsize=fontsize,
-                      style_line=True,height=height,
-                      **kwargs)
-    box,x,y = _scale_bar(**kwarg_dict)
-    return box,x,y
 
 def _get_tick_locator_fixed(offset,width,lim=plt.xlim()):
     """
@@ -105,17 +59,18 @@ def _get_tick_locator_fixed(offset,width,lim=plt.xlim()):
     locator = FixedLocator(locs=ticks, nbins=None)
     return locator
     
-def _scale_bar_and_ticks(axis,lim,is_x=True,**kwargs):
+def _scale_bar_and_ticks(ax,axis,lim,is_x=True,**kwargs):
     """
     convenience wrapper for create a scale bar with convenient ticks 
     
     Args:
+        ax: like plt.gca()
         axis: something we can use 'set_major.minor_locator' on
         lim: the limits of the axis
     Returns:
         nothing
     """
-    box,x,y = make_scale_bar(is_x=is_x,**kwargs)
+    box,x,y = _scale_bar(ax=ax,**kwargs)
     if (is_x):       
         tick_spacing = abs(np.diff(x))
         offset = min(x)
@@ -129,7 +84,7 @@ def _scale_bar_and_ticks(axis,lim,is_x=True,**kwargs):
     axis.set_major_locator(locator_x)
     axis.set_minor_locator(locator_minor_x)    
     
-def y_scale_bar_and_ticks(ax=plt.gca(),**kwargs):
+def _y_scale_bar_and_ticks(ax=plt.gca(),**kwargs):
     """
     Convenience wrapper to make a scale bar and ticks
     
@@ -138,9 +93,9 @@ def y_scale_bar_and_ticks(ax=plt.gca(),**kwargs):
     Returns:
         nothing
     """    
-    _scale_bar_and_ticks(ax.yaxis,ax.get_ylim(),is_x=False,**kwargs)   
+    _scale_bar_and_ticks(ax,ax.yaxis,ax.get_ylim(),is_x=False,**kwargs)   
 
-def x_scale_bar_and_ticks(ax=plt.gca(),**kwargs):
+def _x_scale_bar_and_ticks(ax=plt.gca(),**kwargs):
     """
     Convenience wrapper to make a scale bar and ticks
     
@@ -149,60 +104,64 @@ def x_scale_bar_and_ticks(ax=plt.gca(),**kwargs):
     Returns:
         nothing
     """
-    _scale_bar_and_ticks(ax.xaxis,ax.get_xlim(),**kwargs)   
- 
-
-def _scale_bar(x,y,s,ax=None,width=None,height=None,color='w',
-               bg_color='k',linewidth=1.25,fontsize=g_font_label,
-               fontweight='bold',horizontalalignment='center',
-               verticalalignment='center',
-               style_line=False,**kwargs):
-    """
-    makes a scale bar
-
-    Args:
-        x: see scale_bar_x 
-        y: see scale_bar_x 
-        ax: where to plot
-        height,width: of the scale bar. 
-        color: of the font
-        bg_color: of the backround for the scale bar
-        linewidth: for the plotted line, if style_line
-        **kwargs: passed as font arguments to annotate (e.g. rotation, for y)
-    returns:
-        tuple of the text box, and the x and y coordinates of the 
-        'scalebar' 
-    """
-    if (ax is None):
-        ax = plt.gca()
-    xlim,ylim = ax.get_xlim(),ax.get_ylim()
-    default_length_pct = 0.2
-    if (width is None):
-        width = (xlim[1]-xlim[0]) * default_length_pct
-    if (height is None):
-        height = (ylim[1]-ylim[0]) * default_length_pct
-    # if we are just plotting a line under the text, then the 
-    # background of the text is transparent
-    if (not style_line):
-        box_props = dict(color=bg_color,alpha=1,pad=0,**kwargs)
-        fontcolor='w'
+    _scale_bar_and_ticks(ax,ax.xaxis,ax.get_xlim(),**kwargs)   
+    
+def rel_to_abs(ax,x,is_x):
+    if (is_x):
+        lim = ax.get_xlim()
     else:
-        box_props = dict(color='w',alpha=0,pad=0,**kwargs)
-        fontcolor='k'
-    font_kwargs = dict(color=fontcolor,horizontalalignment=horizontalalignment,
-                       fontweight=fontweight,
-                       verticalalignment=verticalalignment,fontsize=fontsize)
-    t = ax.annotate(s, xy=(x,y),bbox=box_props,
-                    **font_kwargs)
-    t = None
-    x_draw = [x-width/2,x+width/2]
-    point_y1 = y-height/2
-    point_y2 = y+height/2
-    y_draw = [point_y1,point_y2]
-    if not style_line:
-        y1 = [point_y1 for _ in x_draw]
-        y2 = [point_y2 for _ in x_draw]
-        plt.fill_between(x_draw,y1=y1,y2=y2,color='k')
-    else:
-        plt.plot(x_draw,[point_y1,point_y1],color='k',linewidth=linewidth)
+        lim = ax.get_ylim()
+    absolute = lim[0] + (lim[1] - lim[0]) * x
+    return absolute
+    
+    
+def offsets_and_ranges(width,height,offset_x,offset_y):
+    bar_offset_x = width/2
+    bar_offset_y = height/2 
+    text_offset_x = offset_x  
+    text_offset_y = offset_y
+    xy_text = [text_offset_x,text_offset_y]   
+    xy_line =  [ [text_offset_x - bar_offset_x,text_offset_y - bar_offset_y],
+                [text_offset_x + bar_offset_x,text_offset_y + bar_offset_y]]
+    return xy_text,xy_line                
+    
+def unit_format(val,unit,fmt="{:.0f}"):
+    return (fmt + " {:s}").format(val,unit) 
+    
+def x_scale_bar_and_ticks(unit,width,offset_x,offset_y,ax=plt.gca(),
+                          fmt="{:.0f}",**kwargs):
+    xy_text,xy_line = offsets_and_ranges(width=width,height=0,
+                                        offset_x=offset_x,offset_y=offset_y)
+    text = unit_format(width,unit,fmt)                                    
+    return _x_scale_bar_and_ticks(ax=ax,xy_text=xy_text,xy_line=xy_line,
+                                  text=text,**kwargs)
+                                  
+def y_scale_bar_and_ticks(unit,height,offset_x,offset_y,ax=plt.gca(),
+                          fmt="{:.0f}",**kwargs):
+    xy_text,xy_line = offsets_and_ranges(width=0,height=height,
+                                        offset_x=offset_x,offset_y=offset_y)
+    text = unit_format(height,unit,fmt)                                                                            
+    return _y_scale_bar_and_ticks(ax=ax,xy_text=xy_text,xy_line=xy_line,
+                                  text=text,**kwargs)       
+                                  
+
+def crossed_x_and_y(offset_x,offset_y,x_kwargs,y_kwargs):
+    assert ("height" in y_kwargs.keys()) , "Height not specified"
+    assert ("width" in x_kwargs.keys()) , "Width not specified"
+    width,height = x_kwargs['width'],y_kwargs['height']
+    font_kwargs_y = default_font_dict
+    font_kwargs_y['horizontalalignment'] = 'right'
+    print(offset_x,offset_y)
+    x_scale_bar_and_ticks(offset_x=offset_x,offset_y=offset_y,**x_kwargs)                                       
+    y_scale_bar_and_ticks(offset_x=offset_x-width/2,offset_y=offset_y+height,
+                          font_kwargs=font_kwargs_y,**y_kwargs)                                       
+    
+def _scale_bar(text,xy_text,xy_line,ax=plt.gca(),
+               line_kwargs=dict(linewidth=1,color='k'),
+               font_kwargs=default_font_dict):
+    t = ax.annotate(s=text, xy=xy_text,**font_kwargs)
+    x_draw = [x[0] for x in xy_line]
+    y_draw = [x[1] for x in xy_line]
+    print(x_draw,y_draw,xy_text)
+    plt.plot(x_draw,y_draw,**line_kwargs)
     return t,x_draw,y_draw
