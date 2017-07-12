@@ -7,7 +7,7 @@ from __future__ import unicode_literals
 # This file is used for importing the common utilities classes.
 import numpy as np
 import matplotlib.pyplot as plt
-import sys
+import sys,copy
 
 from GeneralUtil.python.PlotUtilities import *
 
@@ -107,6 +107,10 @@ def _x_scale_bar_and_ticks(ax=plt.gca(),**kwargs):
     _scale_bar_and_ticks(ax,ax.xaxis,ax.get_xlim(),**kwargs)   
     
 def rel_to_abs(ax,x,is_x):
+    """
+    Returns: x (in data coords) transformed to the relative [0,1] coordinates
+             of the x/y axis of ax 
+    """
     if (is_x):
         lim = ax.get_xlim()
     else:
@@ -116,6 +120,15 @@ def rel_to_abs(ax,x,is_x):
     
     
 def offsets_and_ranges(width,height,offset_x,offset_y):
+    """
+    Returns the coordinates for the text and scale bar, given the parameters
+    
+    Args;
+        width/height: of the bar
+        offset_x,offset_y: of the text
+    Returns: 
+        tuple of <xy for text, xy endpoints for line>
+    """
     bar_offset_x = width/2
     bar_offset_y = height/2 
     text_offset_x = offset_x  
@@ -126,18 +139,38 @@ def offsets_and_ranges(width,height,offset_x,offset_y):
     return xy_text,xy_line                
     
 def unit_format(val,unit,fmt="{:.0f}"):
+    """
+    Returns: the way we want to format the scale bar text; <val><space><unit>
+    """
     return (fmt + " {:s}").format(val,unit) 
     
 def x_scale_bar_and_ticks(unit,width,offset_x,offset_y,ax=plt.gca(),
                           fmt="{:.0f}",**kwargs):
+    """
+    See: y_scale_bar_and_ticks, except makes an x scale bar with a specified
+    width
+    """                                       
     xy_text,xy_line = offsets_and_ranges(width=width,height=0,
-                                        offset_x=offset_x,offset_y=offset_y)
+                                         offset_x=offset_x,offset_y=offset_y)
     text = unit_format(width,unit,fmt)                                    
     return _x_scale_bar_and_ticks(ax=ax,xy_text=xy_text,xy_line=xy_line,
                                   text=text,**kwargs)
                                   
 def y_scale_bar_and_ticks(unit,height,offset_x,offset_y,ax=plt.gca(),
                           fmt="{:.0f}",**kwargs):
+    """
+    ease-of-use function for making a y scale bar. figures out the units and 
+    offsets
+    
+    Args;
+        unit: of height
+        height: of the scale bar 
+        offset_<x/y>: where the text box should be, in absolute units
+        fmt: to display with height 
+        **kwargs: see _y_scale_bar_and_ticks
+    Returns:
+        tuple of <annnotation, x coordinates of line, y coords of line>
+    """                          
     xy_text,xy_line = offsets_and_ranges(width=0,height=height,
                                         offset_x=offset_x,offset_y=offset_y)
     text = unit_format(height,unit,fmt)                                                                            
@@ -145,23 +178,47 @@ def y_scale_bar_and_ticks(unit,height,offset_x,offset_y,ax=plt.gca(),
                                   text=text,**kwargs)       
                                   
 
-def crossed_x_and_y(offset_x,offset_y,x_kwargs,y_kwargs):
+def crossed_x_and_y(offset_x,offset_y,x_kwargs,y_kwargs,font_kwargs_y=None):
+    """
+    ease of use for making a 'crossed' x and y scale bar. 
+    
+    Args;
+        offset_<x/y>: see _scale_bar
+        <x_/y_>kwargs: passed to x_scale_bar_and_ticks,
+        font_kwargs_y: option arguments for font_kwargs_y
+    Returns:
+        tuple of <annnotation, x coordinates of line, y coords of line>
+    """
     assert ("height" in y_kwargs.keys()) , "Height not specified"
     assert ("width" in x_kwargs.keys()) , "Width not specified"
-    width,height = x_kwargs['width'],y_kwargs['height']
-    font_kwargs_y = default_font_dict
-    font_kwargs_y['horizontalalignment'] = 'right'
-    print(offset_x,offset_y)
-    x_scale_bar_and_ticks(offset_x=offset_x,offset_y=offset_y,**x_kwargs)                                       
-    y_scale_bar_and_ticks(offset_x=offset_x-width/2,offset_y=offset_y+height,
+    width = x_kwargs['width']
+    height = y_kwargs['height']
+    x_scale_bar_and_ticks(offset_x=offset_x,offset_y=offset_y,**x_kwargs)   
+    # make the y scale bar...
+    if (font_kwargs_y is None):
+        font_kwargs_y = copy.deepcopy(default_font_dict)
+        font_kwargs_y['horizontalalignment'] = 'right'
+        font_kwargs_y['verticalalignment'] = 'center'
+    y_scale_bar_and_ticks(offset_x=offset_x-width/2,offset_y=offset_y+height/2,
                           font_kwargs=font_kwargs_y,**y_kwargs)                                       
     
 def _scale_bar(text,xy_text,xy_line,ax=plt.gca(),
-               line_kwargs=dict(linewidth=1,color='k'),
+               line_kwargs=dict(linewidth=0.75,color='k'),
                font_kwargs=default_font_dict):
+    """
+    Creates a scale bar using the specified, absolute x and y
+    
+    Args;
+        text: to display
+        xy_text: where the text should be
+        xy_line: where the scalebar should be
+        ax: the axis to use
+        <line/font>_kwargs: passed to plot and annotate, respectively
+    Returns:
+        tuple of <annnotation, x coordinates of line, y coords of line>
+    """
     t = ax.annotate(s=text, xy=xy_text,**font_kwargs)
     x_draw = [x[0] for x in xy_line]
     y_draw = [x[1] for x in xy_line]
-    print(x_draw,y_draw,xy_text)
     plt.plot(x_draw,y_draw,**line_kwargs)
     return t,x_draw,y_draw
