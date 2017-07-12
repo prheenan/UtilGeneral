@@ -280,19 +280,19 @@ def _get_tick_locator_fixed(offset,width,lim=plt.xlim()):
     """
     xmin,xmax = lim
     # determine how many widths to go before and after
-    n_widths_before = int(np.ceil((offset-xmin)/width))
+    n_widths_before = int(np.ceil(abs((offset-xmin)/width)))
     width_before = n_widths_before * width
-    n_widths_after = int(np.ceil((xmax-offset)/width))
+    n_widths_after = int(np.ceil(abs((xmax-offset)/width)))
     width_after = n_widths_after * width
-    ticks_after = np.arange(start=offset,stop=offset+width_after,
+    ticks_after = np.arange(start=offset,stop=offset+(width_after+width),
                             step=width)
-    ticks_before = np.arange(start=offset,stop=offset+width_before,
+    ticks_before = np.arange(start=offset,stop=offset-(width_before+width),
                              step=-width)
     ticks = list(ticks_before) + list(ticks_after)
     locator = FixedLocator(locs=ticks, nbins=None)
     return locator
 
-def x_scale_bar_and_ticks(scale_bar_dict=dict()):
+def x_scale_bar_and_ticks(scale_bar_dict=dict(),ax=plt.gca()):
     """
     Convenience wrapper to make a scale bar and ticks
     
@@ -301,14 +301,16 @@ def x_scale_bar_and_ticks(scale_bar_dict=dict()):
     Returns:
         nothing
     """
+    lim = ax.get_xlim()
     box,x,y = make_scale_bar(**scale_bar_dict)
     width = abs(np.diff(x))
     offset = min(x)
-    locator_x = _get_tick_locator_fixed(offset=offset,width=width)
+    locator_x = _get_tick_locator_fixed(offset=offset,width=width,lim=lim)
     locator_minor_x = _get_tick_locator_fixed(offset=offset+width/2,
-                                              width=width)
-    plt.gca().xaxis.set_major_locator(locator_x)
-    plt.gca().xaxis.set_minor_locator(locator_minor_x)
+                                              width=width,lim=lim)
+    print(locator_x,locator_minor_x)                                              
+    ax.xaxis.set_major_locator(locator_x)
+    ax.xaxis.set_minor_locator(locator_minor_x)
 
 def scale_bar_x(x,y,s,**kwargs):
     """
