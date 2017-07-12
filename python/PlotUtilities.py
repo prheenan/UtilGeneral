@@ -291,26 +291,47 @@ def _get_tick_locator_fixed(offset,width,lim=plt.xlim()):
     ticks = list(ticks_before) + list(ticks_after)
     locator = FixedLocator(locs=ticks, nbins=None)
     return locator
-
-def x_scale_bar_and_ticks(scale_bar_dict=dict(),ax=plt.gca()):
+    
+def _scale_bar_and_ticks(axis,lim,scale_bar_dict=dict()):
     """
-    Convenience wrapper to make a scale bar and ticks
+    convenience wrapper for create a scale bar with convenient ticks 
     
     Args:
-        scale_bar_dict: kwargs to the make_scale_bar function
+        axis: something we can use 'set_major.minor_locator' on
+        lim: the limits of the axis
     Returns:
         nothing
     """
-    lim = ax.get_xlim()
     box,x,y = make_scale_bar(**scale_bar_dict)
     width = abs(np.diff(x))
     offset = min(x)
     locator_x = _get_tick_locator_fixed(offset=offset,width=width,lim=lim)
     locator_minor_x = _get_tick_locator_fixed(offset=offset+width/2,
                                               width=width,lim=lim)
-    print(locator_x,locator_minor_x)                                              
-    ax.xaxis.set_major_locator(locator_x)
-    ax.xaxis.set_minor_locator(locator_minor_x)
+    axis.set_major_locator(locator_x)
+    axis.set_minor_locator(locator_minor_x)    
+    
+def y_scale_bar_and_ticks(ax=plt.gca(),**kwargs):
+    """
+    Convenience wrapper to make a scale bar and ticks
+    
+    Args:
+        kwargs: passed to _scale_bar_and_ticks
+    Returns:
+        nothing
+    """    
+    _scale_bar_and_ticks(ax.yaxis,ax.get_ylim(),**kwargs)   
+
+def x_scale_bar_and_ticks(ax=plt.gca(),**kwargs):
+    """
+    Convenience wrapper to make a scale bar and ticks
+    
+    Args:
+        kwargs: passed to _scale_bar_and_ticks
+    Returns:
+        nothing
+    """
+    _scale_bar_and_ticks(ax.xaxis,ax.get_xlim(),**kwargs)   
 
 def scale_bar_x(x,y,s,**kwargs):
     """
