@@ -77,6 +77,8 @@ def saveFile(filePath,dataToSave,useNpy):
         _npySave(filePath,dataToSave)
     else:
         # open the file in binary format for writing
+        if (not filePath.endswith(".pkl")):
+            filePath = filePath + ".pkl"
         with open(filePath, 'wb') as fh:
             # XXX make protocol specifiable?
             cPickle.dump(dataToSave,fh,cPickle.HIGHEST_PROTOCOL)

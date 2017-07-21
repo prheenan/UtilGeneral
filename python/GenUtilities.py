@@ -168,8 +168,11 @@ def getSanitaryPath(path,includeSep = True):
         # dont include the separator
         return toRet
 
-def getFileFromPath(path):
+def file_name_from_path(path):
     return ntpath.basename(path)
+    
+def getFileFromPath(path):
+    return file_name_from_path(path)
 
 def getBasePath(path):
     return getSanitaryPath(os.path.dirname(path))
@@ -191,9 +194,20 @@ def makeTrialDir(base,label=None,time=True):
     return fullPath
 
 def getTimeStamp(fmt="%d_%m_%Y_%H:%M:%S"):
+    """
+    Returns: the current time stamp, formatted as fmt
+    """
     return time.strftime(fmt)
 
 def ensureDirExists(directory):
+    """
+    if directory doesnt exist, makes it 
+
+    Args:
+        directory: which directory we want 
+    Returns:
+        the sanitized path name 
+    """
     # make the directory if it isn't there!
     sanit = getSanitaryPath(directory)
     if not dirExists(sanit):
@@ -201,6 +215,9 @@ def ensureDirExists(directory):
     return sanit
 
 def isfile(filename):
+    """
+        Returns: true iff filename is actually a file 
+    """
     sanit = getSanitaryPath(filename,False)
     return os.path.isfile(sanit)
 
