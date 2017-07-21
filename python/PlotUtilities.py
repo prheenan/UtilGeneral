@@ -8,20 +8,21 @@ import numpy as np
 # for color cycling
 from itertools import cycle
 import sys
-import os 
+import os
 from matplotlib.ticker import FixedLocator,NullLocator
+import matplotlib as mpl
 
-g_font_label = 9
-g_font_title = 10.5
-g_font_subplot_label = 12
-g_font_tick = 8
-g_font_legend = 9
+g_tom_text_rendering = dict(on=False)
+g_font_label = 8
+g_font_title = 9.5
+g_font_subplot_label = 11
+g_font_tick = 7.5
+g_font_legend = 8
 g_tick_thickness = 1
 g_tick_length = 6
 g_minor_tick_width = 1
 g_minor_tick_length= 3
 # make the hatches larges
-import matplotlib as mpl
 mpl.rcParams['hatch.linewidth'] = 3
 mpl.rcParams['hatch.color'] = '0.5'
 # based on :http://stackoverflow.com/questions/18699027/write-an-upright-mu-in-matplotlib
@@ -887,10 +888,37 @@ def zoom_effect01(ax1, ax2, xmin, xmax, color='m',alpha_line=0.5,
     return c1, c2, bbox_patch1, bbox_patch2, p
 
 
+def tom_text_rendering():
+    g_tom_text_rendering['on'] = True
+    mpl.rc('text', usetex=True)
+    mpl.rcParams['text.latex.unicode'] =True
+    preamble = r"\usepackage{bm}" + r"\renewcommand{\seriesdefault}{\bfdefault}"
+    mpl.rcParams['text.latex.preamble']=preamble
+    mpl.rcParams['mathtext.fontset'] = 'custom'
+    mpl.rcParams['mathtext.rm'] = 'Arial'
+    mpl.rcParams['mathtext.it'] = 'Arial:italic'
+    mpl.rcParams['mathtext.bf'] = 'Arial:bolditalic'
+    mpl.rcParams['mathtext.default'] = 'bf'
+
+def bf_italic(s):
+    return r"$\bm{" + "{:s}".format(s) + "}$"
+
+def variable_str(label="F"):
+    return bf_italic(label)
+
 def save_twice(fig,name1,name2,close_last=True,**kwargs):
+    """
+    Saves 'fig' to name1 and name2, passing along **kwargs to savefig,
+    closing is close_last is true
+    """
     savefig(fig,name1,close=False,**kwargs)
     savefig(fig,name2,close=close_last,**kwargs)
 
+def save_png_and_svg(fig,base,**kwargs):
+    """
+    See: save_twice, except assumes a png and svg file are needed.
+    """
+    save_twice(fig,base +".png",base+".svg",**kwargs)
 
 # legacy API. plan is now to mimic matplotlib 
 def colorCyc(num,cmap = plt.cm.winter):
