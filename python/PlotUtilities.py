@@ -889,11 +889,20 @@ def zoom_effect01(ax1, ax2, xmin, xmax, color='m',alpha_line=0.5,
 
 
 def tom_text_rendering():
+    """
+    This function sets up matplotlib to use latex and make the font defaults
+    close to what time liks
+    """
+    # turn the file-specific rendering on
     g_tom_text_rendering['on'] = True
+    # we need latex and unicode to be safe
     mpl.rc('text', usetex=True)
     mpl.rcParams['text.latex.unicode'] =True
+    # we will use bm for bold/italic math. all fonts are assumed
+    # bold by default
     preamble = r"\usepackage{bm}" + r"\renewcommand{\seriesdefault}{\bfdefault}"
     mpl.rcParams['text.latex.preamble']=preamble
+    # Use arial, as per usual 
     mpl.rcParams['mathtext.fontset'] = 'custom'
     mpl.rcParams['mathtext.rm'] = 'Arial'
     mpl.rcParams['mathtext.it'] = 'Arial:italic'
@@ -901,10 +910,30 @@ def tom_text_rendering():
     mpl.rcParams['mathtext.default'] = 'bf'
 
 def bf_italic(s):
-    return r"$\bm{" + "{:s}".format(s) + "}$"
+    """
+    Returns: s formatted in a bold and italic manner. 
+    S should *not* be in math mode (the returned string will be)
+    """
+    if g_tom_text_rendering['on']:
+        # make it bold
+        fmt = lambda x: r"\bm{" + x + r"}"
+    else:
+        # do nothing 
+        fmt = lambda x: x
+    # always go into math mode
+    return "$" + fmt(s) + "$"
 
-def variable_str(label="F"):
+def variable_string(label="F"):
+    """
+    Returns: bf_italic applied to F
+    """
     return bf_italic(label)
+
+def force_string(label="F",units="pN"):
+    """
+    Returns: bf_italic applied to F, with <units> in parenthesis
+    """
+    return "{:s} (pN)".format(variable_string(label=label))
 
 def save_twice(fig,name1,name2,close_last=True,**kwargs):
     """
