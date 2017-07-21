@@ -1,7 +1,5 @@
-# copy this file into ~/.profile to have bash use it on login, e.g.:
-# cp GeneralUtil/bash/.profile ~/.profile
-export PS1="$: "
-home="$HOME"
+export PS1="$:"
+home="$HOME/src_prh/GeneralUtil/bash/"
 # where the profile is 
 base="$home"
 profile=".profile"
@@ -9,22 +7,24 @@ identikey="pahe3165"
 # supposedly makes it infinite
 export HISTSIZE="GOTCHA"
 # add the latex directory to avoid os X 11.11 problems finding binaries
-export PATH=$PATH:/Library/TeX/Distributions/.DefaultTeX/Contents/Programs/texbin
+export PATH=$PATH:/usr/local/texlive/2016/bin/x86_64-darwin/
 GOOD_RET=0
 BAS_RET=1
+
 # use very strict compilationg for c/c++
 flags="-Wall -Wpedantic -Wextra"
 alias gcc='gcc ${flags}'
 alias g++='g++ ${flags}'
+# assume we are using aspell for latex files. -t: latex, -c
+alias aspell='aspell -t -c'
 
 ARCHFLAGS="-arch x86_64" # Ensure user-installed binaries take precedence expor 
 PATH=/usr/local/bin:/usr/local/mysql/bin/:$PATH # Load .bashrc/mysql if it exists
-utilDir="$home/src_prh/GeneralUtil/"
-ProfileDir="$utilDir/bash/"
+utilDir="$HOME/src_prh/GeneralUtil/"
 
-npp()
+reader()
 {
-	/c/Program\ Files\ \(x86\)/Notepad++/notepad++.exe $@
+    Open -a /Applications/Adobe\ Reader.app/ $@
 }
 
 RefCypherDebug()
@@ -33,9 +33,22 @@ RefCypherDebug()
     mysqldump -u root -p CypherAFM | mysql -u root -p DebugCypher
 }
 
+latex_git_diff()
+{
+    git diff --color-words --ignore-all-space $@
+}
+
 nuterm ()
 {
     Open -a Terminal .
+}
+
+KillPy()
+{
+    # kills running python processes
+    # -9: everything we can
+    # awk is to get the PID
+    kill -9 $(ps aux | grep '[p]ython*' | awk '{print $2}')
 }
 
 igordemos()
@@ -104,7 +117,7 @@ gitInit()
 
 matnu()
 {
-    cp "${utilDir}mathematica/config.nb" ./$1.nb
+    cp "${utilDir}mathematica/config.nb" ./$1.nb && open ./$1.nb
 }
 
 pynu()
@@ -142,7 +155,12 @@ emnu()
 
 edu()
 {
-    cd /Users/patrickheenan/Documents/education/boulder_files/5_spring_2016
+    cd /Users/patrickheenan/Documents/education/boulder_files/7_spring_2017
+}
+
+paper()
+{
+    cd /Users/patrickheenan/src_prh/Research/Personal/EventDetection/Docs/paper/drafts_biophys/drafts/scratch_md
 }
 
 euler()
@@ -161,15 +179,67 @@ res()
     cd ~/src_prh/Research/Perkins/Projects
 }
 
+ms()
+{
+    cd ~/src_prh/Research/Personal/EventDetection/
+}
+
+
 p.()
 {
     open -a Preview $@.pdf
+}
+
+
+p_pandoc()
+{
+    # see (or just man pandoc): pandoc.org/MANUAL.html
+    # --filter      : use citeproc to generate citations, figure numbes
+    # --bibliography: path to the zotero bibliography
+    # --csl         : the style sheet to use with citeproc
+    # --template    : the template to use 
+    # --reference-docx: for getting better formatting
+    # --from        : the type of format to use
+    # --verbose     : print debugging info
+    # -s            : make the file standalone
+    # -o            : output
+    # --metadata    : sets a relevant variable
+    # note: metadata can be set as follows: 
+    # stackoverflow.com/questions/26431719/pandoc-citations-without-appending-the-references-bibliography
+    pandoc $1 $2 \
+	--filter=./walk_figures.py\
+	--filter=./fulfill_figures.py\
+	--bibliography=${5:-./Masters.bib} \
+	--from=markdown+yaml_metadata_block\
+	--csl=${4:-biophysical-journal.csl}\
+	--reference-docx=${3:-template_prh.docx}\
+        --metadata link-citations=true\
+	--verbose \
+	-s -o $1.docx
+    Open $1.docx
 }
 
 pcomp()
 {
     set -x
     pandoc -V geometry:margin=1in  $1.md -o $1.pdf
+}
+
+platex2rtf()
+{
+    # -E: how to include figures
+    # -d: debugging output
+    latex2rtf -E0 -d 2 "$1" && Open ${1%.*}".rtf"
+}
+
+pdfl_all()
+{
+    pdflatex $1.tex
+    bibtex $1.aux
+    pdflatex $1.tex
+    pdflatex $1.tex
+    dvips $1.dvi -o $1.ps
+    pstopdf $1.ps
 }
 
 pdfl()
@@ -181,13 +251,7 @@ pdfl()
     if [ -f $1.tex ] 
     then
 	# if it exists then latex it twice, dvips, then ps2pdf, then remove all the unneeded files
-	pdflatex $1.tex
-	bibtex $1.aux
-	pdflatex $1.tex
-	pdflatex $1.tex
-	dvips $1.dvi -o $1.ps
-	pstopdf $1.ps
-
+	pdfl_all $1
 	# these lines can be appended to delete other files, such as *.out
 	rm *.blg
 	rm *-blx.bib
@@ -199,6 +263,8 @@ pdfl()
 	rm *.dvi
 	rm *.toc
 	rm *.lof
+	rm *.nav
+	rm *.snm
     else
 	# otherwise give this output line with a list of available tex files
 	echo 'the file doesnt exist butthead! Choose one of these:'
@@ -251,24 +317,18 @@ compute()
 
 ref()
 {
-    source $ProfileDir/.profile
+    source $base$profile
 }
 
 ed()
 {
-    open -a /Applications/Emacs.app/ $@;
+    Open -a emacs $@ &
 }
-
-edn()
-{
-    Open -n -a /Applications/Emacs.app/ $@;
-}
-
 
 nu()
 {
-    ed $ProfileDir/.profile
-    ref
+	ed $base$profile	
+	ref
 }
 
 # added by Anaconda3 2.1.0 installer
@@ -276,3 +336,6 @@ export PATH="//anaconda/bin:$PATH"
 
 # added by Anaconda 2.1.0 installer
 export PATH="//anaconda/bin:$PATH"
+
+# added by Anaconda3 4.2.0 installer
+export PATH="/Users/patrickheenan/anaconda/bin:$PATH"
