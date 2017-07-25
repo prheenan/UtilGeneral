@@ -1,1 +1,31 @@
 alias notepad++="/c/Program\ Files\ \(x86\)/Notepad++/notepad++.exe"
+word_open()
+{
+    /C/Program\ Files\ \(x86\)/Microsoft\ Office/Office15/WINWORD.EXE $@
+}
+p_pandoc()
+{
+    # see (or just man pandoc): pandoc.org/MANUAL.html
+    # --filter      : use citeproc to generate citations, figure numbes
+    # --bibliography: path to the zotero bibliography
+    # --csl         : the style sheet to use with citeproc
+    # --template    : the template to use 
+    # --reference-docx: for getting better formatting
+    # --from        : the type of format to use
+    # --verbose     : print debugging info
+    # -s            : make the file standalone
+    # -o            : output
+    # --metadata    : sets a relevant variable
+    # note: metadata can be set as follows: 
+    # stackoverflow.com/questions/26431719/pandoc-citations-without-appending-the-references-bibliography
+    pandoc $1 $2 \
+	--filter=./pandoc_files/walk_figures.py\
+	--filter=./pandoc_files/fulfill_figures.py\
+	--bibliography=${5:-./pandoc_files/Masters.bib} \
+	--from=markdown+yaml_metadata_block\
+	--csl=${4:-pandoc_files/biophysical-journal.csl}\
+    --metadata link-citations=true\
+	--verbose \
+	-s -o $1.docx
+    word_open $1.docx
+}

@@ -77,14 +77,15 @@ def label_axes(fig, labels=None, loc=None, add_bold=False,
     axes = axis_func(fig.axes)
     n_ax = len(axes)
     if loc is None:
-        loc = (-0.15, 1.05)
+        loc = (-0.2, 0.95)
     if (isinstance(loc,tuple)):
         loc = [loc for _ in range(n_ax)]
     for ax, lab,loc_tmp in zip(axes, labels,loc):
         ax.annotate(lab, xy=loc_tmp,
                     xycoords='axes fraction',**kwargs)
 
-def label_tom(fig,labels=None, loc=None,fontsize=g_font_subplot_label,**kwargs):
+def label_tom(fig,labels=None, loc=None,fontsize=g_font_subplot_label,
+              **kwargs):
     """
     labels each subplot in fig
 
