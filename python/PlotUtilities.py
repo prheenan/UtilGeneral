@@ -552,6 +552,10 @@ def addColorBar(cax,ticks,labels,oritentation='vertical'):
     # horizontal colorbar
     cbar.ax.set_yticklabels(labels,fontsize=g_font_label)
 
+def color_axis_ticks(color,spine_name="left",axis_name="y",ax=plt.gca()):    
+    ax2.spines[spine_name].set_color(color)        
+    ax2.tick_params(axis_name,color=color,which='both')       
+    
 def secondAxis(ax,label,limits,secondY =True,color="Black",scale=None,
                tick_color='k'):
     """
@@ -596,8 +600,7 @@ def secondAxis(ax,label,limits,secondY =True,color="Black",scale=None,
         tickLims =  ax2.get_xticks()
         axis_opt = dict(axis=axis,bottom=False)
         other_axis_opt = dict(axis=axis,top=False)
-    ax2.spines[spines].set_color(tick_color)        
-    ax2.tick_params(axis,color=tick_color,which='both')            
+    color_axis_ticks(color=tick_color,spine_name=spine,axis_name=axis,ax=ax2)          
     [i.set_color(color) for i in tickLabels]
     lab.set_color(color)
     current.tick_params(**other_axis_opt)
