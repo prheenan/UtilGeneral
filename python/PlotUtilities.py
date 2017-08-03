@@ -9,7 +9,7 @@ import numpy as np
 from itertools import cycle
 import sys
 import os
-from matplotlib.ticker import FixedLocator,NullLocator
+from matplotlib.ticker import FixedLocator,NullLocator,AutoMinorLocator
 import matplotlib as mpl
 
 g_tom_text_rendering = dict(on=False)
@@ -426,10 +426,12 @@ def axis_locator(ax,n_major,n_minor):
         ax.set_minor_locator(NullLocator())
     else:
         ax.set_major_locator(MaxNLocator(n_major))
-        ax.set_minor_locator(MaxNLocator(n_minor))
+        # get the number of minor ticks per major ticks (for AutoMinor)
+        n_minor_per_major = int(np.round(n_minor/n_major))
+        ax.set_minor_locator(AutoMinorLocator(n_minor_per_major))
 
 
-def tom_ticks(ax=None,num_major=5,num_minor=None,**kwargs):
+def tom_ticks(ax=None,num_major=4,num_minor=None,**kwargs):
     """
     Convenience wrapper for tick_axis_number to make ticks like tom likes
 
@@ -550,7 +552,8 @@ def addColorBar(cax,ticks,labels,oritentation='vertical'):
     # horizontal colorbar
     cbar.ax.set_yticklabels(labels,fontsize=g_font_label)
 
-def secondAxis(ax,label,limits,secondY =True,color="Black",scale=None):
+def secondAxis(ax,label,limits,secondY =True,color="Black",scale=None,
+               tick_color='k'):
     """
     Adds a second axis to the named axis
 
@@ -570,6 +573,8 @@ def secondAxis(ax,label,limits,secondY =True,color="Black",scale=None):
             scale = ax.get_yscale() 
         else:
             scale = ax.get_xscale()
+    axis = "y" if secondY else "x"
+    spines = "right" if secondY else "top"
     if(secondY):
         ax2 = ax.twinx()
         ax2.set_yscale(scale, nonposy='clip')
@@ -578,8 +583,8 @@ def secondAxis(ax,label,limits,secondY =True,color="Black",scale=None):
         lab = ylabel(label,ax=ax2)
         tickLabels = ax2.get_yticklabels()
         tickLims =  ax2.get_yticks()
-        axis_opt = dict(axis='y',left=False)
-        other_axis_opt = dict(axis='y',right=False)
+        axis_opt = dict(axis=axis,left=False)
+        other_axis_opt = dict(axis=axis,right=False)
         ax.yaxis.tick_left()
     else:
         ax2 = ax.twiny()
@@ -589,8 +594,10 @@ def secondAxis(ax,label,limits,secondY =True,color="Black",scale=None):
         lab = xlabel(label,ax=ax2)
         tickLabels = ax2.get_xticklabels()
         tickLims =  ax2.get_xticks()
-        axis_opt = dict(axis='x',bottom=False)
-        other_axis_opt = dict(axis='x',top=False)
+        axis_opt = dict(axis=axis,bottom=False)
+        other_axis_opt = dict(axis=axis,top=False)
+    ax2.spines[spines].set_color(tick_color)        
+    ax2.tick_params(axis,color=tick_color,which='both')            
     [i.set_color(color) for i in tickLabels]
     lab.set_color(color)
     current.tick_params(**other_axis_opt)
@@ -765,11 +772,11 @@ def variable_string(label="F"):
     """
     return bf_italic(label)
 
-def force_string(label="F",units="pN"):
+def unit_string(label="F",units="pN"):
     """
     Returns: bf_italic applied to F, with <units> in parenthesis
     """
-    return "{:s} (pN)".format(variable_string(label=label))
+    return "{:s} ({:s})".format(variable_string(label=label),units)
 
 def save_twice(fig,name1,name2,close_last=True,**kwargs):
     """
@@ -784,6 +791,7 @@ def save_png_and_svg(fig,base,**kwargs):
     See: save_twice, except assumes a png and svg file are needed.
     """
     save_twice(fig,base +".png",base+".svg",**kwargs)
+    
 
 # legacy API. plan is now to mimic matplotlib 
 def colorCyc(num,cmap = plt.cm.winter):

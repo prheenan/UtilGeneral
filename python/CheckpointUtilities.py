@@ -62,6 +62,8 @@ def lazy_reload(file_path,data,force):
     """
     data_func = lambda *args,**kwargs: data
     return getCheckpoint(file_path,orCall=data_func,force=False)
+    
+
      
 def lazy_save(file_path,data):
     return saveFile(file_path,data,useNpy=False)

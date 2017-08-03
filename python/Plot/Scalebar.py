@@ -156,6 +156,12 @@ def x_scale_bar_and_ticks(unit,width,offset_x,offset_y,ax=plt.gca(),
     return _x_scale_bar_and_ticks(ax=ax,xy_text=xy_text,xy_line=xy_line,
                                   text=text,**kwargs)
                                   
+def x_scale_bar_and_ticks_relative(unit,width,offset_x,offset_y,
+                                   ax=plt.gca(),**kw):
+    offset_x = rel_to_abs(ax=ax,x=offset_x,is_x=True)
+    offset_y = rel_to_abs(ax=ax,x=offset_y,is_x=False)
+    return x_scale_bar_and_ticks(unit,width,offset_x,offset_y,ax=ax,**kw)                         
+                                  
 def y_scale_bar_and_ticks(unit,height,offset_x,offset_y,ax=plt.gca(),
                           fmt="{:.0f}",**kwargs):
     """
