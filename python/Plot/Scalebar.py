@@ -21,7 +21,25 @@ default_font_dict = dict(fontsize=g_font_label,
                          
 def_font_kwargs_y = copy.deepcopy(default_font_dict)
 def_font_kwargs_y['horizontalalignment'] = 'right'
-def_font_kwargs_y['verticalalignment'] = 'center'                         
+def_font_kwargs_y['verticalalignment'] = 'center'         
+
+def font_kwargs_modified(x_kwargs=dict(),y_kwargs=dict()):
+    """
+    Returns the font kwargs 
+    
+    Args:
+        <x/y>_kwargs: applied to the x and y font; overwrites them
+    Returns:
+        default_font_dict and def_font_kwargs, except overwritten by 
+        <x/y>_kwargs. So, tuple of x and y 
+    """
+    to_ret_x = copy.deepcopy(default_font_dict)
+    to_ret_y = copy.deepcopy(def_font_kwargs_y)
+    for k,v in x_kwargs.items():
+        to_ret_x[k] = v
+    for k,v in y_kwargs.items():
+        to_ret_y[k] = v
+    return to_ret_x,to_ret_y
 
 def round_to_n_sig_figs(x,n=1):
     """
@@ -161,14 +179,18 @@ def x_scale_bar_and_ticks(unit,width,offset_x,offset_y,ax=plt.gca(),
     return _x_scale_bar_and_ticks(ax=ax,xy_text=xy_text,xy_line=xy_line,
                                   text=text,**kwargs)
                                   
+def x_and_y_to_abs(x_rel,y_rel,ax):
+    offset_x = rel_to_abs(ax=ax,x=x_rel,is_x=True)
+    offset_y = rel_to_abs(ax=ax,x=y_rel,is_x=False)
+    return offset_x,offset_y
+                                  
 def x_scale_bar_and_ticks_relative(unit,width,offset_x,offset_y,
                                    ax=plt.gca(),**kw):
     """
     See: x_scale_bar_and_ticks, except offset_x and offset_y are in [0,1] 
     relative graph units 
     """
-    offset_x = rel_to_abs(ax=ax,x=offset_x,is_x=True)
-    offset_y = rel_to_abs(ax=ax,x=offset_y,is_x=False)
+    offset_x,offset_y = x_and_y_to_abs(offset_x,offset_y,ax)
     return x_scale_bar_and_ticks(unit,width,offset_x,offset_y,ax=ax,**kw)  
 
 def y_scale_bar_and_ticks_relative(unit,height,offset_x,offset_y,
@@ -178,8 +200,7 @@ def y_scale_bar_and_ticks_relative(unit,height,offset_x,offset_y,
     See: y_scale_bar_and_ticks, except offset_x and offset_y are in [0,1] 
     relative graph units 
     """                                   
-    offset_x = rel_to_abs(ax=ax,x=offset_x,is_x=True)
-    offset_y = rel_to_abs(ax=ax,x=offset_y,is_x=False)
+    offset_x,offset_y = x_and_y_to_abs(offset_x,offset_y,ax)
     return y_scale_bar_and_ticks(unit,height,offset_x,offset_y,ax=ax,
                                  font_kwargs=font_kwargs,**kw)                                    
  
@@ -206,7 +227,8 @@ def y_scale_bar_and_ticks(unit,height,offset_x,offset_y,ax=plt.gca(),
                                   text=text,**kwargs)       
                                   
 
-def crossed_x_and_y(offset_x,offset_y,x_kwargs,y_kwargs,font_kwargs_y=None):
+def crossed_x_and_y(offset_x,offset_y,x_kwargs,y_kwargs,ax=plt.gca(),
+                    font_kwargs_y=None):
     """
     ease of use for making a 'crossed' x and y scale bar. 
     
@@ -221,17 +243,22 @@ def crossed_x_and_y(offset_x,offset_y,x_kwargs,y_kwargs,font_kwargs_y=None):
     assert ("width" in x_kwargs.keys()) , "Width not specified"
     width = x_kwargs['width']
     height = y_kwargs['height']
-    x_scale_bar_and_ticks(offset_x=offset_x,offset_y=offset_y,**x_kwargs)   
+    x_scale_bar_and_ticks(offset_x=offset_x,offset_y=offset_y,ax=ax,**x_kwargs)   
     # make the y scale bar...
-    if (font_kwargs_y is None):
-        font_kwargs_y = def_font_kwargs_y
+    if ('font_kwargs' not in y_kwargs):
+        y_kwargs['font_kwargs'] = def_font_kwargs_y
     y_scale_bar_and_ticks(offset_x=offset_x-width/2,offset_y=offset_y+height/2,
-                          font_kwargs=font_kwargs_y,**y_kwargs)                                       
+                          ax=ax,**y_kwargs)         
+
+
+def crossed_x_and_y_relative(offset_x,offset_y,ax=plt.gca(),**kwargs):
+    offset_x,offset_y = x_and_y_to_abs(offset_x,offset_y,ax=ax)
+    return crossed_x_and_y(offset_x,offset_y,ax=ax,**kwargs)                          
     
 def _scale_bar(text,xy_text,xy_line,ax=plt.gca(),
                line_kwargs=dict(linewidth=1.5,color='k'),
                font_kwargs=default_font_dict,
-               fudge_line_pct=dict(x=0,y=0)):
+               fudge_text_pct=dict(x=0,y=0)):
     """
     Creates a scale bar using the specified, absolute x and y
     
@@ -241,18 +268,24 @@ def _scale_bar(text,xy_text,xy_line,ax=plt.gca(),
         xy_line: where the scalebar should be
         ax: the axis to use
         <line/font>_kwargs: passed to plot and annotate, respectively
+        fudge_text_pct: as a percentage of the scale bar, how much to shift the 
+        text. Useful for preventing overlap. 
     Returns:
         tuple of <annnotation, x coordinates of line, y coords of line>
     """
-    t = ax.annotate(s=text, xy=xy_text,**font_kwargs)
     x_draw = np.array([x[0] for x in xy_line])
-    y_draw = np.array([x[1] for x in xy_line])
-    # shift the line, if need be. 
+    y_draw = np.array([x[1] for x in xy_line])    
+    # shift the text, if need be. 
     x_range = abs(np.diff(x_draw))
     y_range = abs(np.diff(y_draw))
     max_range = max([x_range,y_range])
-    x_draw += max_range * fudge_line_pct['x']
-    y_draw += max_range * fudge_line_pct['y']
-    # POST: x and y have been shifted...
-    plt.plot(x_draw,y_draw,**line_kwargs)
+    x_text = xy_text[0]
+    y_text = xy_text[1]    
+    x_text += max_range * fudge_text_pct['x']
+    y_text += max_range * fudge_text_pct['y']   
+    # POST: shifted     
+    xy_text = [x_text,y_text]
+    t = ax.annotate(s=text, xy=xy_text,**font_kwargs)
+
+    ax.plot(x_draw,y_draw,**line_kwargs)
     return t,x_draw,y_draw

@@ -560,8 +560,30 @@ def addColorBar(cax,ticks,labels,oritentation='vertical'):
     cbar = plt.colorbar(cax, ticks=ticks, orientation='vertical')
     # horizontal colorbar
     cbar.ax.set_yticklabels(labels,fontsize=g_font_label)
+    
+def color_frame(color,ax=plt.gca(),**kw):
+    """
+    See : color_axis_ticks, except colors the entire frame. kw is shared
+    """
+    keywords = [dict(spine_name="left",axis_name="y",**kw),
+                dict(spine_name="right",axis_name="y",**kw),
+                dict(spine_name="top",axis_name="x",**kw),
+                dict(spine_name="bottom",axis_name="x",**kw)]
+    for kw_tmp in keywords:
+        color_axis_ticks(color=color,ax=ax,**kw_tmp)
 
 def color_axis_ticks(color,spine_name="left",axis_name="y",ax=plt.gca()):    
+    """
+    colors the specific axis as desired 
+    
+    Args:
+        color: to use
+        spine_name: off the axis
+        axis_name: x or y-yerr
+        ax: to color
+    Returns: 
+        nothing
+    """
     ax.spines[spine_name].set_color(color)        
     ax.tick_params(axis_name,color=color,which='both')       
     
