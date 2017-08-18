@@ -13,7 +13,7 @@ from GeneralUtil.python.PlotUtilities import *
 
 default_font_dict = dict(fontsize=g_font_label,
                          fontweight='bold',
-                         family="sans-serif",
+                         family="sans",
                          color='k',
                          horizontalalignment='center',
                          verticalalignment='lower',
@@ -149,7 +149,7 @@ def unit_format(val,unit,fmt="{:.0f}"):
     """
     return (fmt + " {:s}").format(val,unit) 
     
-def (unit,width,offset_x,offset_y,ax=plt.gca(),
+def x_scale_bar_and_ticks(unit,width,offset_x,offset_y,ax=plt.gca(),
                           fmt="{:.0f}",**kwargs):
     """
     See: y_scale_bar_and_ticks, except makes an x scale bar with a specified
@@ -165,7 +165,7 @@ def x_scale_bar_and_ticks_relative(unit,width,offset_x,offset_y,
                                    ax=plt.gca(),**kw):
     """
     See: x_scale_bar_and_ticks, except offset_x and offset_y are in [0,1] 
-    relative units 
+    relative graph units 
     """
     offset_x = rel_to_abs(ax=ax,x=offset_x,is_x=True)
     offset_y = rel_to_abs(ax=ax,x=offset_y,is_x=False)
@@ -176,8 +176,8 @@ def y_scale_bar_and_ticks_relative(unit,height,offset_x,offset_y,
                                    **kw):
     """
     See: y_scale_bar_and_ticks, except offset_x and offset_y are in [0,1] 
-    relative units 
-    """    
+    relative graph units 
+    """                                   
     offset_x = rel_to_abs(ax=ax,x=offset_x,is_x=True)
     offset_y = rel_to_abs(ax=ax,x=offset_y,is_x=False)
     return y_scale_bar_and_ticks(unit,height,offset_x,offset_y,ax=ax,

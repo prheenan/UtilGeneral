@@ -18,20 +18,22 @@ g_font_title = 9.5
 g_font_subplot_label = 11
 g_font_tick = 7.5
 g_font_legend = 8
-g_tick_thickness = 1
-g_tick_length = 5.5
-g_minor_tick_width = 1
-g_minor_tick_length= 2.5
+g_tick_thickness = 0.85
+g_tick_length = 5
+g_minor_tick_width = 0.7
+g_minor_tick_length= 2.25
 # make the hatches larges
 mpl.rcParams['hatch.linewidth'] = 3
 mpl.rcParams['hatch.color'] = '0.5'
 # based on :http://stackoverflow.com/questions/18699027/write-an-upright-mu-in-matplotlib
 # following line sets the mathtext to whatever is our font
+mpl.rc("font", **{"sans-serif": ["Helvetica"], "style": 'normal','family':'sans'})
 plt.rcParams['font.sans-serif'] = 'Arial'
 plt.rcParams['font.family'] = 'sans-serif'
 mpl.rcParams['mathtext.fontset'] = 'custom'
-mpl.rcParams['mathtext.rm'] = 'Arial'
-mpl.rcParams['mathtext.it'] = 'Arial:italic'
+mpl.rcParams['mathtext.rm'] = 'Arial:bold'
+# anything that is italic should *also* be bold 
+mpl.rcParams['mathtext.it'] = 'Arial:italic:bold'
 mpl.rcParams['mathtext.bf'] = 'Arial:bold'
 # see: http://matplotlib.org/examples/pylab_examples/usetex_baseline_test.html
 # this line makes it slow, etc plt.rcParams['text.usetex'] = True
@@ -754,21 +756,19 @@ def tom_text_rendering():
     # we need latex and unicode to be safe
     mpl.rc('text', usetex=True)
     mpl.rcParams['text.latex.unicode'] =True
-    mpl.rcParams['font.family'] = 'sans-serif'
+    mpl.rcParams['font.family'] = 'sans'
+    mpl.rcParams['font.style'] = 'normal'
     # bm: bold/italic math. 
     # bfdefault: all fonts are assumed bold by default
     # sfdefault: all non-math are sans-serif
-    preamble = [r"\usepackage{bm}",
-                r"\renewcommand{\seriesdefault}{\bfdefault}",
+    preamble = [r"\renewcommand{\seriesdefault}{\bfdefault}",
+                r"\usepackage{amsmath}",
+                r"\usepackage{helvet}",
                 r"\renewcommand{\familydefault}{\sfdefault}"]
     mpl.rcParams['text.latex.preamble']=preamble
     # Use arial, as per usual 
-    mpl.rcParams['mathtext.fontset'] = 'dejavusans'
-    mpl.rcParams['mathtext.rm'] = 'dejavusans'
-    mpl.rcParams['mathtext.it'] = 'dejavusans:italic'
-    mpl.rcParams['mathtext.bf'] = 'dejavusans:bolditalic'
+    mpl.rcParams['mathtext.fallback_to_cm'] = False
     mpl.rcParams['mathtext.default'] = 'sf'
-    mpl.rcParams['font.family'] = 'dejavusans'    
 
 def bf_italic(s):
     """
@@ -777,7 +777,7 @@ def bf_italic(s):
     """
     if g_tom_text_rendering['on']:
         # make it bold
-        fmt = lambda x: r"\bm{" + x + r"}"
+        fmt = lambda x: r"\boldsymbol{" + x + r"}"
     else:
         # do nothing 
         fmt = lambda x: x
