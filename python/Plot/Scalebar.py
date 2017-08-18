@@ -13,10 +13,15 @@ from GeneralUtil.python.PlotUtilities import *
 
 default_font_dict = dict(fontsize=g_font_label,
                          fontweight='bold',
+                         family="sans-serif",
                          color='k',
                          horizontalalignment='center',
                          verticalalignment='lower',
                          bbox=dict(color='w',alpha=0,pad=0))
+                         
+def_font_kwargs_y = copy.deepcopy(default_font_dict)
+def_font_kwargs_y['horizontalalignment'] = 'right'
+def_font_kwargs_y['verticalalignment'] = 'center'                         
 
 def round_to_n_sig_figs(x,n=1):
     """
@@ -144,7 +149,7 @@ def unit_format(val,unit,fmt="{:.0f}"):
     """
     return (fmt + " {:s}").format(val,unit) 
     
-def x_scale_bar_and_ticks(unit,width,offset_x,offset_y,ax=plt.gca(),
+def (unit,width,offset_x,offset_y,ax=plt.gca(),
                           fmt="{:.0f}",**kwargs):
     """
     See: y_scale_bar_and_ticks, except makes an x scale bar with a specified
@@ -158,9 +163,26 @@ def x_scale_bar_and_ticks(unit,width,offset_x,offset_y,ax=plt.gca(),
                                   
 def x_scale_bar_and_ticks_relative(unit,width,offset_x,offset_y,
                                    ax=plt.gca(),**kw):
+    """
+    See: x_scale_bar_and_ticks, except offset_x and offset_y are in [0,1] 
+    relative units 
+    """
     offset_x = rel_to_abs(ax=ax,x=offset_x,is_x=True)
     offset_y = rel_to_abs(ax=ax,x=offset_y,is_x=False)
-    return x_scale_bar_and_ticks(unit,width,offset_x,offset_y,ax=ax,**kw)                         
+    return x_scale_bar_and_ticks(unit,width,offset_x,offset_y,ax=ax,**kw)  
+
+def y_scale_bar_and_ticks_relative(unit,height,offset_x,offset_y,
+                                   ax=plt.gca(),font_kwargs=def_font_kwargs_y,
+                                   **kw):
+    """
+    See: y_scale_bar_and_ticks, except offset_x and offset_y are in [0,1] 
+    relative units 
+    """    
+    offset_x = rel_to_abs(ax=ax,x=offset_x,is_x=True)
+    offset_y = rel_to_abs(ax=ax,x=offset_y,is_x=False)
+    return y_scale_bar_and_ticks(unit,height,offset_x,offset_y,ax=ax,
+                                 font_kwargs=font_kwargs,**kw)                                    
+ 
                                   
 def y_scale_bar_and_ticks(unit,height,offset_x,offset_y,ax=plt.gca(),
                           fmt="{:.0f}",**kwargs):
@@ -202,15 +224,14 @@ def crossed_x_and_y(offset_x,offset_y,x_kwargs,y_kwargs,font_kwargs_y=None):
     x_scale_bar_and_ticks(offset_x=offset_x,offset_y=offset_y,**x_kwargs)   
     # make the y scale bar...
     if (font_kwargs_y is None):
-        font_kwargs_y = copy.deepcopy(default_font_dict)
-        font_kwargs_y['horizontalalignment'] = 'right'
-        font_kwargs_y['verticalalignment'] = 'center'
+        font_kwargs_y = def_font_kwargs_y
     y_scale_bar_and_ticks(offset_x=offset_x-width/2,offset_y=offset_y+height/2,
                           font_kwargs=font_kwargs_y,**y_kwargs)                                       
     
 def _scale_bar(text,xy_text,xy_line,ax=plt.gca(),
-               line_kwargs=dict(linewidth=0.75,color='k'),
-               font_kwargs=default_font_dict):
+               line_kwargs=dict(linewidth=1.5,color='k'),
+               font_kwargs=default_font_dict,
+               fudge_line_pct=dict(x=0,y=0)):
     """
     Creates a scale bar using the specified, absolute x and y
     
@@ -224,7 +245,14 @@ def _scale_bar(text,xy_text,xy_line,ax=plt.gca(),
         tuple of <annnotation, x coordinates of line, y coords of line>
     """
     t = ax.annotate(s=text, xy=xy_text,**font_kwargs)
-    x_draw = [x[0] for x in xy_line]
-    y_draw = [x[1] for x in xy_line]
+    x_draw = np.array([x[0] for x in xy_line])
+    y_draw = np.array([x[1] for x in xy_line])
+    # shift the line, if need be. 
+    x_range = abs(np.diff(x_draw))
+    y_range = abs(np.diff(y_draw))
+    max_range = max([x_range,y_range])
+    x_draw += max_range * fudge_line_pct['x']
+    y_draw += max_range * fudge_line_pct['y']
+    # POST: x and y have been shifted...
     plt.plot(x_draw,y_draw,**line_kwargs)
     return t,x_draw,y_draw

@@ -19,9 +19,9 @@ g_font_subplot_label = 11
 g_font_tick = 7.5
 g_font_legend = 8
 g_tick_thickness = 1
-g_tick_length = 6
+g_tick_length = 5.5
 g_minor_tick_width = 1
-g_minor_tick_length= 3
+g_minor_tick_length= 2.5
 # make the hatches larges
 mpl.rcParams['hatch.linewidth'] = 3
 mpl.rcParams['hatch.color'] = '0.5'
@@ -47,6 +47,12 @@ from matplotlib.transforms import Bbox, TransformedBbox, \
 import string
 from itertools import cycle
 from six.moves import zip
+
+def upright_mu(unit=u""):
+    """
+    Returns: an upright mu, optionally follow by <unit>. Recquires unicode. 
+    """
+    return u"\u03bc" + unit
 
 def label_axes(fig, labels=None, loc=None, add_bold=False,
                axis_func= lambda x: x,**kwargs):
@@ -247,8 +253,8 @@ def legend_and_save(Fig,Base,Number=0,ext=".png",**kwargs):
     _LegendAndSave(Fig,Base+str(Number) + ext,**kwargs)
     return Number + 1
 
-def colorbar(label,labelpad=25,rotation=270,fontsize=g_font_legend,
-             fontsize_ticks=g_font_legend,
+def colorbar(label,labelpad=15,rotation=270,fontsize=g_font_legend,
+             fontsize_ticks=g_font_legend,fig=None,
              bar_kwargs=dict()):
     """
     Makes a simple color bar on the current plot, assuming that something
@@ -259,7 +265,11 @@ def colorbar(label,labelpad=25,rotation=270,fontsize=g_font_legend,
         labelpad,rotation,fontsize: see cbar.set_label: 
  matplotlib.org/api/colorbar_api.html#matplotlib.colorbar.ColorbarBase.set_label
     """
-    cbar = plt.colorbar(**bar_kwargs)
+    if (fig is None):
+        color_module = plt
+    else:
+        color_module = fig
+    cbar = color_module.colorbar(**bar_kwargs)
     cbar.set_label(label,labelpad=labelpad,rotation=rotation,fontsize=fontsize)
     cbar.ax.tick_params(labelsize=fontsize_ticks)
     return cbar
@@ -299,8 +309,12 @@ def intLim(vals,xAxis=True,factor=0.5):
     else:
         plt.gca().set_ylim(minV-fudge,maxV+fudge)
 
-def genLabel(func,label,fontsize=g_font_label,fontweight='bold',**kwargs):
-    return func(label,fontsize=fontsize,fontweight=fontweight,**kwargs)
+def genLabel(func,label,fontsize=g_font_label,fontweight='bold',
+             **kwargs):
+    to_ret = func(label,fontsize=fontsize,fontweight=fontweight,
+                  family='sans-serif',**kwargs)
+    return to_ret
+
         
 def xlabel(lab,ax=None,**kwargs):
     """
@@ -375,6 +389,7 @@ def lazyLabel(xlab,ylab,titLab,yrotation=90,titley=1.0,bbox_to_anchor=None,
     ylabel(ylab,rotation=yrotation,**axis_kwargs)
     title(titLab,y=titley,**title_kwargs)
     # set the font
+    tom_ticks()
     tickAxisFont(**tick_kwargs)
     # if we have a z or a legemd, set those too.
     if (zlab is not None):
@@ -478,7 +493,7 @@ def tickAxisFont(fontsize=g_font_tick,
                  major_tick_width=g_tick_thickness,
                  major_tick_length=g_tick_length,
                  minor_tick_width=g_minor_tick_width,
-                 minor_tick_length=g_minor_tick_length,
+                 minor_tick_length=g_minor_tick_length,direction='in',
                  ax=None,common_dict=None,axis='both',bottom=True,
                  top=True,left=True,right=True,
                  **kwargs):
@@ -494,7 +509,7 @@ def tickAxisFont(fontsize=g_font_tick,
     """
     if (ax is None):
         ax = plt.gca()
-    common_dict = dict(direction='in',
+    common_dict = dict(direction=direction,
                        axis=axis,bottom=bottom,top=top,right=right,left=left,
                        **kwargs)
     ax.tick_params(length=major_tick_length, width=major_tick_width,
@@ -538,14 +553,6 @@ def cmap(num,cmap = plt.cm.gist_earth_r):
     """
     return cmap(np.linspace(0, 1, num))
 
-def useTex():
-    # may need to install:
-    # tlmgr install dvipng helvetic palatino mathpazo type1cm
-    # http://stackoverflow.com/questions/14389892/ipython-notebook-plotting-with-latex
-    from matplotlib import rc
-    sys.path.append("/usr/texbin/")
-    rc('font',**{'family':'sans-serif','sans-serif':['Helvetica']})
-    rc('text', usetex=True)
 
 def addColorBar(cax,ticks,labels,oritentation='vertical'):
     cbar = plt.colorbar(cax, ticks=ticks, orientation='vertical')
@@ -553,8 +560,8 @@ def addColorBar(cax,ticks,labels,oritentation='vertical'):
     cbar.ax.set_yticklabels(labels,fontsize=g_font_label)
 
 def color_axis_ticks(color,spine_name="left",axis_name="y",ax=plt.gca()):    
-    ax2.spines[spine_name].set_color(color)        
-    ax2.tick_params(axis_name,color=color,which='both')       
+    ax.spines[spine_name].set_color(color)        
+    ax.tick_params(axis_name,color=color,which='both')       
     
 def secondAxis(ax,label,limits,secondY =True,color="Black",scale=None,
                tick_color='k'):
@@ -600,7 +607,7 @@ def secondAxis(ax,label,limits,secondY =True,color="Black",scale=None,
         tickLims =  ax2.get_xticks()
         axis_opt = dict(axis=axis,bottom=False)
         other_axis_opt = dict(axis=axis,top=False)
-    color_axis_ticks(color=tick_color,spine_name=spine,axis_name=axis,ax=ax2)          
+    color_axis_ticks(color=tick_color,spine_name=spines,axis_name=axis,ax=ax2)          
     [i.set_color(color) for i in tickLabels]
     lab.set_color(color)
     current.tick_params(**other_axis_opt)
@@ -692,8 +699,11 @@ def connect_bbox(bbox1, bbox2,
     return c1, c2, bbox_patch1, bbox_patch2, p
 
 
+def zoom_left_to_right_kw():
+    return dict(loc1a=1,loc2a=2,loc1b=4,loc2b=3)
+    
 def zoom_effect01(ax1, ax2, xmin, xmax, color='m',alpha_line=0.5,
-                  alpha_patch = 0.15,
+                  alpha_patch = 0.15,loc1a=3,loc2a=2,loc1b=4,loc2b=1,
                   linestyle='--',linewidth=1.5,**kwargs):
     """
     connect ax1 & ax2. The x-range of (xmin, xmax) in both axes will
@@ -723,7 +733,7 @@ def zoom_effect01(ax1, ax2, xmin, xmax, color='m',alpha_line=0.5,
                       linestyle='--',**kwargs)
     c1, c2, bbox_patch1, bbox_patch2, p = \
         connect_bbox(mybbox1, mybbox2,
-                     loc1a=3, loc2a=2, loc1b=4, loc2b=1,
+                     loc1a=loc1a, loc2a=loc2a, loc1b=loc1b, loc2b=loc2b,
                      prop_lines=prop_lines, prop_patches=prop_patches)
     ax1.add_patch(bbox_patch1)
     ax2.add_patch(bbox_patch2)
@@ -744,16 +754,21 @@ def tom_text_rendering():
     # we need latex and unicode to be safe
     mpl.rc('text', usetex=True)
     mpl.rcParams['text.latex.unicode'] =True
-    # we will use bm for bold/italic math. all fonts are assumed
-    # bold by default
-    preamble = r"\usepackage{bm}" + r"\renewcommand{\seriesdefault}{\bfdefault}"
+    mpl.rcParams['font.family'] = 'sans-serif'
+    # bm: bold/italic math. 
+    # bfdefault: all fonts are assumed bold by default
+    # sfdefault: all non-math are sans-serif
+    preamble = [r"\usepackage{bm}",
+                r"\renewcommand{\seriesdefault}{\bfdefault}",
+                r"\renewcommand{\familydefault}{\sfdefault}"]
     mpl.rcParams['text.latex.preamble']=preamble
     # Use arial, as per usual 
-    mpl.rcParams['mathtext.fontset'] = 'custom'
-    mpl.rcParams['mathtext.rm'] = 'Arial'
-    mpl.rcParams['mathtext.it'] = 'Arial:italic'
-    mpl.rcParams['mathtext.bf'] = 'Arial:bolditalic'
-    mpl.rcParams['mathtext.default'] = 'bf'
+    mpl.rcParams['mathtext.fontset'] = 'dejavusans'
+    mpl.rcParams['mathtext.rm'] = 'dejavusans'
+    mpl.rcParams['mathtext.it'] = 'dejavusans:italic'
+    mpl.rcParams['mathtext.bf'] = 'dejavusans:bolditalic'
+    mpl.rcParams['mathtext.default'] = 'sf'
+    mpl.rcParams['font.family'] = 'dejavusans'    
 
 def bf_italic(s):
     """
