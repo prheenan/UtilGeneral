@@ -27,7 +27,7 @@ mpl.rcParams['hatch.linewidth'] = 3
 mpl.rcParams['hatch.color'] = '0.5'
 # based on :http://stackoverflow.com/questions/18699027/write-an-upright-mu-in-matplotlib
 # following line sets the mathtext to whatever is our font
-mpl.rc("font", **{"sans-serif": ["Helvetica"], "style": 'normal','family':'sans'})
+mpl.rc("font", **{"sans-serif": ["Arial"], "style": 'normal','family':'sans'})
 plt.rcParams['font.sans-serif'] = 'Arial'
 plt.rcParams['font.family'] = 'sans-serif'
 mpl.rcParams['mathtext.fontset'] = 'custom'
