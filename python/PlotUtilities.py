@@ -391,7 +391,6 @@ def lazyLabel(xlab,ylab,titLab,yrotation=90,titley=1.0,bbox_to_anchor=None,
     ylabel(ylab,rotation=yrotation,**axis_kwargs)
     title(titLab,y=titley,**title_kwargs)
     # set the font
-    tom_ticks()
     tickAxisFont(**tick_kwargs)
     # if we have a z or a legemd, set those too.
     if (zlab is not None):

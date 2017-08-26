@@ -212,11 +212,10 @@ p_pandoc()
 	--bibliography=${5:-./Masters.bib} \
 	--from=markdown+yaml_metadata_block\
 	--csl=${4:-biophysical-journal.csl}\
-	--reference-docx=${3:-template_prh.docx}\
+	--reference-docx=${3:-../../template/prh_template.docx}\
         --metadata link-citations=true\
 	--verbose \
 	-s -o $1.docx
-    Open $1.docx
 }
 
 pcomp()

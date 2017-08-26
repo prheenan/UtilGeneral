@@ -161,21 +161,21 @@ def offsets_and_ranges(width,height,offset_x,offset_y):
                 [text_offset_x + bar_offset_x,text_offset_y + bar_offset_y]]
     return xy_text,xy_line                
     
-def unit_format(val,unit,fmt="{:.0f}"):
+def unit_format(val,unit,fmt="{:.0f}",value_function = lambda x:x):
     """
     Returns: the way we want to format the scale bar text; <val><space><unit>
     """
-    return (fmt + " {:s}").format(val,unit) 
+    return (fmt + " {:s}").format(value_function(val),unit) 
     
 def x_scale_bar_and_ticks(unit,width,offset_x,offset_y,ax=plt.gca(),
-                          fmt="{:.0f}",**kwargs):
+                          fmt="{:.0f}",unit_kwargs=dict(),**kwargs):
     """
     See: y_scale_bar_and_ticks, except makes an x scale bar with a specified
     width
     """                                       
     xy_text,xy_line = offsets_and_ranges(width=width,height=0,
                                          offset_x=offset_x,offset_y=offset_y)
-    text = unit_format(width,unit,fmt)                                    
+    text = unit_format(width,unit,fmt,**unit_kwargs)             
     return _x_scale_bar_and_ticks(ax=ax,xy_text=xy_text,xy_line=xy_line,
                                   text=text,**kwargs)
                                   
@@ -206,7 +206,7 @@ def y_scale_bar_and_ticks_relative(unit,height,offset_x,offset_y,
  
                                   
 def y_scale_bar_and_ticks(unit,height,offset_x,offset_y,ax=plt.gca(),
-                          fmt="{:.0f}",**kwargs):
+                          fmt="{:.0f}",unit_kwargs=dict(),**kwargs):
     """
     ease-of-use function for making a y scale bar. figures out the units and 
     offsets
@@ -222,7 +222,7 @@ def y_scale_bar_and_ticks(unit,height,offset_x,offset_y,ax=plt.gca(),
     """                          
     xy_text,xy_line = offsets_and_ranges(width=0,height=height,
                                         offset_x=offset_x,offset_y=offset_y)
-    text = unit_format(height,unit,fmt)                                                                            
+    text = unit_format(height,unit,fmt,**unit_kwargs)
     return _y_scale_bar_and_ticks(ax=ax,xy_text=xy_text,xy_line=xy_line,
                                   text=text,**kwargs)       
                                   
@@ -270,7 +270,8 @@ def _scale_bar(text,xy_text,xy_line,ax=plt.gca(),
         <line/font>_kwargs: passed to plot and annotate, respectively
         fudge_text_pct: as a percentage of the scale bar, how much to shift the 
         text. Useful for preventing overlap. 
-    Returns:
+    
+s    Returns:
         tuple of <annnotation, x coordinates of line, y coords of line>
     """
     x_draw = np.array([x[0] for x in xy_line])
