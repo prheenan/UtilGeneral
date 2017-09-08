@@ -155,7 +155,7 @@ def no_x_ticks(ax=plt.gca()):
 
 def no_y_ticks(ax=plt.gca()):
     _remove_ticks(ax.get_yaxis())
-
+    
 def no_x_anything(ax=plt.gca()):
     no_x_axis(ax)
     no_x_grid(ax)

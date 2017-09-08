@@ -86,6 +86,14 @@ def saveFile(filePath,dataToSave,useNpy):
             cPickle.dump(dataToSave,fh,cPickle.HIGHEST_PROTOCOL)
 
 def loadFile(filePath,useNpy):
+    """
+    
+    Args:
+        filePath: where the file to load is
+        useNpy: if true, tries to load a number obbject
+    Returns;
+        the cached file if it exists, otherwise throws an error 
+    """
     # assuming file exists, loads it. God help you if you dont check existance
     if (useNpy):
         return _npyLoad(filePath,unpack)
@@ -94,6 +102,37 @@ def loadFile(filePath,useNpy):
         with open(filePath, 'rb') as fh:
             data = cPickle.load(fh)
         return data
+        
+def multi_load(cache_dir,load_func,force=False,limit=None,
+               name_func=lambda i,d,*args,**kw: "{:s}_{:d}".format(d,i)):
+    """
+    Returns the cached values if we can, otherwise re-runs load_func and returns
+    everything
+    
+    Args:
+        cache_dir: where to cache things
+        load_func: functor (no arguments; ~lambda function), returns a list
+        of instances to cache out/return
+        
+        force: if true, force re-loading
+        limit: maximum number to return. Caches everything it can 
+        name_func: takes in iteration number, object, returns string for file 
+                   name
+     
+    Returns:
+        at most limit objects, from the cache if possible 
+    """
+    pGenUtil.ensureDirExists(cache_dir)
+    files = pGenUtil.getAllFiles(cache_dir,ext=".pkl")
+    # if the files exist and we aren't forcing 
+    if (len(files) > 0 and not force):
+        return [lazy_load(f) for f in files[:limit]]
+    # get everything
+    examples = load_func()                    
+    for i,e in enumerate(examples):
+        name = "{:s}{:s}.pkl".format(cache_dir,name_func(i,e))
+        lazy_save(name,e)
+    return examples[:limit]    
         
 def _checkpointGen(filePath,orCall,force,unpack,useNpy,*args,**kwargs):
     """
