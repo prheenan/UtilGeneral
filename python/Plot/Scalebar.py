@@ -168,14 +168,14 @@ def unit_format(val,unit,fmt="{:.0f}",value_function = lambda x:x):
     return (fmt + " {:s}").format(value_function(val),unit) 
     
 def x_scale_bar_and_ticks(unit,width,offset_x,offset_y,ax=plt.gca(),
-                          fmt="{:.0f}",unit_kwargs=dict(),**kwargs):
+                          unit_kwargs=dict(fmt="{:.0f}"),**kwargs):
     """
     See: y_scale_bar_and_ticks, except makes an x scale bar with a specified
     width
     """                                       
     xy_text,xy_line = offsets_and_ranges(width=width,height=0,
                                          offset_x=offset_x,offset_y=offset_y)
-    text = unit_format(width,unit,fmt,**unit_kwargs)             
+    text = unit_format(width,unit,**unit_kwargs)             
     return _x_scale_bar_and_ticks(ax=ax,xy_text=xy_text,xy_line=xy_line,
                                   text=text,**kwargs)
                                   
