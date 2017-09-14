@@ -88,8 +88,8 @@ def rainbow_text(x, y, strings, colors, ax=None, **kw):
     currently active axes will be used.
     
     See: 
-    
-        http://matplotlib.org/examples/text_labels_and_annotations/rainbow_text.html
+        matplotlib.org/examples/text_labels_and_annotations/rainbow_text.html
+          
     """
     if ax is None:
         ax = plt.gca()
