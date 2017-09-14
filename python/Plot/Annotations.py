@@ -10,6 +10,9 @@ import matplotlib.pyplot as plt
 import sys,matplotlib
 from GeneralUtil.python.PlotUtilities import *
 
+    
+from matplotlib import transforms
+
 # XXX move to utility class?
 default_font_dict = dict(fontsize=g_font_label,
                          fontweight='bold',
@@ -70,3 +73,32 @@ def add_rectangle(ax,xlim,ylim,fudge_pct=0,facecolor="None",linestyle='-',
                                      linewidth=linewidth,**kw)
     ax.add_patch(r)  
     return r 
+    
+
+def rainbow_text(x, y, strings, colors, ax=None, **kw):
+    """
+    Take a list of ``strings`` and ``colors`` and place them next to each
+    other, with text strings[i] being shown in colors[i].
+
+    This example shows how to do both vertical and horizontal text, and will
+    pass all keyword arguments to plt.text, so you can set the font size,
+    family, etc.
+
+    The text will get added to the ``ax`` axes, if provided, otherwise the
+    currently active axes will be used.
+    
+    See: 
+    
+        http://matplotlib.org/examples/text_labels_and_annotations/rainbow_text.html
+    """
+    if ax is None:
+        ax = plt.gca()
+    t = ax.transData
+    canvas = ax.figure.canvas
+
+    # horizontal version
+    for s, c in zip(strings, colors):
+        text = ax.text(x, y, s + " ", color=c, transform=t, **kw)
+        text.draw(canvas.get_renderer())
+        ex = text.get_window_extent()
+        t = transforms.offset_copy(text._transform, x=ex.width, units='dots')    
