@@ -7,9 +7,10 @@ from __future__ import unicode_literals
 # This file is used for importing the common utilities classes.
 import numpy as np
 import matplotlib.pyplot as plt
-import sys,copy
+import sys,copy,matplotlib
 
 from GeneralUtil.python.PlotUtilities import *
+from GeneralUtil.python.Plot import Annotations
 
 default_font_dict = dict(fontsize=g_font_label,
                          fontweight='bold',
@@ -261,8 +262,8 @@ def crossed_x_and_y(offset_x,offset_y,x_kwargs,y_kwargs,ax=plt.gca(),
     # make the y scale bar...
     if ('font_kwargs' not in y_kwargs):
         font_kw = copy.deepcopy(def_font_kwargs_y)
-        font_kw['rotation'] = 90
-        y_kwargs['font_kwargs'] = font_kw
+        y_kwargs['font_kwargs'] = font_kw        
+    y_kwargs['font_kwargs']['rotation'] = 90
     y_scale_bar_and_ticks(offset_x=offset_x-width/2,offset_y=offset_y+height/2,
                           ax=ax,**y_kwargs)         
 
@@ -273,32 +274,7 @@ def crossed_x_and_y_relative(offset_x,offset_y,ax=plt.gca(),**kwargs):
     """
     offset_x,offset_y = x_and_y_to_abs(offset_x,offset_y,ax=ax)
     return crossed_x_and_y(offset_x,offset_y,ax=ax,**kwargs)                          
-    
-def _annotate(ax,s,xy,**font_kwargs):
-    """
-    Adds a simpel text annotation. 
-    
-    Args:
-        ax: where to add the annotation
-        s: the string
-        xy: the location of the string. 
-        **font_kwargs: anything accepted by ax.annotate. defaults are added
-        if they dnot exist.
-    Returns:
-        ax.annotate object 
-    """
-    # add in defaults if they dont exist    
-    for k,v in default_font_dict.items():
-        if k not in font_kwargs:
-            font_kwargs[k] = v
-    # POST: all default added             
-    return ax.annotate(s=s, xy=xy,**font_kwargs)
-    
-def relative_annotate(ax,s,xy,xycoords='axes fraction',**font_kwargs):
-    """
-    see: _annotate, except xy are given in 0-1 from bottom left ('natural')
-    """
-    return _annotate(ax,s,xy,xycoords=xycoords,**font_kwargs)
+
     
 def _scale_bar(text,xy_text,xy_line,ax=plt.gca(),
                line_kwargs=dict(linewidth=1.5,color='k'),
@@ -331,7 +307,6 @@ s    Returns:
     y_text += max_range * fudge_text_pct['y']   
     # POST: shifted     
     xy_text = [x_text,y_text]
-    t = _annotate(ax=ax,s=text,xy=xy_text,**font_kwargs)
-
+    t = Annotations._annotate(ax=ax,s=text,xy=xy_text,**font_kwargs)
     ax.plot(x_draw,y_draw,**line_kwargs)
     return t,x_draw,y_draw
