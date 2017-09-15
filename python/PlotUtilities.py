@@ -125,6 +125,9 @@ def FormatImageAxis(ax=None):
 
 def _remove_labels(ax):
     ax.set_ticklabels([])
+    # if we remove the tick labels, then we bring the label (e.g. y axis name)
+    # down 
+    ax.labelpad=-1
 
 def _remove_ticks(ax):
     ax.set_ticks([])
