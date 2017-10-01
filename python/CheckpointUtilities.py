@@ -104,7 +104,7 @@ def loadFile(filePath,useNpy):
         return data
         
 def multi_load(cache_dir,load_func,force=False,limit=None,
-               name_func=lambda i,d,*args,**kw: "{:s}_{:d}".format(d,i)):
+               name_func=lambda i,o,*args,**kw: "{:d}_{:s}".format(i,repr(o))):
     """
     Returns the cached values if we can, otherwise re-runs load_func and returns
     everything
