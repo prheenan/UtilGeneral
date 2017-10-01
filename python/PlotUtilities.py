@@ -18,10 +18,10 @@ g_font_title = 9.5
 g_font_subplot_label = 11
 g_font_tick = 7.5
 g_font_legend = 8
-g_tick_thickness = 0.85
-g_tick_length = 5
-g_minor_tick_width = 0.7
-g_minor_tick_length= 2.25
+g_tick_thickness = 1
+g_tick_length = 4
+g_minor_tick_width = 1
+g_minor_tick_length= 2
 # make the hatches larges
 mpl.rcParams['hatch.linewidth'] = 3
 mpl.rcParams['hatch.color'] = '0.5'
@@ -125,6 +125,9 @@ def FormatImageAxis(ax=None):
 
 def _remove_labels(ax):
     ax.set_ticklabels([])
+    # if we remove the tick labels, then we bring the label (e.g. y axis name)
+    # down 
+    ax.labelpad=-1
 
 def _remove_ticks(ax):
     ax.set_ticks([])
@@ -583,8 +586,9 @@ def color_axis_ticks(color,spine_name="left",axis_name="y",ax=plt.gca()):
     Returns: 
         nothing
     """
+    ax.tick_params(axis_name,color=color,which='both',labelcolor=color)       
     ax.spines[spine_name].set_color(color)        
-    ax.tick_params(axis_name,color=color,which='both')       
+    ax.spines[spine_name].set_edgecolor(color)    
     
 def secondAxis(ax,label,limits,secondY =True,color="Black",scale=None,
                tick_color='k'):
