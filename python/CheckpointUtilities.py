@@ -128,11 +128,16 @@ def multi_load(cache_dir,load_func,force=False,limit=None,
     if (len(files) > 0 and not force):
         return [lazy_load(f) for f in files[:limit]]
     # get everything
-    examples = load_func()                    
+    examples = load_func()      
+    to_ret = []    
+    # use enumerate to allow for yield (in case of large files/large numbers)
     for i,e in enumerate(examples):
+        to_ret.append(e)
+        if (i == limit):
+            break    
         name = "{:s}{:s}.pkl".format(cache_dir,name_func(i,e))
         lazy_save(name,e)
-    return examples[:limit]    
+    return to_ret[:limit]    
         
 def _checkpointGen(filePath,orCall,force,unpack,useNpy,*args,**kwargs):
     """
