@@ -18,7 +18,7 @@ default_font_dict = dict(fontsize=g_font_label,
                          color='k',
                          horizontalalignment='center',
                          verticalalignment='lower',
-                         bbox=dict(color='w',alpha=0,pad=0))
+                         bbox=dict(color='w',alpha=0))
                          
 def_font_kwargs_y = copy.deepcopy(default_font_dict)
 def_font_kwargs_y['horizontalalignment'] = 'right'
@@ -258,7 +258,10 @@ def crossed_x_and_y(offset_x,offset_y,x_kwargs,y_kwargs,ax=plt.gca(),
     assert ("width" in x_kwargs.keys()) , "Width not specified"
     width = x_kwargs['width']
     height = y_kwargs['height']
-    x_scale_bar_and_ticks(offset_x=offset_x,offset_y=offset_y,ax=ax,**x_kwargs)   
+    if ('font_kwargs' not in x_kwargs):
+        x_kwargs['font_kwargs'] = copy.deepcopy(default_font_dict)
+    x_kwargs['font_kwargs']['verticalalignment']='top'
+    x_scale_bar_and_ticks(offset_x=offset_x,offset_y=offset_y,ax=ax,**x_kwargs) 
     # make the y scale bar...
     if ('font_kwargs' not in y_kwargs):
         font_kw = copy.deepcopy(def_font_kwargs_y)
