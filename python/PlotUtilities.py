@@ -290,11 +290,15 @@ def errorbar(x,y,yerr,label,fmt=None,alpha=0.1,ecolor='r',markersize=3.0,
     plt.plot(x, y-yerr,'b--')
     
 def legend(fontsize=g_font_legend,loc=None,frameon=False,
+           fontweight='bold',
            bbox_to_anchor=None,fancybox=False,**kwargs):
     if (loc is None):
         loc = 'best'
-    return plt.legend(fontsize=fontsize,loc=loc,frameon=frameon,
-                      fancybox=fancybox,bbox_to_anchor=bbox_to_anchor,**kwargs)
+    prop = dict(size=fontsize,weight=fontweight,**kwargs)
+    leg = plt.legend(loc=loc,frameon=frameon,prop=prop,
+                     fancybox=fancybox,bbox_to_anchor=bbox_to_anchor)
+    return leg
+    
 
 
 def intLim(vals,xAxis=True,factor=0.5):
@@ -362,13 +366,13 @@ def zlabel(lab,ax=None,**kwargs):
         ax = plt.gca()
     return genLabel(ax.set_zlabel,lab,**kwargs)
 
-def title(lab,fontsize=g_font_title,**kwargs):
-    plt.title(lab,fontsize=fontsize,**kwargs)
+def title(lab,fontsize=g_font_title,fontweight='bold',**kwargs):
+    plt.title(lab,fontsize=fontsize,fontweight=fontweight,**kwargs)
 
 def lazyLabel(xlab,ylab,titLab,yrotation=90,titley=1.0,bbox_to_anchor=None,
               frameon=False,loc='best',axis_kwargs=dict(),tick_kwargs=dict(),
               legend_kwargs=dict(),title_kwargs=dict(),legend_width=5,
-              useLegend=True,zlab=None,legendBgColor=None):
+              useLegend=True,zlab=None):
     """
     Easy method of setting the x,y, and title, and adding a legend
     
@@ -385,7 +389,6 @@ def lazyLabel(xlab,ylab,titLab,yrotation=90,titley=1.0,bbox_to_anchor=None,
          bbox_to_anchor: where to anchor the legend
          useLegend : boolean, true: add a legend
          zlab: the z label, for the third axis
-         legendBgColor: the color for the legend, if present. Default is white
     Returns: 
          nothings
     """
@@ -403,7 +406,7 @@ def lazyLabel(xlab,ylab,titLab,yrotation=90,titley=1.0,bbox_to_anchor=None,
         if (len(legend_kwargs.keys()) > 0):
             set_legend_kwargs(**legend_kwargs)
 
-def set_legend_kwargs(ax=None,linewidth=2,background_color=None,
+def set_legend_kwargs(ax=None,linewidth=0,background_color=None,
                       color='k',alpha=1,**kwargs):
     if (ax is None):
         ax = plt.gca()

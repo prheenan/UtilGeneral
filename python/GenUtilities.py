@@ -7,18 +7,8 @@ import csv
 from scipy.optimize import curve_fit
 # path!
 import ntpath
-# for argument parsing easily
-import argparse
 # for getting formatted times
 import time
-def requireAndGetFile(helpStr="",defFile="./outfile"):
-    parser = argparse.ArgumentParser(description='python options')
-    parser.add_argument('--file', type=str, default=defFile,
-                        help=helpStr)
-    args = parser.parse_args()
-    inFile = args.file    
-    return inFile
-# XXX TODO: make platform independent slashes (search for "/"), and joining
 
 # flags for recquiring data
 fileFlag="--file"
@@ -136,28 +126,6 @@ def fitInfo(x,y,units=['',''],model=linModel,varStr=['a','b'],
         return predicted,modelStr,params,paramsStd,RSQ
     else:
         return predicted,modelStr
-
-
-def recArgs(typeArr,defArr=None,flagArr=None,helpStrArr=None,addDashes=False):
-    numArgs=len(typeArr)
-    if helpStrArr is None:
-        helpStrArr = [':-(' for i in range(numArgs)]
-    # POST: help is not none
-    if flagArr is None:
-        flagArr = ["--{:d}".format(i) for i in range(numArgs)]
-    elif addDashes:
-        flagArr = [pre + f for f in flagArr]
-    # POST: flagArr is not none
-    if (defArr is None):
-        defArr = [typeArr[i](0) for i in range(numArgs)]
-    #POST: none are null
-    parser = argparse.ArgumentParser(description='python options')
-    for typeI,helpI,defI,flagI in zip(typeArr,helpStrArr,
-                                      defArr,flagArr):
-        parser.add_argument(flagI, type=typeI, default=defI,
-                            help=helpI)
-    args = parser.parse_args()
-    return args
 
 def getSanitaryPath(path,includeSep = True):
     # return the sanitized path plus an os-dependent separator,maybe

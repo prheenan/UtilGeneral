@@ -103,8 +103,9 @@ def loadFile(filePath,useNpy):
             data = cPickle.load(fh)
         return data
         
+
 def multi_load(cache_dir,load_func,force=False,limit=None,
-               name_func=lambda i,d,*args,**kw: "{:s}_{:d}".format(d,i)):
+               name_func=lambda i,o,*args,**kw: "{:d}".format(i)):
     """
     Returns the cached values if we can, otherwise re-runs load_func and returns
     everything
@@ -123,7 +124,7 @@ def multi_load(cache_dir,load_func,force=False,limit=None,
         at most limit objects, from the cache if possible 
     """
     pGenUtil.ensureDirExists(cache_dir)
-    files = pGenUtil.getAllFiles(cache_dir,ext=".pkl")
+    files = sorted(pGenUtil.getAllFiles(cache_dir,ext=".pkl"))
     # if the files exist and we aren't forcing 
     if (len(files) > 0 and not force):
         return [lazy_load(f) for f in files[:limit]]
@@ -132,11 +133,11 @@ def multi_load(cache_dir,load_func,force=False,limit=None,
     to_ret = []    
     # use enumerate to allow for yield (in case of large files/large numbers)
     for i,e in enumerate(examples):
-        to_ret.append(e)
         if (i == limit):
             break    
         name = "{:s}{:s}.pkl".format(cache_dir,name_func(i,e))
         lazy_save(name,e)
+        to_ret.append(e)        
     return to_ret[:limit]    
         
 def _checkpointGen(filePath,orCall,force,unpack,useNpy,*args,**kwargs):
