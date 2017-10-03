@@ -289,13 +289,14 @@ def errorbar(x,y,yerr,label,fmt=None,alpha=0.1,ecolor='r',markersize=3.0,
     plt.plot(x, y+yerr,'b--')
     plt.plot(x, y-yerr,'b--')
     
-def legend(fontsize=g_font_legend,loc=None,frameon=False,
-           fontweight='bold',
+def legend(fontsize=g_font_legend,loc=None,frameon=False,ncol=1,
+           fontweight='bold',handlelength=1,handletextpad=1,
            bbox_to_anchor=None,fancybox=False,**kwargs):
     if (loc is None):
         loc = 'best'
     prop = dict(size=fontsize,weight=fontweight,**kwargs)
-    leg = plt.legend(loc=loc,frameon=frameon,prop=prop,
+    leg = plt.legend(loc=loc,frameon=frameon,prop=prop,ncol=ncol,
+                     handlelength=handlelength,handletextpad=handletextpad,
                      fancybox=fancybox,bbox_to_anchor=bbox_to_anchor)
     return leg
     
