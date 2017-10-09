@@ -136,6 +136,13 @@ def _x_scale_bar_and_ticks(ax=plt.gca(),**kwargs):
     """
     _scale_bar_and_ticks(ax,ax.xaxis,ax.get_xlim(),**kwargs)   
     
+def abs_to_rel(ax,x,is_x):
+    """
+    returns: x (in relative, data coordinates of ax) or y, if is_x=False
+    """
+    lim = ax.get_xlim() if is_x else ax.get_ylim()
+    return (x-lim[0])/(lim[1]-lim[0])
+
 def rel_to_abs(ax,x,is_x):
     """
     Returns: x (in data coords) transformed to the relative [0,1] coordinates
@@ -186,6 +193,20 @@ def x_scale_bar_and_ticks(unit,width,offset_x,offset_y,ax=plt.gca(),
     return _x_scale_bar_and_ticks(ax=ax,xy_text=xy_text,xy_line=xy_line,
                                   text=text,**kwargs)
                                   
+def _offset(x,y,ax,f):
+    """
+    applies f to x and y 
+    """
+    offset_x = f(ax=ax,x=x,is_x=True)
+    offset_y = f(ax=ax,x=y,is_x=False)
+    return offset_x,offset_y
+
+def x_and_y_to_rel(x_abs,y_abs,ax):
+    """
+    See: x_and_y_to_abs, except abs <--> rel 
+    """
+    return _offset(x=x_abs,y=y_abs,ax=ax,f=abs_to_rel)
+
 def x_and_y_to_abs(x_rel,y_rel,ax):
     """
     converts x and y to absolute units (asusming they are in [0,1] axes units)
@@ -196,9 +217,7 @@ def x_and_y_to_abs(x_rel,y_rel,ax):
     Returns;
         the asbolute values of the x and y units...
     """
-    offset_x = rel_to_abs(ax=ax,x=x_rel,is_x=True)
-    offset_y = rel_to_abs(ax=ax,x=y_rel,is_x=False)
-    return offset_x,offset_y
+    return _offset(x=x_rel,y=y_rel,ax=ax,f=rel_to_abs)
                                   
 def x_scale_bar_and_ticks_relative(unit,width,offset_x,offset_y,
                                    ax=plt.gca(),**kw):
@@ -218,8 +237,7 @@ def y_scale_bar_and_ticks_relative(unit,height,offset_x,offset_y,
     """                                   
     offset_x,offset_y = x_and_y_to_abs(offset_x,offset_y,ax)
     return y_scale_bar_and_ticks(unit,height,offset_x,offset_y,ax=ax,
-                                 font_kwargs=font_kwargs,**kw)                                    
- 
+                                 font_kwargs=font_kwargs,**kw)                  
                                   
 def y_scale_bar_and_ticks(unit,height,offset_x,offset_y,ax=plt.gca(),
                           unit_kwargs=dict(),**kwargs):
@@ -276,9 +294,43 @@ def crossed_x_and_y_relative(offset_x,offset_y,ax=plt.gca(),**kwargs):
     See: crossed_x_and_y, except offsets are in axis units 
     """
     offset_x,offset_y = x_and_y_to_abs(offset_x,offset_y,ax=ax)
-    return crossed_x_and_y(offset_x,offset_y,ax=ax,**kwargs)                          
+    return crossed_x_and_y(offset_x,offset_y,ax=ax,**kwargs)                    
 
-    
+def _scale_bar_rectangle(ax,x,y,s,width,height,
+                         box_props=dict(facecolor='black',edgecolor='black'),
+                         rotation=90,fontsize=7,**kw):
+    """
+    Makes a scalebar (usually outside of the axes)
+
+    Args:
+        ax: which axis to add to 
+        <x/y> the x and y coordinates, *in units of the axis*
+        s: the text to add
+        <width/height>: of the box, *in data units*
+    Returns:
+        tuple of (rectangle, annotaton)
+    """
+    x_abs,y_abs = x_and_y_to_abs(x_rel=x,y_rel=y,ax=ax)    
+    xlim = [x_abs-width/2,x_abs+width/2]
+    ylim = [y_abs-height/2,y_abs+height/2]
+    # add an *un-clipped* scalebar, so we can draw outside the axes
+    r = Annotations.add_rectangle(ax=ax,xlim=xlim,ylim=ylim,zorder=0,
+                                  clip_on=False,**box_props)
+    ax = ax.annotate(xy=(x,y),s=s, color='w',horizontalalignment='center',
+                     verticalalignment='center',xycoords='axes fraction',
+                     clip_on=False,fontsize=fontsize,**kw)
+    return r,ax
+
+def scale_bar_rectangle_x(ax,x_rel,y_rel,s,width,height_rel=0.3,**kw):
+    """
+    See: _scale_bar_rectangle, except height_rel is the relative height needed
+    """
+    ylim = ax.get_ylim()
+    height_abs = height_rel * (ylim[1]-ylim[0])
+    _scale_bar_rectangle(ax=ax,x=x_rel,y=y_rel,s=s,width=width,
+                         height=height_abs,rotation=0,**kw)
+
+
 def _scale_bar(text,xy_text,xy_line,ax=plt.gca(),
                line_kwargs=dict(linewidth=1.5,color='k'),
                font_kwargs=default_font_dict,
@@ -295,7 +347,7 @@ def _scale_bar(text,xy_text,xy_line,ax=plt.gca(),
         fudge_text_pct: as a percentage of the scale bar, how much to shift the 
         text. Useful for preventing overlap. 
     
-s    Returns:
+    Returns:
         tuple of <annnotation, x coordinates of line, y coords of line>
     """
     x_draw = np.array([x[0] for x in xy_line])

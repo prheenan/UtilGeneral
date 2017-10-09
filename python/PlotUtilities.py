@@ -291,13 +291,15 @@ def errorbar(x,y,yerr,label,fmt=None,alpha=0.1,ecolor='r',markersize=3.0,
     
 def legend(fontsize=g_font_legend,loc=None,frameon=False,ncol=1,
            fontweight='bold',handlelength=1,handletextpad=1,
-           bbox_to_anchor=None,fancybox=False,**kwargs):
+           bbox_to_anchor=None,fancybox=False,color='k',**kwargs):
     if (loc is None):
         loc = 'best'
     prop = dict(size=fontsize,weight=fontweight,**kwargs)
     leg = plt.legend(loc=loc,frameon=frameon,prop=prop,ncol=ncol,
                      handlelength=handlelength,handletextpad=handletextpad,
                      fancybox=fancybox,bbox_to_anchor=bbox_to_anchor)
+    for text in leg.get_texts():
+        plt.setp(text,color=color)
     return leg
     
 
@@ -449,12 +451,13 @@ def axis_locator(ax,n_major,n_minor):
         ax.set_minor_locator(NullLocator())
     else:
         ax.set_major_locator(MaxNLocator(n_major))
-        # get the number of minor ticks per major ticks (for AutoMinor)
-        n_minor_per_major = int(np.round(n_minor/n_major))
-        ax.set_minor_locator(AutoMinorLocator(n_minor_per_major))
+        if ( (n_major > 0) and (n_minor > 0)):
+            # get the number of minor ticks per major ticks (for AutoMinor)
+            n_minor_per_major = int(np.round(n_minor/n_major))
+            ax.set_minor_locator(AutoMinorLocator(n_minor_per_major))
 
 
-def tom_ticks(ax=None,num_major=4,num_minor=None,**kwargs):
+def tom_ticks(ax=None,num_major=4,num_minor=0,**kwargs):
     """
     Convenience wrapper for tick_axis_number to make ticks like tom likes
 
