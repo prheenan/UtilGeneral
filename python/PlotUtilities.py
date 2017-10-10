@@ -404,7 +404,7 @@ def lazyLabel(xlab,ylab,titLab,yrotation=90,titley=1.0,bbox_to_anchor=None,
         zlabel(zlab,**axis_kwargs)
     if (useLegend):
         leg = legend(frameon=frameon,loc=loc,**legend_kwargs)
-        if (len(legend_kwargs.keys()) > 0):
+        if (leg is not None and len(legend_kwargs.keys()) > 0):
             set_legend_kwargs(**legend_kwargs)
 
 def set_legend_kwargs(ax=None,linewidth=0,background_color=None,

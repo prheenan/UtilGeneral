@@ -172,7 +172,14 @@ def unit_format(val,unit,fmt="{:.0f}",value_function = lambda x:x):
     """
     Returns: the way we want to format the scale bar text; <val><space><unit>
     """
-    return (fmt + " {:s}").format(value_function(val),unit) 
+    val = value_function(val)
+    # make sure the formatted string matches the actual length
+    formatted = float(fmt.format(val))
+    err_msg = "Formatted scalebar ({:.2g}) not close to true length ({:.2f})".\
+          format(formatted,val)
+    np.testing.assert_allclose(formatted,val,atol=0,err_msg=err_msg)
+    # POST: the formatted value is accurate.
+    return (fmt + " {:s}").format(val,unit) 
     
 def x_scale_bar_and_ticks(unit,width,offset_x,offset_y,ax=plt.gca(),
                           unit_kwargs=dict(fmt="{:.0f}"),**kwargs):
@@ -295,19 +302,19 @@ def _scale_bar(text,xy_text,xy_line,ax=plt.gca(),
         fudge_text_pct: as a percentage of the scale bar, how much to shift the 
         text. Useful for preventing overlap. 
     
-s    Returns:
+    Returns:
         tuple of <annnotation, x coordinates of line, y coords of line>
     """
     x_draw = np.array([x[0] for x in xy_line])
     y_draw = np.array([x[1] for x in xy_line])    
-    # shift the text, if need be. 
-    x_range = abs(np.diff(x_draw))
-    y_range = abs(np.diff(y_draw))
-    max_range = max([x_range,y_range])
+    # shift the text, if need be.
+    f_diff = lambda x: np.max(np.abs(np.diff(x_draw)))    
+    x_range = f_diff(x_draw)
+    y_range = f_diff(y_draw)
     x_text = xy_text[0]
     y_text = xy_text[1]    
-    x_text += max_range * fudge_text_pct['x']
-    y_text += max_range * fudge_text_pct['y']   
+    x_text += x_range * fudge_text_pct['x']
+    y_text += y_range * fudge_text_pct['y']   
     # POST: shifted     
     xy_text = [x_text,y_text]
     t = Annotations._annotate(ax=ax,s=text,xy=xy_text,**font_kwargs)
