@@ -18,7 +18,7 @@ default_font_dict = dict(fontsize=g_font_label,
                          color='k',
                          horizontalalignment='center',
                          verticalalignment='lower',
-                         bbox=dict(color='w',alpha=0))
+                         bbox=dict(color='w',alpha=0,pad=10))
                          
 def_font_kwargs_y = copy.deepcopy(default_font_dict)
 def_font_kwargs_y['horizontalalignment'] = 'right'
@@ -378,12 +378,15 @@ def _scale_bar(text,xy_text,xy_line,ax=plt.gca(),
     x_draw = np.array([x[0] for x in xy_line])
     y_draw = np.array([x[1] for x in xy_line])    
     # shift the text, if need be.
-    x_range = max(x_draw)-min(x_draw)
-    y_range = max(y_draw)-min(y_draw)
+    xlim,ylim = ax.get_xlim(),ax.get_ylim()
+    x_diff,y_diff = xlim[1]-xlim[0],ylim[1]-ylim[0]
+    x_range_rel = (max(x_draw)-min(x_draw))/x_diff
+    y_range_rel = (max(y_draw)-min(y_draw))/y_diff
+    max_range_rel = max([x_range_rel,y_range_rel])
     x_text = xy_text[0]
-    y_text = xy_text[1]    
-    x_text += x_range * fudge_text_pct['x']
-    y_text += y_range * fudge_text_pct['y']   
+    y_text = xy_text[1]
+    x_text += max_range_rel * x_diff * fudge_text_pct['x']
+    y_text += max_range_rel * y_diff * fudge_text_pct['y']
     # POST: shifted     
     xy_text = [x_text,y_text]
     t = Annotations._annotate(ax=ax,s=text,xy=xy_text,**font_kwargs)
