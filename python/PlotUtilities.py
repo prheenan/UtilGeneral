@@ -298,8 +298,9 @@ def legend(fontsize=g_font_legend,loc=None,frameon=False,ncol=1,
     leg = plt.legend(loc=loc,frameon=frameon,prop=prop,ncol=ncol,
                      handlelength=handlelength,handletextpad=handletextpad,
                      fancybox=fancybox,bbox_to_anchor=bbox_to_anchor)
-    for text in leg.get_texts():
-        plt.setp(text,color=color)
+    if (leg is not None):
+        for text in leg.get_texts():
+            plt.setp(text,color=color)
     return leg
     
 
