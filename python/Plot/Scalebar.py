@@ -325,7 +325,7 @@ def _scale_bar_rectangle(ax,x,y,s,width,height,font_color='w',
                                   clip_on=False,
                                   **box_props)
     ax = ax.annotate(xy=(x,y),s=s, color=font_color,
-                     horizontalalignment='center',
+                     horizontalalignment='center',fontweight='bold',
                      verticalalignment='center',xycoords='axes fraction',
                      clip_on=False,fontsize=fontsize,annotation_clip=False,
                      rotation=rotation,**kw)
