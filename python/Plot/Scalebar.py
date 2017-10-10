@@ -175,11 +175,12 @@ def offsets_and_ranges(width,height,offset_x,offset_y):
                 [text_offset_x + bar_offset_x,text_offset_y + bar_offset_y]]
     return xy_text,xy_line                
     
-def unit_format(val,unit,fmt="{:.0f}",value_function = lambda x:x):
+def unit_format(val,unit,fmt="{:.0f}",value_function=lambda x:x):
     """
     Returns: the way we want to format the scale bar text; <val><space><unit>
     """
-    return (fmt + " {:s}").format(value_function(val),unit) 
+    v = value_function(val)
+    return (fmt + " {:s}").format(v,unit)
     
 def x_scale_bar_and_ticks(unit,width,offset_x,offset_y,ax=plt.gca(),
                           unit_kwargs=dict(fmt="{:.0f}"),**kwargs):
@@ -296,9 +297,9 @@ def crossed_x_and_y_relative(offset_x,offset_y,ax=plt.gca(),**kwargs):
     offset_x,offset_y = x_and_y_to_abs(offset_x,offset_y,ax=ax)
     return crossed_x_and_y(offset_x,offset_y,ax=ax,**kwargs)                    
 
-def _scale_bar_rectangle(ax,x,y,s,width,height,
+def _scale_bar_rectangle(ax,x,y,s,width,height,font_color='w',
                          box_props=dict(facecolor='black',edgecolor='black'),
-                         rotation=90,fontsize=7,**kw):
+                         rotation=90,fontsize=6.5,**kw):
     """
     Makes a scalebar (usually outside of the axes)
 
@@ -315,20 +316,37 @@ def _scale_bar_rectangle(ax,x,y,s,width,height,
     ylim = [y_abs-height/2,y_abs+height/2]
     # add an *un-clipped* scalebar, so we can draw outside the axes
     r = Annotations.add_rectangle(ax=ax,xlim=xlim,ylim=ylim,zorder=0,
-                                  clip_on=False,**box_props)
-    ax = ax.annotate(xy=(x,y),s=s, color='w',horizontalalignment='center',
+                                  clip_on=False,
+                                  **box_props)
+    ax = ax.annotate(xy=(x,y),s=s, color=font_color,
+                     horizontalalignment='center',
                      verticalalignment='center',xycoords='axes fraction',
-                     clip_on=False,fontsize=fontsize,**kw)
+                     clip_on=False,fontsize=fontsize,annotation_clip=False,
+                     rotation=rotation,**kw)
     return r,ax
 
-def scale_bar_rectangle_x(ax,x_rel,y_rel,s,width,height_rel=0.3,**kw):
+def scale_bar_rectangle_x(ax,x_rel,y_rel,unit,width,height_rel=0.3,
+                          unit_kwargs=dict(),
+                          **kw):
     """
     See: _scale_bar_rectangle, except height_rel is the relative height needed
     """
     ylim = ax.get_ylim()
     height_abs = height_rel * (ylim[1]-ylim[0])
+    s = unit_format(val=width,unit=unit,**unit_kwargs)
     _scale_bar_rectangle(ax=ax,x=x_rel,y=y_rel,s=s,width=width,
                          height=height_abs,rotation=0,**kw)
+
+def scale_bar_rectangle_y(ax,x_rel,y_rel,unit,height,unit_kwargs=dict(),
+                          width_rel=0.3,**kw):
+    """
+    See: _scale_bar_rectangle, except height_rel is the relative height needed
+    """
+    xlim = ax.get_xlim()
+    width_abs = width_rel * (xlim[1]-xlim[0])
+    s = unit_format(val=height,unit=unit,**unit_kwargs)
+    _scale_bar_rectangle(ax=ax,x=x_rel,y=y_rel,s=s,width=width_abs,
+                         height=height,rotation=90,**kw)
 
 
 def _scale_bar(text,xy_text,xy_line,ax=plt.gca(),
