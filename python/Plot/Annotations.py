@@ -73,7 +73,6 @@ def add_rectangle(ax,xlim,ylim,fudge_pct=0,facecolor="None",linestyle='-',
                                      linewidth=linewidth,**kw)
     ax.add_patch(r)  
     return r 
-    
 
 def rainbow_text(x, y, strings, colors, ax=None, **kw):
     """
