@@ -452,11 +452,10 @@ def axis_locator(ax,n_major,n_minor):
         ax.set_minor_locator(NullLocator())
     else:
         ax.set_major_locator(MaxNLocator(n_major))
-        if ( (n_major > 0) and (n_minor > 0)):
+        if (n_minor > 0):
             # get the number of minor ticks per major ticks (for AutoMinor)
             n_minor_per_major = int(np.round(n_minor/n_major))
             ax.set_minor_locator(AutoMinorLocator(n_minor_per_major))
-
 
 def tom_ticks(ax=None,num_major=4,num_minor=0,**kwargs):
     """
@@ -476,6 +475,10 @@ def tom_ticks(ax=None,num_major=4,num_minor=0,**kwargs):
                      num_x_minor=num_minor,
                      num_y_major=num_major,
                      num_y_minor=num_minor,**kwargs)
+    if (num_minor == 0):                     
+        ax.tick_params(which='minor',right=False,left=False,top=False,
+                       bottom=False,axis='both')
+                    
     
 def tick_axis_number(ax=None,num_x_major=5,num_x_minor=None,num_y_major=5,
                      num_y_minor=None,change_x=True,change_y=True):
@@ -507,7 +510,7 @@ def tickAxisFont(fontsize=g_font_tick,
                  minor_tick_width=g_minor_tick_width,
                  minor_tick_length=g_minor_tick_length,direction='in',
                  ax=None,common_dict=None,axis='both',bottom=True,
-                 top=True,left=True,right=True,
+                 top=True,left=True,right=True,add_minor=False,
                  **kwargs):
     """
     sets the tick axis font and tick sizes
@@ -526,8 +529,9 @@ def tickAxisFont(fontsize=g_font_tick,
                        **kwargs)
     ax.tick_params(length=major_tick_length, width=major_tick_width,
                    labelsize=fontsize,which='major',**common_dict)
-    ax.tick_params(length=minor_tick_length, width=minor_tick_width,
-                   which='minor',**common_dict)
+    if (add_minor):                   
+        ax.tick_params(length=minor_tick_length, width=minor_tick_width,
+                       which='minor',**common_dict)
     if (hasattr(ax, 'zaxis') and ax.zaxis is not None):
         ax.zaxis.set_tick_params(width=g_tick_thickness,length=g_tick_length)
 

@@ -83,7 +83,7 @@ def _get_tick_locator_fixed(offset,width,lim=plt.xlim()):
     locator = FixedLocator(locs=ticks, nbins=None)
     return locator
     
-def _scale_bar_and_ticks(ax,axis,lim,is_x=True,**kwargs):
+def _scale_bar_and_ticks(ax,axis,lim,is_x=True,add_minor=False,**kwargs):
     """
     convenience wrapper for create a scale bar with convenient ticks 
     
@@ -106,7 +106,8 @@ def _scale_bar_and_ticks(ax,axis,lim,is_x=True,**kwargs):
     locator_minor_x = _get_tick_locator_fixed(offset=offset+tick_spacing/2,
                                               width=tick_spacing,lim=lim)
     axis.set_major_locator(locator_x)
-    axis.set_minor_locator(locator_minor_x) 
+    if (add_minor):
+        axis.set_minor_locator(locator_minor_x) 
     """
     make sure the ticks are ontop of the data 
     See (e.g.):
@@ -377,9 +378,8 @@ def _scale_bar(text,xy_text,xy_line,ax=plt.gca(),
     x_draw = np.array([x[0] for x in xy_line])
     y_draw = np.array([x[1] for x in xy_line])    
     # shift the text, if need be.
-    f_diff = lambda x: np.max(np.abs(np.diff(x_draw)))    
-    x_range = f_diff(x_draw)
-    y_range = f_diff(y_draw)
+    x_range = max(x_draw)-min(x_draw)
+    y_range = max(y_draw)-min(y_draw)
     x_text = xy_text[0]
     y_text = xy_text[1]    
     x_text += x_range * fudge_text_pct['x']
