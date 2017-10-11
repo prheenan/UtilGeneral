@@ -666,7 +666,7 @@ def pm(stdOrMinMax,mean=None,fmt=".3g"):
     return ("{:"+ fmt + "}+/-{:.2g}").format(mean,delta)
 
 def savefig(figure,fileName,close=True,tight=True,subplots_adjust=None,
-            **kwargs):
+            bbox_inches='tight',pad_inches=0.01,**kwargs):
     """
     Saves the given figure with the options and filenames
     
@@ -691,8 +691,12 @@ def savefig(figure,fileName,close=True,tight=True,subplots_adjust=None,
     else:
         _,formatStr = os.path.splitext(fileName)
         fullName = fileName
-    figure.savefig(fullName,format=formatStr[1:], 
-                   dpi=figure.get_dpi(),**kwargs)
+    """
+    for rationale, see (Stack overflow):
+    questions/11837979/removing-white-space-around-a-saved-image-in-matplotlib
+    """
+    figure.savefig(fullName,format=formatStr[1:],pad_inches=pad_inches,
+                   dpi=figure.get_dpi(),bbox_inches=bbox_inches,**kwargs)
     if (close):
         plt.close(figure)
 
