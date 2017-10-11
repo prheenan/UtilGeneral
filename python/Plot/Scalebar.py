@@ -280,12 +280,16 @@ def crossed_x_and_y(offset_x,offset_y,x_kwargs,y_kwargs,ax=plt.gca(),
     if ('font_kwargs' not in x_kwargs):
         x_kwargs['font_kwargs'] = copy.deepcopy(default_font_dict)
     x_kwargs['font_kwargs']['verticalalignment']='top'
+    y_pct = _line_width_to_rel_units(ax=ax,width=1.5,is_x=False)
+    x_kwargs['fudge_text_pct'] = dict(x=0,y=-y_pct)
     x_scale_bar_and_ticks(offset_x=offset_x,offset_y=offset_y,ax=ax,**x_kwargs) 
     # make the y scale bar...
     if ('font_kwargs' not in y_kwargs):
         font_kw = copy.deepcopy(def_font_kwargs_y)
         y_kwargs['font_kwargs'] = font_kw        
     y_kwargs['font_kwargs']['rotation'] = 90
+    x_pct = _line_width_to_rel_units(ax=ax,width=1.5,is_x=True)
+    x_kwargs['fudge_text_pct'] = dict(x=-x_pct,y=0)
     y_scale_bar_and_ticks(offset_x=offset_x-width/2,offset_y=offset_y+height/2,
                           ax=ax,**y_kwargs)         
 
@@ -348,6 +352,42 @@ def scale_bar_rectangle_y(ax,x_rel,y_rel,unit,height,unit_kwargs=dict(),
     _scale_bar_rectangle(ax=ax,x=x_rel,y=y_rel,s=s,width=width_abs,
                          height=height,rotation=90,**kw)
 
+def _line_width_to_data_units(width,ax,is_x):
+    """
+    Based on (S.O.): 
+questions/19394505/matplotlib-expand-the-line-with-specified-width-in-data-unit/
+
+    Args:
+        width: line with, in points
+        ax: where the line will be drawn
+        is_x: if the width is in x (ie: line is from y0 to yf with width along
+        x axis)
+    Returns:
+        line width ins *data* units
+    """
+    axis = ax
+    fig = axis.get_figure()
+    if is_x:
+        length = fig.bbox_inches.width * axis.get_position().width
+        value_range = np.diff(axis.get_xlim())
+    else:
+        length = fig.bbox_inches.height * axis.get_position().height
+        value_range = np.diff(axis.get_ylim())
+    # Convert length to points
+    length *= 72
+    # Scale linewidth to value range
+    return width * (value_range/length)
+
+def _line_width_to_rel_units(width,ax,is_x):
+    """
+    See: _line_width_to_data_units, except width is relative to plot width 
+    (or height, as appropriate)
+    """
+    data_width = _line_width_to_data_units(width=width,ax=ax,is_x=is_x)
+    lim = ax.get_xlim() if is_x else ax.get_ylim()
+    diff = np.diff(lim)
+    rel_width = data_width/diff
+    return rel_width
 
 def _scale_bar(text,xy_text,xy_line,ax=plt.gca(),
                line_kwargs=dict(linewidth=1.5,color='k'),
@@ -371,13 +411,12 @@ def _scale_bar(text,xy_text,xy_line,ax=plt.gca(),
     x_draw = np.array([x[0] for x in xy_line])
     y_draw = np.array([x[1] for x in xy_line])    
     # shift the text, if need be. 
-    x_range = abs(np.diff(x_draw))
-    y_range = abs(np.diff(y_draw))
-    max_range = max([x_range,y_range])
+    xlim,ylim = ax.get_xlim(),ax.get_ylim()
+    x_diff,y_diff = xlim[1]-xlim[0],ylim[1]-ylim[0]
     x_text = xy_text[0]
     y_text = xy_text[1]    
-    x_text += max_range * fudge_text_pct['x']
-    y_text += max_range * fudge_text_pct['y']   
+    x_text += x_diff * fudge_text_pct['x']
+    y_text += y_diff * fudge_text_pct['y']   
     # POST: shifted     
     xy_text = [x_text,y_text]
     t = Annotations._annotate(ax=ax,s=text,xy=xy_text,**font_kwargs)
