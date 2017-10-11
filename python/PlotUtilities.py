@@ -670,7 +670,7 @@ def pm(stdOrMinMax,mean=None,fmt=".3g"):
     return ("{:"+ fmt + "}+/-{:.2g}").format(mean,delta)
 
 def savefig(figure,fileName,close=True,tight=True,subplots_adjust=None,
-            bbox_inches='tight',pad_inches=0.01,**kwargs):
+            bbox_inches='tight',pad=1,pad_inches=0.02,**kwargs):
     """
     Saves the given figure with the options and filenames
     
@@ -685,7 +685,7 @@ def savefig(figure,fileName,close=True,tight=True,subplots_adjust=None,
         nothing
     """
     if (tight):
-        plt.tight_layout(True)
+        plt.tight_layout(pad=pad)
     if (subplots_adjust is not None):
         plt.subplots_adjust(**subplots_adjust)
     baseName = util.getFileFromPath(fileName)

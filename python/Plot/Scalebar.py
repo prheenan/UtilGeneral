@@ -306,8 +306,8 @@ def _nudge_linewidth(ax,kw,factor_x=0,factor_y=0):
     kw_ret['fudge_text_pct'] = dict(x=nudge_x*factor_x,y=nudge_y*factor_y)
     return kw_ret
 
-def _crossed_sanitized(ax,x_kwargs,y_kwargs,factor_x=-1,
-                       factor_y=-1):
+def _crossed_sanitized(ax,x_kwargs,y_kwargs,factor_x_x=0,factor_x_y=-1,
+                       factor_y_x=-1,factor_y_y=0):
     """
     Utility function for making the scale bars (like "|_") pretty
 
@@ -315,7 +315,7 @@ def _crossed_sanitized(ax,x_kwargs,y_kwargs,factor_x=-1,
         ax: the axis this applies to
         x_kwargs: for the x part of the scalebar
         y_kwargs: for the x part of the scalebar
-        factor_<x/y>: if not None, nudges the <x/y> text away in the <y/x> 
+        factor_<x_y>: if not None, nudges the <x> text away in the <y/>
         direction by this many line widths. e.g. factor_x=-1 moves the x 
         text *down* (away from scalebar line) by 1 linewidth
     Returns:
@@ -335,14 +335,16 @@ def _crossed_sanitized(ax,x_kwargs,y_kwargs,factor_x=-1,
     # make sure the y scalebar is vertical
     y_kwargs['font_kwargs']['rotation'] = 90
     # factor_x is how much to nudge the *x* scalebar in *y*
-    x_kwargs = _nudge_linewidth(ax=ax,kw=x_kwargs,factor_x=0,factor_y=factor_x)
+    x_kwargs = _nudge_linewidth(ax=ax,kw=x_kwargs,factor_x=factor_x_x,
+                                factor_y=factor_x_y)
     # factor_y is how much to nudge the *y* scalebar in *x*
-    y_kwargs = _nudge_linewidth(ax=ax,kw=y_kwargs,factor_x=factor_y,factor_y=0)
+    y_kwargs = _nudge_linewidth(ax=ax,kw=y_kwargs,factor_x=factor_y_x,
+                                factor_y=factor_y_y)
     return x_kwargs,y_kwargs
     
 
 def crossed_x_and_y(offset_x,offset_y,x_kwargs,y_kwargs,ax=plt.gca(),
-                    font_kwargs_y=None,x_on_top=False,sanitize_kwargs=dict()):
+                    x_on_top=False,sanitize_kwargs=dict()):
     """
     ease of use for making a 'crossed' x and y scale bar. 
     
@@ -351,7 +353,6 @@ def crossed_x_and_y(offset_x,offset_y,x_kwargs,y_kwargs,ax=plt.gca(),
         <x_/y_>kwargs: passed to <x/y>_scale_bar_and_ticks. Shouldnt 
         have nudge_kwargs
 
-        font_kwargs_y: option arguments for font_kwargs_y
         x_on_top: if true, the x scalebar is drawn on top (ie: the crossed
         scalebars will look like "|-", instead of a "|_", where "-" is on top
         sanitize_kwargs: passed to _crossed_sanitized
