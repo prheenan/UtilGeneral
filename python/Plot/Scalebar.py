@@ -22,7 +22,9 @@ default_font_dict = dict(fontsize=g_font_label,
                          
 def_font_kwargs_y = copy.deepcopy(default_font_dict)
 def_font_kwargs_y['horizontalalignment'] = 'right'
-def_font_kwargs_y['verticalalignment'] = 'center'         
+def_font_kwargs_y['verticalalignment'] = 'center'   
+
+def_line_kwargs = dict(linewidth=1.5,color='k')      
 
 def font_kwargs_modified(x_kwargs=dict(),y_kwargs=dict()):
     """
@@ -190,14 +192,17 @@ def unit_format(val,unit,fmt="{:.0f}",value_function=lambda x:x):
     return (fmt + " {:s}").format(val,unit) 
 
 def x_scale_bar_and_ticks(unit,width,offset_x,offset_y,ax=plt.gca(),
-                          unit_kwargs=dict(fmt="{:.0f}"),**kwargs):
+                          unit_kwargs=dict(fmt="{:.0f}"),smart_nudge=True,
+                          nudge_kwargs=dict(factor_x=0,factor_y=1),**kwargs):
     """
     See: y_scale_bar_and_ticks, except makes an x scale bar with a specified
     width
     """                                       
     xy_text,xy_line = offsets_and_ranges(width=width,height=0,
                                          offset_x=offset_x,offset_y=offset_y)
-    text = unit_format(width,unit,**unit_kwargs)             
+    text = unit_format(width,unit,**unit_kwargs)   
+    if (smart_nudge):
+        kwargs = _nudge_linewidth(ax=ax,kw=kwargs,**nudge_kwargs)
     return _x_scale_bar_and_ticks(ax=ax,xy_text=xy_text,xy_line=xy_line,
                                   text=text,**kwargs)
                                   
@@ -248,7 +253,8 @@ def y_scale_bar_and_ticks_relative(unit,height,offset_x,offset_y,
                                  font_kwargs=font_kwargs,**kw)                  
                                   
 def y_scale_bar_and_ticks(unit,height,offset_x,offset_y,ax=plt.gca(),
-                          unit_kwargs=dict(),**kwargs):
+                          unit_kwargs=dict(),smart_nudge=True,
+                          nudge_kwargs=dict(factor_x=-1,factor_y=0),**kwargs):
     """
     ease-of-use function for making a y scale bar. figures out the units and 
     offsets
@@ -264,19 +270,91 @@ def y_scale_bar_and_ticks(unit,height,offset_x,offset_y,ax=plt.gca(),
     xy_text,xy_line = offsets_and_ranges(width=0,height=height,
                                         offset_x=offset_x,offset_y=offset_y)
     text = unit_format(height,unit,**unit_kwargs)
+    if (smart_nudge):
+        kwargs = _nudge_linewidth(ax=ax,kw=kwargs,**nudge_kwargs)
     return _y_scale_bar_and_ticks(ax=ax,xy_text=xy_text,xy_line=xy_line,
                                   text=text,**kwargs)       
-                                  
+                                
+def _nudge_linewidth(ax,kw,factor_x=0,factor_y=0):
+    """
+    changes 'fudge_text_pct' so the text is factor_<x/y> line widths away
+    from the line.
+
+    Args:
+         ax: which axis we are using
+         kw: the keyworkd dictionary; should have line_kwargs in it (or 
+         we just use the default line_kwargs dict, which itself needs linewidth)
+         
+         factor_<x/y>: how many line widths to move in x/y 
+    
+    Returns:
+         updated kw dictionary
+    """
+    # make a copy of the keywords
+    kw_ret = dict(**kw)
+    # determine how to fudge everything
+    if ("line_kwargs" not in kw_ret):
+        kw_line = def_line_kwargs
+    else:
+        kw_line = kw_ret["line_kwargs"]
+    assert "linewidth" in kw_line , "must provide a line width for scalebar"
+    linewidth = kw_line["linewidth"]
+    # determine what percentage, in units of axis fraction, to move the
+    # text
+    nudge_y = _line_width_to_rel_units(ax=ax,width=linewidth,is_x=False)
+    nudge_x = _line_width_to_rel_units(ax=ax,width=linewidth,is_x=True)
+    kw_ret['fudge_text_pct'] = dict(x=nudge_x*factor_x,y=nudge_y*factor_y)
+    return kw_ret
+
+def _crossed_sanitized(ax,x_kwargs,y_kwargs,factor_x=-1,
+                       factor_y=-1):
+    """
+    Utility function for making the scale bars (like "|_") pretty
+
+    Args:
+        ax: the axis this applies to
+        x_kwargs: for the x part of the scalebar
+        y_kwargs: for the x part of the scalebar
+        factor_<x/y>: if not None, nudges the <x/y> text away in the <y/x> 
+        direction by this many line widths. e.g. factor_x=-1 moves the x 
+        text *down* (away from scalebar line) by 1 linewidth
+    Returns:
+        updated x_kwargs, y_kwargs
+
+    """
+    x_kwargs = dict(**x_kwargs)
+    y_kwargs = dict(**y_kwargs)
+    # x scalebar shoule aligned at the top
+    if ('font_kwargs' not in x_kwargs):
+        x_kwargs['font_kwargs'] = copy.deepcopy(default_font_dict)
+    x_kwargs['font_kwargs']['verticalalignment']='top'
+    # make the y scale bar kwargs, if needed
+    if ('font_kwargs' not in y_kwargs):
+        font_kw = copy.deepcopy(def_font_kwargs_y)
+        y_kwargs['font_kwargs'] = font_kw   
+    # make sure the y scalebar is vertical
+    y_kwargs['font_kwargs']['rotation'] = 90
+    # factor_x is how much to nudge the *x* scalebar in *y*
+    x_kwargs = _nudge_linewidth(ax=ax,kw=x_kwargs,factor_x=0,factor_y=factor_x)
+    # factor_y is how much to nudge the *y* scalebar in *x*
+    y_kwargs = _nudge_linewidth(ax=ax,kw=y_kwargs,factor_x=factor_y,factor_y=0)
+    return x_kwargs,y_kwargs
+    
 
 def crossed_x_and_y(offset_x,offset_y,x_kwargs,y_kwargs,ax=plt.gca(),
-                    font_kwargs_y=None):
+                    font_kwargs_y=None,x_on_top=False,sanitize_kwargs=dict()):
     """
     ease of use for making a 'crossed' x and y scale bar. 
     
     Args;
         offset_<x/y>: see _scale_bar
-        <x_/y_>kwargs: passed to x_scale_bar_and_ticks,
+        <x_/y_>kwargs: passed to <x/y>_scale_bar_and_ticks. Shouldnt 
+        have nudge_kwargs
+
         font_kwargs_y: option arguments for font_kwargs_y
+        x_on_top: if true, the x scalebar is drawn on top (ie: the crossed
+        scalebars will look like "|-", instead of a "|_", where "-" is on top
+        sanitize_kwargs: passed to _crossed_sanitized
     Returns:
         tuple of <annnotation, x coordinates of line, y coords of line>
     """
@@ -284,17 +362,20 @@ def crossed_x_and_y(offset_x,offset_y,x_kwargs,y_kwargs,ax=plt.gca(),
     assert ("width" in x_kwargs.keys()) , "Width not specified"
     width = x_kwargs['width']
     height = y_kwargs['height']
-    if ('font_kwargs' not in x_kwargs):
-        x_kwargs['font_kwargs'] = copy.deepcopy(default_font_dict)
-    x_kwargs['font_kwargs']['verticalalignment']='top'
-    x_scale_bar_and_ticks(offset_x=offset_x,offset_y=offset_y,ax=ax,**x_kwargs) 
-    # make the y scale bar...
-    if ('font_kwargs' not in y_kwargs):
-        font_kw = copy.deepcopy(def_font_kwargs_y)
-        y_kwargs['font_kwargs'] = font_kw        
-    y_kwargs['font_kwargs']['rotation'] = 90
+    # make the scalebars make sense.
+    x_kwargs,y_kwargs = _crossed_sanitized(ax=ax,x_kwargs=x_kwargs,
+                                           y_kwargs=y_kwargs,
+                                           **sanitize_kwargs)
+    x_scalebar_y_offset = offset_y
+    # move the x scalebar up, if need be
+    if (x_on_top):
+        x_scalebar_y_offset += height
+    # since the inputs have been sanitized, the x and y scalebars
+    # shouldnt so anything
+    x_scale_bar_and_ticks(offset_x=offset_x,offset_y= x_scalebar_y_offset,
+                          ax=ax,smart_nudge=False,**x_kwargs) 
     y_scale_bar_and_ticks(offset_x=offset_x-width/2,offset_y=offset_y+height/2,
-                          ax=ax,**y_kwargs)         
+                          ax=ax,smart_nudge=False,**y_kwargs)         
 
 
 def crossed_x_and_y_relative(offset_x,offset_y,ax=plt.gca(),**kwargs):
@@ -355,9 +436,45 @@ def scale_bar_rectangle_y(ax,x_rel,y_rel,unit,height,unit_kwargs=dict(),
     _scale_bar_rectangle(ax=ax,x=x_rel,y=y_rel,s=s,width=width_abs,
                          height=height,rotation=90,**kw)
 
+def _line_width_to_data_units(width,ax,is_x):
+    """
+    Based on (S.O.): 
+questions/19394505/matplotlib-expand-the-line-with-specified-width-in-data-unit/
+
+    Args:
+        width: line with, in points
+        ax: where the line will be drawn
+        is_x: if the width is in x (ie: line is from y0 to yf with width along
+        x axis)
+    Returns:
+        line width ins *data* units
+    """
+    axis = ax
+    fig = axis.get_figure()
+    if is_x:
+        length = fig.bbox_inches.width * axis.get_position().width
+        value_range = np.diff(axis.get_xlim())
+    else:
+        length = fig.bbox_inches.height * axis.get_position().height
+        value_range = np.diff(axis.get_ylim())
+    # Convert length to points
+    length *= 72
+    # Scale linewidth to value range
+    return width * (value_range/length)
+
+def _line_width_to_rel_units(width,ax,is_x):
+    """
+    See: _line_width_to_data_units, except width is relative to plot width 
+    (or height, as appropriate)
+    """
+    data_width = _line_width_to_data_units(width=width,ax=ax,is_x=is_x)
+    lim = ax.get_xlim() if is_x else ax.get_ylim()
+    diff = np.diff(lim)
+    rel_width = data_width/diff
+    return rel_width
 
 def _scale_bar(text,xy_text,xy_line,ax=plt.gca(),
-               line_kwargs=dict(linewidth=1.5,color='k'),
+               line_kwargs=def_line_kwargs,
                font_kwargs=default_font_dict,
                fudge_text_pct=dict(x=0,y=0)):
     """
@@ -377,16 +494,13 @@ def _scale_bar(text,xy_text,xy_line,ax=plt.gca(),
     """
     x_draw = np.array([x[0] for x in xy_line])
     y_draw = np.array([x[1] for x in xy_line])    
-    # shift the text, if need be.
+    # shift the text, if need be. 
     xlim,ylim = ax.get_xlim(),ax.get_ylim()
     x_diff,y_diff = xlim[1]-xlim[0],ylim[1]-ylim[0]
-    x_range_rel = (max(x_draw)-min(x_draw))/x_diff
-    y_range_rel = (max(y_draw)-min(y_draw))/y_diff
-    max_range_rel = max([x_range_rel,y_range_rel])
     x_text = xy_text[0]
-    y_text = xy_text[1]
-    x_text += max_range_rel * x_diff * fudge_text_pct['x']
-    y_text += max_range_rel * y_diff * fudge_text_pct['y']
+    y_text = xy_text[1]    
+    x_text += x_diff * fudge_text_pct['x']
+    y_text += y_diff * fudge_text_pct['y']   
     # POST: shifted     
     xy_text = [x_text,y_text]
     t = Annotations._annotate(ax=ax,s=text,xy=xy_text,**font_kwargs)
