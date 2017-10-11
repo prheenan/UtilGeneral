@@ -22,7 +22,9 @@ default_font_dict = dict(fontsize=g_font_label,
                          
 def_font_kwargs_y = copy.deepcopy(default_font_dict)
 def_font_kwargs_y['horizontalalignment'] = 'right'
-def_font_kwargs_y['verticalalignment'] = 'center'         
+def_font_kwargs_y['verticalalignment'] = 'center'   
+
+def_line_kwargs = dict(linewidth=1.5,color='k')      
 
 def font_kwargs_modified(x_kwargs=dict(),y_kwargs=dict()):
     """
@@ -259,10 +261,56 @@ def y_scale_bar_and_ticks(unit,height,offset_x,offset_y,ax=plt.gca(),
     text = unit_format(height,unit,**unit_kwargs)
     return _y_scale_bar_and_ticks(ax=ax,xy_text=xy_text,xy_line=xy_line,
                                   text=text,**kwargs)       
-                                  
+                                
+def _crossed_sanitized(ax,x_kwargs,y_kwargs,factor_x=-1,
+                       factor_y=-1):
+    """
+    Utility function for making the scale bars (like "|_") pretty
+
+    Args:
+        ax: the axis this applies to
+        x_kwargs: for the x part of the scalebar
+        y_kwargs: for the x part of the scalebar
+        factor_<x/y>: if not None, nudges the <x/y> text away in the <y/x> 
+        direction by this many line widths
+    Returns:
+        updated x_kwargs, y_kwargs
+
+    """
+    x_kwargs = dict(**x_kwargs)
+    y_kwargs = dict(**y_kwargs)
+    # x scalebar shoule aligned at the top
+    if ('font_kwargs' not in x_kwargs):
+        x_kwargs['font_kwargs'] = copy.deepcopy(default_font_dict)
+    x_kwargs['font_kwargs']['verticalalignment']='top'
+    # make the y scale bar kwargs, if needed
+    if ('font_kwargs' not in y_kwargs):
+        font_kw = copy.deepcopy(def_font_kwargs_y)
+        y_kwargs['font_kwargs'] = font_kw   
+    # make sure the y scalebar is vertical
+    y_kwargs['font_kwargs']['rotation'] = 90
+    # determine how to fudge everythng
+    if ("line_kwargs" not in x_kwargs):
+        kw = def_line_kwargs
+    else:
+        kw = x_kwargs["line_kwargs"]
+    assert "linewidth" in kw , "must provide a line width for scalebar"
+    linewidth = kw["linewidth"]
+    # determine what percentage, in units of axis fraction, to move the
+    # text
+    if (factor_x is not None):
+        y_pct = _line_width_to_rel_units(ax=ax,width=linewidth,
+                                         is_x=False) * factor_x
+        x_kwargs['fudge_text_pct'] = dict(x=0,y=y_pct)    
+    if (factor_y is not None):
+        x_pct = _line_width_to_rel_units(ax=ax,width=linewidth,
+                                         is_x=True) * factor_y
+        y_kwargs['fudge_text_pct'] = dict(x=x_pct,y=0)
+    return x_kwargs,y_kwargs
+    
 
 def crossed_x_and_y(offset_x,offset_y,x_kwargs,y_kwargs,ax=plt.gca(),
-                    font_kwargs_y=None):
+                    font_kwargs_y=None,x_on_top=False,sanitize_kwargs=dict()):
     """
     ease of use for making a 'crossed' x and y scale bar. 
     
@@ -270,6 +318,9 @@ def crossed_x_and_y(offset_x,offset_y,x_kwargs,y_kwargs,ax=plt.gca(),
         offset_<x/y>: see _scale_bar
         <x_/y_>kwargs: passed to x_scale_bar_and_ticks,
         font_kwargs_y: option arguments for font_kwargs_y
+        x_on_top: if true, the x scalebar is drawn on top (ie: the crossed
+        scalebars will look like "|-", instead of a "|_", where "-" is on top
+        sanitize_kwargs: passed to _crossed_sanitized
     Returns:
         tuple of <annnotation, x coordinates of line, y coords of line>
     """
@@ -277,19 +328,14 @@ def crossed_x_and_y(offset_x,offset_y,x_kwargs,y_kwargs,ax=plt.gca(),
     assert ("width" in x_kwargs.keys()) , "Width not specified"
     width = x_kwargs['width']
     height = y_kwargs['height']
-    if ('font_kwargs' not in x_kwargs):
-        x_kwargs['font_kwargs'] = copy.deepcopy(default_font_dict)
-    x_kwargs['font_kwargs']['verticalalignment']='top'
-    y_pct = _line_width_to_rel_units(ax=ax,width=1.5,is_x=False)
-    x_kwargs['fudge_text_pct'] = dict(x=0,y=-y_pct)
-    x_scale_bar_and_ticks(offset_x=offset_x,offset_y=offset_y,ax=ax,**x_kwargs) 
-    # make the y scale bar...
-    if ('font_kwargs' not in y_kwargs):
-        font_kw = copy.deepcopy(def_font_kwargs_y)
-        y_kwargs['font_kwargs'] = font_kw        
-    y_kwargs['font_kwargs']['rotation'] = 90
-    x_pct = _line_width_to_rel_units(ax=ax,width=1.5,is_x=True)
-    x_kwargs['fudge_text_pct'] = dict(x=-x_pct,y=0)
+    x_kwargs,y_kwargs = _crossed_sanitized(ax=ax,x_kwargs=x_kwargs,
+                                           y_kwargs=y_kwargs,
+                                           **sanitize_kwargs)
+    x_scalebar_y_offset = offset_y
+    if (x_on_top):
+        x_scalebar_y_offset += height
+    x_scale_bar_and_ticks(offset_x=offset_x,offset_y= x_scalebar_y_offset,
+                          ax=ax,**x_kwargs) 
     y_scale_bar_and_ticks(offset_x=offset_x-width/2,offset_y=offset_y+height/2,
                           ax=ax,**y_kwargs)         
 
@@ -390,7 +436,7 @@ def _line_width_to_rel_units(width,ax,is_x):
     return rel_width
 
 def _scale_bar(text,xy_text,xy_line,ax=plt.gca(),
-               line_kwargs=dict(linewidth=1.5,color='k'),
+               line_kwargs=def_line_kwargs,
                font_kwargs=default_font_dict,
                fudge_text_pct=dict(x=0,y=0)):
     """
