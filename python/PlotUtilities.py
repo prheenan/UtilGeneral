@@ -50,6 +50,9 @@ import string
 from itertools import cycle
 from six.moves import zip
 
+_uppercase = ["{:s}".format(s) for s in string.uppercase]
+_lowercase = ["{:s}".format(s) for s in string.lowercase]
+
 def upright_mu(unit=u""):
     """
     Returns: an upright mu, optionally follow by <unit>. Recquires unicode. 
@@ -79,7 +82,7 @@ def label_axes(fig, labels=None, loc=None, add_bold=False,
         Where to put the label in axes-fraction units
     """
     if labels is None:
-        labels = ["{:s}".format(s) for s in string.uppercase]
+        labels = _uppercase
     # re-use labels rather than stop labeling
     labels = cycle(labels)
     axes = axis_func(fig.axes)
@@ -417,6 +420,8 @@ def set_legend_kwargs(ax=None,linewidth=0,background_color=None,
     if (background_color is None):
         background_color = 'w'
     leg = ax.get_legend()
+    if (leg is None):
+        return
     frame = leg.get_frame()
     setLegendBackground(leg,background_color)
     frame.set_linewidth(linewidth)
@@ -796,12 +801,17 @@ def tom_text_rendering():
     # sfdefault: all non-math are sans-serif
     preamble = [r"\renewcommand{\seriesdefault}{\bfdefault}",
                 r"\usepackage{amsmath}",
-                r"\usepackage{helvet}",
-                r"\renewcommand{\familydefault}{\sfdefault}"]
-    mpl.rcParams['text.latex.preamble']=preamble
+                r"\usepackage{fontspec}",
+                r"\setmainfont{Arial}",
+                # load up the sansmath so that math -> helvet
+                r'\usepackage{sansmath}',  
+                # actually use sansmath
+                r'\sansmath']
+    mpl.rcParams['pgf.preamble']= preamble,
     # Use arial, as per usual 
+    mpl.rcParams['pgf.texsystem'] = 'xelatex'
+    # see: https://stackoverflow.com/questions/32725483/matplotllib-and-xelatex
     mpl.rcParams['mathtext.fallback_to_cm'] = False
-    mpl.rcParams['mathtext.default'] = 'sf'
 
 def bf_italic(s):
     """
