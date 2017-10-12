@@ -690,7 +690,7 @@ def savefig(figure,fileName,close=True,tight=True,subplots_adjust=None,
         plt.subplots_adjust(**subplots_adjust)
     baseName = util.getFileFromPath(fileName)
     if ("." not in baseName):
-        formatStr = ".svg"
+        formatStr = ".jpeg"
         fullName = fileName + formatStr
     else:
         _,formatStr = os.path.splitext(fileName)
@@ -861,7 +861,14 @@ def save_png_and_svg(fig,base,**kwargs):
     """
     save_twice(fig,base +".png",base+".svg",**kwargs)
     
-
+def save_tom(fig,base,**kwargs):
+    """
+    Saves however tom would like me to 
+    
+    2017-10-12: he wants jpeg.
+    """
+    save_twice(fig,base +".jpeg",base+".svg",**kwargs)
+    
 # legacy API. plan is now to mimic matplotlib 
 def colorCyc(num,cmap = plt.cm.winter):
     cmap(num,cmap)

@@ -138,8 +138,8 @@ def multi_load(cache_dir,load_func,force=False,limit=None,
         name = "{:s}{:s}.pkl".format(cache_dir,name_func(i,e))
         lazy_save(name,e)
         to_ret.append(e)        
-    return to_ret[:limit]    
-        
+    return to_ret 
+    
 def _checkpointGen(filePath,orCall,force,unpack,useNpy,*args,**kwargs):
     """
     this is a way of caching data, or reading the cached data out if it 

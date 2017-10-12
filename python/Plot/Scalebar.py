@@ -371,6 +371,12 @@ def crossed_x_and_y(offset_x,offset_y,x_kwargs,y_kwargs,ax=plt.gca(),
     # move the x scalebar up, if need be
     if (x_on_top):
         x_scalebar_y_offset += height
+        # make the x label above, so it looks like
+        #  <xlabel>
+        #  _______
+        # |
+        x_kwargs['fudge_text_pct']['y'] = abs(x_kwargs['fudge_text_pct']['x'])
+        x_kwargs['font_kwargs']['verticalalignment'] = 'bottom'
     # since the inputs have been sanitized, the x and y scalebars
     # shouldnt so anything
     x_scale_bar_and_ticks(offset_x=offset_x,offset_y= x_scalebar_y_offset,
