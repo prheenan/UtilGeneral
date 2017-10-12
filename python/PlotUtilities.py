@@ -372,7 +372,7 @@ def zlabel(lab,ax=None,**kwargs):
     if (ax is None):
         ax = plt.gca()
     return genLabel(ax.set_zlabel,lab,**kwargs)
-
+    
 def title(lab,fontsize=g_font_title,fontweight='bold',**kwargs):
     plt.title(lab,fontsize=fontsize,fontweight=fontweight,**kwargs)
 
@@ -802,22 +802,34 @@ def tom_text_rendering():
     # we need latex and unicode to be safe
     mpl.rc('text', usetex=True)
     mpl.rcParams['text.latex.unicode'] =True
-    mpl.rcParams['font.family'] = 'sans'
+    """
+    make the normal font Helvetica :
+    stackoverflow.com/questions/11367736/matplotlib-consistent-font-using-latex  
+    """
+    mpl.rcParams['font.family'] = 'sans-serif'
+    mpl.rcParams['font.sans-serif'] = ['Helvetica']    
     mpl.rcParams['font.style'] = 'normal'
     # bm: bold/italic math. 
     # bfdefault: all fonts are assumed bold by default
     # sfdefault: all non-math are sans-serif
-    preamble = [r"\renewcommand{\seriesdefault}{\bfdefault}",
-                r"\usepackage{amsmath}",
-                r"\usepackage{fontspec}",
-                r"\setmainfont{Arial}",
-                # load up the sansmath so that math -> helvet
-                r'\usepackage{sansmath}',  
-                # actually use sansmath
-                r'\sansmath']
-    mpl.rcParams['pgf.preamble']= preamble,
-    # Use arial, as per usual 
-    mpl.rcParams['pgf.texsystem'] = 'xelatex'
+    # see :https://stackoverflow.com/questions/2537868/sans-serif-math-with-latex-in-matplotlib
+    preamble = [
+       r'\usepackage{siunitx}',   # i need upright \micro symbols, but you need...
+       r'\sisetup{detect-all}',   # ...this to force siunitx to actually use your fonts
+       r'\usepackage{helvet}',    # set the normal font here
+       r'\usepackage{sansmath}',  # load up the sansmath so that math -> helvet
+       r'\sansmath',              # <- tricky! -- gotta actually tell tex to use!
+       r'\usepackage{amsmath}'    # use this for bold symbols 
+       r'\boldmath',
+       r'\usepackage{sfmath}'
+       ]
+    mpl.rcParams['text.latex.preamble']= preamble
+    # 
+    mathtext_format = "serif:italic:bold"
+    mpl.rcParams['mathtext.it'] = mathtext_format
+    mpl.rcParams['mathtext.bf'] = mathtext_format
+    mpl.rcParams['mathtext.rm'] = mathtext_format
+    
     # see: https://stackoverflow.com/questions/32725483/matplotllib-and-xelatex
     mpl.rcParams['mathtext.fallback_to_cm'] = False
 
