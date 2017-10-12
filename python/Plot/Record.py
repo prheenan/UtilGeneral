@@ -23,7 +23,7 @@ def _fix_string(n,list_v):
         if (n_list == 1):
             return [list_v[0] for _ in range(n)]
         else:
-            assert n_list == n , "Didn't provide enough labels"
+            assert n_list == n , "Didn't provide correct number of labels"
             return list_v
     elif (isinstance(list_v,str) or isinstance(list_v,unicode)):
         return [list_v for _ in range(n)]
@@ -33,12 +33,29 @@ def _fix_string(n,list_v):
 
 class SaveRecord(object):
     def __init__(self,x,y,save_name,x_name,x_units,y_name,y_units):
-        # save x 
+        """
+
+        :param x/y: arrays of data. should be like CxN, where C is the number
+        of columns and N is the number of data points. Note that C_x and C_y
+        can be different, but N should be the same (one is OK). e.g.
+        x = [ [1,2,3],[4,5,6]] and
+        y=[ [7,8,9] ]
+
+        would be fine (C_x=2, C_y=1, N=3)
+
+        :param save_name: what to save this out as (less file extension
+        :param <x/y>_<name/units>: list, tuple (size N or 1) or single string
+        of x and y names and units
+        """
+        # save x
         x = np.array(x)
         y = np.array(y)
-        n_x = x.shape[1]
-        assert n_x == y.shape[1]
-        # POST: rows match
+        assert len(x.shape) < 3 , "only support 2-D saving"
+        assert len(y.shape) < 3 , "only support 2-D saving"
+        n_x = x.shape[-1]
+        n_y = y.shape[-1]
+        assert n_x == n_y , "Can't save out this data, the columns don't match"
+        # POST: columns match
         # make into column arrays
         self.save_name = save_name
         self.x = x.reshape(-1,n_x)
@@ -85,7 +102,7 @@ def _header(record,comment="#",newline = "\n"):
     
 def _data(record,**kw):
     """
-    Returns: the data of record, formatted like [xi,yi]
+    Returns: the data of record, formatted for immediately saving in-place
     """
     x = [x for x in record.x]
     y = [y for y in record.y]
