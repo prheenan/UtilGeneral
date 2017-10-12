@@ -821,6 +821,7 @@ def tom_text_rendering():
        r'\sansmath',              # <- tricky! -- gotta actually tell tex to use!
        r'\usepackage{amsmath}',    # use this for bold symbols 
        r'\usepackage{sfmath}',
+       r'\usepackage{relsize}',
        ]
     mpl.rcParams['text.latex.preamble']= preamble
     mathtext_format = "serif:italic:bold"
