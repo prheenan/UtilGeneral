@@ -819,17 +819,14 @@ def tom_text_rendering():
        r'\usepackage{helvet}',    # set the normal font here
        r'\usepackage{sansmath}',  # load up the sansmath so that math -> helvet
        r'\sansmath',              # <- tricky! -- gotta actually tell tex to use!
-       r'\usepackage{amsmath}'    # use this for bold symbols 
-       r'\boldmath',
-       r'\usepackage{sfmath}'
+       r'\usepackage{amsmath}',    # use this for bold symbols 
+       r'\usepackage{sfmath}',
        ]
     mpl.rcParams['text.latex.preamble']= preamble
-    # 
     mathtext_format = "serif:italic:bold"
     mpl.rcParams['mathtext.it'] = mathtext_format
     mpl.rcParams['mathtext.bf'] = mathtext_format
     mpl.rcParams['mathtext.rm'] = mathtext_format
-    
     # see: https://stackoverflow.com/questions/32725483/matplotllib-and-xelatex
     mpl.rcParams['mathtext.fallback_to_cm'] = False
 
