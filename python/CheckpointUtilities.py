@@ -103,7 +103,9 @@ def loadFile(filePath,useNpy):
             data = cPickle.load(fh)
         return data
         
-
+def lazy_multi_load(cache_dir,load_func=None,**kw):
+    return multi_load(cache_dir,load_func=load_func,**kw)
+        
 def multi_load(cache_dir,load_func,force=False,limit=None,
                name_func=lambda i,o,*args,**kw: "{:d}".format(i)):
     """
