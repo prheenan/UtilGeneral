@@ -5,9 +5,12 @@ pipe_funcIdx = 1
 import GeneralUtil.python.GenUtilities as pGenUtil
 import numpy as np
 try:
-    import cPickle
+    import pickle as cPickle
+    kw_load = dict()
 except ImportError:
     import _pickle as cPickle
+    kw_load = dict(encoding='latin1')
+
 
 from scipy.sparse import csc_matrix
 
@@ -100,7 +103,7 @@ def loadFile(filePath,useNpy):
     else:
         # assume we pickle in binary
         with open(filePath, 'rb') as fh:
-            data = cPickle.load(fh)
+            data = cPickle.load(fh,**kw_load)
         return data
         
 def lazy_multi_load(cache_dir,load_func=None,**kw):
