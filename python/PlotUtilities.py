@@ -12,6 +12,7 @@ import os
 from matplotlib.ticker import FixedLocator,NullLocator,AutoMinorLocator
 import matplotlib as mpl
 
+from matplotlib import ticker
 g_tom_text_rendering = dict(on=False)
 g_font_label = 8
 g_font_title = 9.5
@@ -262,7 +263,7 @@ def legend_and_save(Fig,Base,Number=0,ext=".png",**kwargs):
     return Number + 1
 
 def colorbar(label,labelpad=15,rotation=270,fontsize=g_font_legend,
-             fontsize_ticks=g_font_legend,fig=None,
+             fontsize_ticks=g_font_legend,fig=None,n_ticks=4,fontweight='bold',
              bar_kwargs=dict()):
     """
     Makes a simple color bar on the current plot, assuming that something
@@ -278,8 +279,12 @@ def colorbar(label,labelpad=15,rotation=270,fontsize=g_font_legend,
     else:
         color_module = fig
     cbar = color_module.colorbar(**bar_kwargs)
-    cbar.set_label(label,labelpad=labelpad,rotation=rotation,fontsize=fontsize)
+    cbar.set_label(label,labelpad=labelpad,rotation=rotation,fontsize=fontsize,
+                   fontweight='bold')
     cbar.ax.tick_params(labelsize=fontsize_ticks)
+    tick_locator = ticker.MaxNLocator(nbins=n_ticks)
+    cbar.locator = tick_locator
+    cbar.update_ticks()
     return cbar
 
 def errorbar(x,y,yerr,label,fmt=None,alpha=0.1,ecolor='r',markersize=3.0,
