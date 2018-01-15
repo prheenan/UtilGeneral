@@ -44,6 +44,7 @@ from mpl_toolkits.axes_grid1.inset_locator import BboxPatch, BboxConnector,\
     BboxConnectorPatch
 from matplotlib.transforms import Bbox, TransformedBbox, \
     blended_transform_factory
+from matplotlib import ticker
 
 
 import string
@@ -263,7 +264,7 @@ def legend_and_save(Fig,Base,Number=0,ext=".png",**kwargs):
 
 def colorbar(label,labelpad=15,rotation=270,fontsize=g_font_legend,
              fontsize_ticks=g_font_legend,fig=None,
-             bar_kwargs=dict()):
+             bar_kwargs=dict(),n_ticks=4):
     """
     Makes a simple color bar on the current plot, assuming that something
     like hist2d has already been called:
@@ -280,6 +281,9 @@ def colorbar(label,labelpad=15,rotation=270,fontsize=g_font_legend,
     cbar = color_module.colorbar(**bar_kwargs)
     cbar.set_label(label,labelpad=labelpad,rotation=rotation,fontsize=fontsize)
     cbar.ax.tick_params(labelsize=fontsize_ticks)
+    tick_locator = ticker.MaxNLocator(nbins=n_ticks)
+    cbar.locator = tick_locator
+    cbar.update_ticks()
     return cbar
 
 def errorbar(x,y,yerr,label,fmt=None,alpha=0.1,ecolor='r',markersize=3.0,
@@ -877,6 +881,7 @@ def save_tom(fig,base,**kwargs):
     
     2017-10-12: he wants jpeg.
     """
+    savefig(fig,base + ".tiff",close=False,**kwargs)   
     save_twice(fig,base +".jpeg",base+".svg",**kwargs)
     
 # legacy API. plan is now to mimic matplotlib 
