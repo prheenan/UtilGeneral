@@ -709,7 +709,7 @@ def savefig(figure,fileName,close=True,tight=True,subplots_adjust=None,
     if (close):
         plt.close(figure)
 
-def figure(figsize=None,xSize=3.5,ySize=3.5,dpi=600):
+def figure(figsize=None,xSize=3.5,ySize=3.5,dpi=600,**kw):
     """
     wrapper for figure, allowing easier setting I think
 
@@ -724,7 +724,7 @@ def figure(figsize=None,xSize=3.5,ySize=3.5,dpi=600):
     if (figsize is not None):
         xSize = figsize[0]
         ySize = figsize[1]
-    return  plt.figure(figsize=(xSize,ySize),dpi=dpi)
+    return  plt.figure(figsize=(xSize,ySize),dpi=dpi,**kw)
 
 def getNStr(n,space = " "):
     return space + "n={:d}".format(n)
