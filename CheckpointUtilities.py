@@ -2,7 +2,7 @@ from __future__ import unicode_literals
 pipe_fileIdx = 0
 pipe_funcIdx = 1
 
-import GeneralUtil.python.GenUtilities as pGenUtil
+import GenUtilities as pGenUtil
 import numpy as np
 try:
     import pickle as cPickle

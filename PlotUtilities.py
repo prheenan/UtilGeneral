@@ -1,5 +1,5 @@
 # import utilities for error repoorting etc
-import GeneralUtil.python.GenUtilities as util
+import GenUtilities as util
 # use matplotlib for plotting
 #http://matplotlib.org/faq/usage_faq.html#what-is-a-backend
 import matplotlib.pyplot  as plt
