@@ -9,8 +9,8 @@ import numpy as np
 import matplotlib.pyplot as plt
 import sys,copy,matplotlib
 
-from GeneralUtil.python.PlotUtilities import *
-from GeneralUtil.python.Plot import Annotations
+from UtilGeneral.PlotUtilities import *
+from UtilGeneral.Plot import Annotations
 
 default_font_dict = dict(fontsize=g_font_label,
                          fontweight='bold',

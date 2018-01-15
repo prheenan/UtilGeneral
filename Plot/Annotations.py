@@ -8,7 +8,7 @@ from __future__ import unicode_literals
 import numpy as np
 import matplotlib.pyplot as plt
 import sys,matplotlib
-from GeneralUtil.python.PlotUtilities import *
+from UtilGeneral.PlotUtilities import *
 
     
 from matplotlib import transforms

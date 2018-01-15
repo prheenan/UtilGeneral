@@ -9,7 +9,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import sys
 
-from GeneralUtil.python import PlotUtilities
+from UtilGeneral import PlotUtilities
 from mpl_toolkits.axes_grid1.inset_locator import zoomed_inset_axes,mark_inset
 
 def slice_by_x(x,y,xlim):
