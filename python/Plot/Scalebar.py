@@ -375,7 +375,7 @@ def crossed_x_and_y(offset_x,offset_y,x_kwargs,y_kwargs,ax=plt.gca(),
         #  <xlabel>
         #  _______
         # |
-        x_kwargs['fudge_text_pct']['y'] = abs(x_kwargs['fudge_text_pct']['x'])
+        x_kwargs['fudge_text_pct']['y'] = abs(x_kwargs['fudge_text_pct']['y'])
         x_kwargs['font_kwargs']['verticalalignment'] = 'bottom'
     # since the inputs have been sanitized, the x and y scalebars
     # shouldnt so anything
@@ -505,7 +505,7 @@ def _scale_bar(text,xy_text,xy_line,ax=plt.gca(),
     xlim,ylim = ax.get_xlim(),ax.get_ylim()
     x_diff,y_diff = xlim[1]-xlim[0],ylim[1]-ylim[0]
     x_text = xy_text[0]
-    y_text = xy_text[1]    
+    y_text = xy_text[1]
     x_text += x_diff * fudge_text_pct['x']
     y_text += y_diff * fudge_text_pct['y']   
     # POST: shifted     

@@ -45,6 +45,7 @@ from mpl_toolkits.axes_grid1.inset_locator import BboxPatch, BboxConnector,\
     BboxConnectorPatch
 from matplotlib.transforms import Bbox, TransformedBbox, \
     blended_transform_factory
+from matplotlib import ticker
 
 
 import string
@@ -882,6 +883,7 @@ def save_tom(fig,base,**kwargs):
     
     2017-10-12: he wants jpeg.
     """
+    savefig(fig,base + ".tiff",close=False,**kwargs)   
     save_twice(fig,base +".jpeg",base+".svg",**kwargs)
     
 # legacy API. plan is now to mimic matplotlib 
