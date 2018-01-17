@@ -1,5 +1,11 @@
+# force floating point division. Can still use integer with //
+from __future__ import division
+# other good compatibility recquirements for python3
+from __future__ import absolute_import
+from __future__ import print_function
+from __future__ import unicode_literals
 # import utilities for error repoorting etc
-import GenUtilities as util
+from . import GenUtilities as util
 # use matplotlib for plotting
 #http://matplotlib.org/faq/usage_faq.html#what-is-a-backend
 import matplotlib.pyplot  as plt
@@ -820,11 +826,11 @@ def tom_text_rendering():
     # sfdefault: all non-math are sans-serif
     # see :https://stackoverflow.com/questions/2537868/sans-serif-math-with-latex-in-matplotlib
     preamble = [
-       r'\usepackage{siunitx}',   # i need upright \micro symbols, but you need...
-       r'\sisetup{detect-all}',   # ...this to force siunitx to actually use your fonts
+       r'\usepackage{siunitx}',   # i need upright \micro symbols, but also
+       r'\sisetup{detect-all}',   # ...this to force siunitx for your fonts
        r'\usepackage{helvet}',    # set the normal font here
        r'\usepackage{sansmath}',  # load up the sansmath so that math -> helvet
-       r'\sansmath',              # <- tricky! -- gotta actually tell tex to use!
+       r'\sansmath',              # <- tricky! -- gotta actually tell tex
        r'\usepackage{amsmath}',    # use this for bold symbols 
        r'\usepackage{sfmath}',
        r'\usepackage{relsize}',
