@@ -4,9 +4,9 @@ from __future__ import division
 import numpy as np
 import matplotlib.pyplot as plt
 # import the patrick-specific utilities
-import GenUtilities  as pGenUtil
-import PlotUtilities as pPlotUtil
-import CheckpointUtilities as pCheckUtil
+from . import GenUtilities  as pGenUtil
+from . import PlotUtilities as pPlotUtil
+from . import CheckpointUtilities as pCheckUtil
 from scipy.signal import savgol_filter
 DEF_FILTER_CONST = 0.005 # 0.5%
 

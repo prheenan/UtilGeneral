@@ -52,8 +52,8 @@ import string
 from itertools import cycle
 from six.moves import zip
 
-_uppercase = ["{:s}".format(s) for s in string.uppercase]
-_lowercase = ["{:s}".format(s) for s in string.lowercase]
+_uppercase = ["{:s}".format(s.upper()) for s in string.ascii_uppercase]
+_lowercase = ["{:s}".format(s.lower()) for s in string.ascii_lowercase]
 
 def upright_mu(unit=u""):
     """
