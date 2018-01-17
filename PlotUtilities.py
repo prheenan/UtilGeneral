@@ -826,14 +826,14 @@ def tom_text_rendering():
     # sfdefault: all non-math are sans-serif
     # see :https://stackoverflow.com/questions/2537868/sans-serif-math-with-latex-in-matplotlib
     preamble = [
-       r'\usepackage{siunitx}',   # i need upright \micro symbols, but also
-       r'\sisetup{detect-all}',   # ...this to force siunitx for your fonts
-       r'\usepackage{helvet}',    # set the normal font here
-       r'\usepackage{sansmath}',  # load up the sansmath so that math -> helvet
-       r'\sansmath',              # <- tricky! -- gotta actually tell tex
-       r'\usepackage{amsmath}',    # use this for bold symbols 
-       r'\usepackage{sfmath}',
-       r'\usepackage{relsize}',
+       u'\\usepackage{siunitx}',   # i need upright \micro symbols, but also
+       u'\sisetup{detect-all}',   # ...this to force siunitx for your fonts
+       u'\\usepackage{helvet}',    # set the normal font here
+       u'\\usepackage{sansmath}',  # load up the sansmath so that math -> helvet
+       u'\sansmath',              # <- tricky! -- gotta actually tell tex
+       u'\\usepackage{amsmath}',    # use this for bold symbols 
+       u'\\usepackage{sfmath}',
+       u'\\usepackage{relsize}',
        ]
     mpl.rcParams['text.latex.preamble']= preamble
     mathtext_format = "serif:italic:bold"
