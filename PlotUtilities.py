@@ -305,14 +305,14 @@ def errorbar(x,y,yerr,label,fmt=None,alpha=0.1,ecolor='r',markersize=3.0,
     plt.plot(x, y-yerr,'b--')
     
 def legend(fontsize=g_font_legend,loc=None,frameon=False,ncol=1,
-           fontweight='bold',handlelength=1,handletextpad=1,
+           fontweight='bold',handlelength=1,handletextpad=1,ax=plt.gca(),
            bbox_to_anchor=None,fancybox=False,color='k',**kwargs):
     if (loc is None):
         loc = 'best'
     prop = dict(size=fontsize,weight=fontweight,**kwargs)
-    leg = plt.legend(loc=loc,frameon=frameon,prop=prop,ncol=ncol,
-                     handlelength=handlelength,handletextpad=handletextpad,
-                     fancybox=fancybox,bbox_to_anchor=bbox_to_anchor)
+    leg = ax.legend(loc=loc,frameon=frameon,prop=prop,ncol=ncol,
+                    handlelength=handlelength,handletextpad=handletextpad,
+                    fancybox=fancybox,bbox_to_anchor=bbox_to_anchor)
     if (leg is not None):
         for text in leg.get_texts():
             plt.setp(text,color=color)
@@ -385,13 +385,13 @@ def zlabel(lab,ax=None,**kwargs):
         ax = plt.gca()
     return genLabel(ax.set_zlabel,lab,**kwargs)
     
-def title(lab,fontsize=g_font_title,fontweight='bold',**kwargs):
-    plt.title(lab,fontsize=fontsize,fontweight=fontweight,**kwargs)
+def title(lab,fontsize=g_font_title,fontweight='bold',ax=plt.gca(),**kwargs):
+    ax.set_title(lab,fontsize=fontsize,fontweight=fontweight,**kwargs)
 
 def lazyLabel(xlab,ylab,titLab,yrotation=90,titley=1.0,bbox_to_anchor=None,
               frameon=False,loc='best',axis_kwargs=dict(),tick_kwargs=dict(),
               legend_kwargs=dict(),title_kwargs=dict(),legend_width=5,
-              useLegend=True,zlab=None):
+              useLegend=True,zlab=None,ax=plt.gca()):
     """
     Easy method of setting the x,y, and title, and adding a legend
     
@@ -412,18 +412,18 @@ def lazyLabel(xlab,ylab,titLab,yrotation=90,titley=1.0,bbox_to_anchor=None,
          nothings
     """
     # set the labels and title
-    xlabel(xlab,**axis_kwargs)
-    ylabel(ylab,rotation=yrotation,**axis_kwargs)
-    title(titLab,y=titley,**title_kwargs)
+    xlabel(xlab,ax=ax,**axis_kwargs)
+    ylabel(ylab,rotation=yrotation,ax=ax,**axis_kwargs)
+    title(titLab,y=titley,ax=ax,**title_kwargs)
     # set the font
-    tickAxisFont(**tick_kwargs)
+    tickAxisFont(ax=ax,**tick_kwargs)
     # if we have a z or a legemd, set those too.
     if (zlab is not None):
-        zlabel(zlab,**axis_kwargs)
+        zlabel(zlab,ax=ax,**axis_kwargs)
     if (useLegend):
-        leg = legend(frameon=frameon,loc=loc,**legend_kwargs)
+        leg = legend(frameon=frameon,loc=loc,ax=ax,**legend_kwargs)
         if (leg is not None and len(legend_kwargs.keys()) > 0):
-            set_legend_kwargs(**legend_kwargs)
+            set_legend_kwargs(ax=ax,**legend_kwargs)
 
 def set_legend_kwargs(ax=None,linewidth=0,background_color=None,
                       color='k',alpha=1,**kwargs):
