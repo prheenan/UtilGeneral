@@ -129,8 +129,7 @@ def FormatImageAxis(ax=None):
          ax: the axis to format
          aspect: passed to the axis
     """
-    if (ax is None):
-        ax = plt.gca()
+    ax = gca(ax)
     # Turn off axes and set axes limits
     ax.axis('off')
 
@@ -146,50 +145,60 @@ def _remove_ticks(ax):
 def _remove_grid(ax):
     ax.set_visible(False)
 
-def no_y_label(ax=plt.gca()):
+def no_y_label(ax=None):
+    ax = gca(ax)
     _remove_labels(ax.get_yaxis())
 
-def no_x_label(ax=plt.gca()):
+def no_x_label(ax=None):
+    ax = gca(ax)
     _remove_labels(ax.get_xaxis())
 
-def no_x_grid(ax=plt.gca()):
+def no_x_grid(ax=None):
+    ax = gca(ax)
     _remove_grid(ax.get_xaxis())
 
-def no_y_grid(ax=plt.gca()):
+def no_y_grid(ax=None):
+    ax = gca(ax)
     _remove_grid(ax.get_yaxis())
 
-def no_x_axis(ax=plt.gca()):
+def no_x_axis(ax=None):
+    ax = gca(ax)
     ax.xaxis.set_visible(False)
     
-def no_y_axis(ax=plt.gca()):
+def no_y_axis(ax=None):
     ax.yaxis.set_visible(False)    
 
-def no_x_ticks(ax=plt.gca()):
+def no_x_ticks(ax=None):
+    ax = gca(ax)
     _remove_ticks(ax.get_xaxis())
 
-def no_y_ticks(ax=plt.gca()):
+def no_y_ticks(ax=None):
+    ax = gca(ax)
     _remove_ticks(ax.get_yaxis())
     
-def no_x_anything(ax=plt.gca()):
+def no_x_anything(ax=None):
+    ax = gca(ax)
     no_x_axis(ax)
     no_x_grid(ax)
     no_x_label(ax)
 
     
-def no_y_anything(ax=plt.gca()):
+def no_y_anything(ax=None):
+    ax = gca(ax)
     no_y_axis(ax)
     no_y_grid(ax)    
     no_y_label(ax)   
     _remove_ticks(ax.get_yaxis()) 
 
-def x_label_on_top(ax=plt.gca()):
+def x_label_on_top(ax=None):
+    ax = gca(ax)
     ax.xaxis.set_label_position('top') 
     ax.xaxis.set_tick_params(labeltop='on',labelbottom='off')
 
 
 
 def autolabel(rects,label_func=lambda i,r: "{:.3g}".format(r.get_height()),
-              x_func=None,y_func=None,fontsize=g_font_legend,**kwargs):
+              x_func=None,y_func=None,fontsize=g_font_legend,ax=None,**kwargs):
     """
     Attach a text label above each bar displaying its height
 
@@ -199,7 +208,7 @@ def autolabel(rects,label_func=lambda i,r: "{:.3g}".format(r.get_height()),
     Returns:
         nothing, but sets text labels
     """
-    ax = plt.gca()
+    ax = gca(ax)
     if (x_func is None):
         x_func = lambda i,rect: rect.get_x() + rect.get_width()/2.
     if (y_func is None):
@@ -305,8 +314,9 @@ def errorbar(x,y,yerr,label,fmt=None,alpha=0.1,ecolor='r',markersize=3.0,
     plt.plot(x, y-yerr,'b--')
     
 def legend(fontsize=g_font_legend,loc=None,frameon=False,ncol=1,
-           fontweight='bold',handlelength=1,handletextpad=1,ax=plt.gca(),
+           fontweight='bold',handlelength=1,handletextpad=1,ax=None,
            bbox_to_anchor=None,fancybox=False,color='k',**kwargs):
+    ax = gca(ax)
     if (loc is None):
         loc = 'best'
     prop = dict(size=fontsize,weight=fontweight,**kwargs)
@@ -317,25 +327,6 @@ def legend(fontsize=g_font_legend,loc=None,frameon=False,ncol=1,
         for text in leg.get_texts():
             plt.setp(text,color=color)
     return leg
-    
-
-
-def intLim(vals,xAxis=True,factor=0.5):
-    # intelligently set the limits
-    uni = np.unique(vals)
-    maxV = vals[-1]
-    minV = vals[0]
-    # fudge factor is a factor of the minimum change
-    if (uni.size == 1):
-        # just a single point
-        fudge = max(1,uni[0]*0.5)
-    else:
-        fudge = np.min(np.diff(uni))*0.5
-    # set the limits
-    if (xAxis):
-        plt.gca().set_xlim(minV-fudge,maxV+fudge)
-    else:
-        plt.gca().set_ylim(minV-fudge,maxV+fudge)
 
 def genLabel(func,label,fontsize=g_font_label,fontweight='bold',
              **kwargs):
@@ -355,8 +346,7 @@ def xlabel(lab,ax=None,**kwargs):
     Returns:
          Label
     """
-    if (ax is None):
-        ax = plt.gca()
+    ax = gca(ax)
     return genLabel(ax.set_xlabel,lab,**kwargs)
 
 def ylabel(lab,ax=None,**kwargs):
@@ -368,8 +358,7 @@ def ylabel(lab,ax=None,**kwargs):
     Returns:
         See xlabel
     """
-    if (ax is None):
-        ax = plt.gca()
+    ax = gca(ax)
     return genLabel(ax.set_ylabel,lab,**kwargs)
 
 def zlabel(lab,ax=None,**kwargs):
@@ -381,17 +370,20 @@ def zlabel(lab,ax=None,**kwargs):
     Returns:
         See xlabel
     """
-    if (ax is None):
-        ax = plt.gca()
+    ax = gca(ax)
     return genLabel(ax.set_zlabel,lab,**kwargs)
     
-def title(lab,fontsize=g_font_title,fontweight='bold',ax=plt.gca(),**kwargs):
+def title(lab,fontsize=g_font_title,fontweight='bold',ax=None,**kwargs):
+    ax = gca(ax)
     ax.set_title(lab,fontsize=fontsize,fontweight=fontweight,**kwargs)
+
+def gca(ax=None):
+    return ax if ax is not None else plt.gca()
 
 def lazyLabel(xlab,ylab,titLab,yrotation=90,titley=1.0,bbox_to_anchor=None,
               frameon=False,loc='best',axis_kwargs=dict(),tick_kwargs=dict(),
               legend_kwargs=dict(),title_kwargs=dict(),legend_width=5,
-              useLegend=True,zlab=None,ax=plt.gca()):
+              useLegend=True,zlab=None,ax=None):
     """
     Easy method of setting the x,y, and title, and adding a legend
     
@@ -411,6 +403,7 @@ def lazyLabel(xlab,ylab,titLab,yrotation=90,titley=1.0,bbox_to_anchor=None,
     Returns: 
          nothings
     """
+    ax = gca(ax)
     # set the labels and title
     xlabel(xlab,ax=ax,**axis_kwargs)
     ylabel(ylab,rotation=yrotation,ax=ax,**axis_kwargs)
@@ -427,8 +420,7 @@ def lazyLabel(xlab,ylab,titLab,yrotation=90,titley=1.0,bbox_to_anchor=None,
 
 def set_legend_kwargs(ax=None,linewidth=0,background_color=None,
                       color='k',alpha=1,**kwargs):
-    if (ax is None):
-        ax = plt.gca()
+    ax = gca(ax)
     if (background_color is None):
         background_color = 'w'
     leg = ax.get_legend()
@@ -485,8 +477,7 @@ def tom_ticks(ax=None,num_major=4,num_minor=0,**kwargs):
     Returns:
         nothing
     """
-    if (ax is None):
-        ax = plt.gca()
+    ax = gca(ax)
     tick_axis_number(ax=ax,
                      num_x_major=num_major,
                      num_x_minor=num_minor,
@@ -510,8 +501,7 @@ def tick_axis_number(ax=None,num_x_major=5,num_x_minor=None,num_y_major=5,
     Returns:
         Nothing
     """
-    if (ax is None):
-        ax = plt.gca()
+    ax = gca(ax)
     if (num_x_minor is None):
         num_x_minor = 2 * num_x_major
     if (num_y_minor is None):
@@ -539,8 +529,7 @@ def tickAxisFont(fontsize=g_font_tick,
          or major ticks. 
          kwargs: passed directly to tick_params
     """
-    if (ax is None):
-        ax = plt.gca()
+    ax = gca(ax)
     common_dict = dict(direction=direction,
                        axis=axis,bottom=bottom,top=top,right=right,left=left,
                        **kwargs)
@@ -560,8 +549,8 @@ def yTickLabels(xRange,labels,rotation='horizontal',fontsize=g_font_label,
                 **kwargs):
     tickLabels(xRange,labels,False,rotation=rotation,fontsize=fontsize,**kwargs)
 
-def tickLabels(xRange,labels,xAxis,tickWidth=g_tick_thickness,**kwargs):
-    ax = plt.gca()
+def tickLabels(xRange,labels,xAxis,tickWidth=g_tick_thickness,ax=None,**kwargs):
+    ax = gca(ax)
     if (xAxis):
         ax.set_xticks(xRange)
         ax.set_xticklabels(labels,**kwargs)
@@ -592,10 +581,11 @@ def addColorBar(cax,ticks,labels,oritentation='vertical'):
     # horizontal colorbar
     cbar.ax.set_yticklabels(labels,fontsize=g_font_label)
     
-def color_frame(color,ax=plt.gca(),**kw):
+def color_frame(color,ax=None,**kw):
     """
     See : color_axis_ticks, except colors the entire frame. kw is shared
     """
+    ax = gca(ax)
     keywords = [dict(spine_name="left",axis_name="y",**kw),
                 dict(spine_name="right",axis_name="y",**kw),
                 dict(spine_name="top",axis_name="x",**kw),
@@ -603,7 +593,7 @@ def color_frame(color,ax=plt.gca(),**kw):
     for kw_tmp in keywords:
         color_axis_ticks(color=color,ax=ax,**kw_tmp)
 
-def color_axis_ticks(color,spine_name="left",axis_name="y",ax=plt.gca()):    
+def color_axis_ticks(color,spine_name="left",axis_name="y",ax=None):
     """
     colors the specific axis as desired 
     
@@ -615,6 +605,7 @@ def color_axis_ticks(color,spine_name="left",axis_name="y",ax=plt.gca()):
     Returns: 
         nothing
     """
+    ax = gca(ax)
     ax.tick_params(axis_name,color=color,which='both',labelcolor=color)       
     ax.spines[spine_name].set_color(color)        
     ax.spines[spine_name].set_edgecolor(color)    
