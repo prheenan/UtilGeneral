@@ -4,6 +4,7 @@ from __future__ import division
 from __future__ import absolute_import
 from __future__ import print_function
 from __future__ import unicode_literals
+ # -*- coding: utf-8 -*-
 # import utilities for error repoorting etc
 from . import GenUtilities as util
 # use matplotlib for plotting
@@ -34,11 +35,14 @@ mpl.rcParams['hatch.linewidth'] = 3
 mpl.rcParams['hatch.color'] = '0.5'
 # based on :http://stackoverflow.com/questions/18699027/write-an-upright-mu-in-matplotlib
 # following line sets the mathtext to whatever is our font
-mpl.rc("font", **{"sans-serif": ["Arial"], "style": 'normal','family':'sans'})
+mpl.rc("font", **{"sans-serif": "Arial",
+                  "style": 'normal',
+                  'family':'sans-serif'})
 plt.rcParams['font.sans-serif'] = 'Arial'
 plt.rcParams['font.family'] = 'sans-serif'
 mpl.rcParams['mathtext.fontset'] = 'custom'
 mpl.rcParams['mathtext.rm'] = 'Arial:bold'
+mpl.rcParams['text.latex.unicode'] = True
 # anything that is italic should *also* be bold 
 mpl.rcParams['mathtext.it'] = 'Arial:italic:bold'
 mpl.rcParams['mathtext.bf'] = 'Arial:bold'
