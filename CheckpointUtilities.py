@@ -114,7 +114,7 @@ def loadFile(filePath,useNpy):
 def lazy_multi_load(cache_dir,load_func=None,**kw):
     return multi_load(cache_dir,load_func=load_func,**kw)
         
-def multi_load(cache_dir,load_func,force=False,limit=None,
+def multi_load(cache_dir,load_func,force=False,limit=None,ext=".pkl",
                name_func=lambda i,o,*args,**kw: "{:d}".format(i)):
     """
     Returns the cached values if we can, otherwise re-runs load_func and returns
@@ -134,7 +134,7 @@ def multi_load(cache_dir,load_func,force=False,limit=None,
         at most limit objects, from the cache if possible 
     """
     pGenUtil.ensureDirExists(cache_dir)
-    files = sorted(pGenUtil.getAllFiles(cache_dir,ext=".pkl"))
+    files = sorted(pGenUtil.getAllFiles(cache_dir,ext=ext))
     # if the files exist and we aren't forcing 
     if (len(files) > 0 and not force):
         return [lazy_load(f) for f in files[:limit]]
