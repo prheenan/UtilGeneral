@@ -21,6 +21,7 @@ default_font_dict = dict(fontsize=g_font_label,
                          horizontalalignment='center',
                          verticalalignment='lower',
                          bbox=dict(color='w',alpha=0,pad=0))
+import re
     
 def _annotate(ax,s,xy,**font_kwargs):
     """
@@ -109,5 +110,124 @@ def rainbow_text(x, y, strings, colors, ax=None, **kw):
           
     """
     return _rainbow_gen(x=x,y=y,strings=strings,colors=colors,ax=ax,kw=[kw])
+
+
+def sigfig_sign_and_exp(number, format_str="{:3.1e}"):
+    """
+    gets the significant figure(s), sign, and exponent of a number
+
+    Args:
+        number: the number we want
+        format_str: how it should be formatted (limiting number of sig figs)
+    Returns:
+        tuple of <sig figs,sign,exponent>
+    """
+    scientific = format_str.format(number)
+    pattern = r"""
+               (\d+[\.]*\d*) # number.numbers
+               e          # literal e
+              ([+-])0*(\d+)     # either plus or minus, then exponent
+              """
+    sig = re.match(pattern, scientific, re.VERBOSE)
+    return sig.groups()
+
+
+def pretty_error_exp(number, error, error_fmt="{:.1f}", **kwargs):
+    """
+    retrns the number +/- the error
+
+    Args:
+        number: the number we want
+        error_str: how it should be formatted (limiting number of sig figs)
+        **kwargs: passed to get_sigfig_sign_and_exponent
+    Returns:
+        pretty-printed (latex) of number +/- error, like: '(a +/- b) * 10^(c)'
+    """
+    sigfig, sign, exponent = sigfig_sign_and_exp(number, **kwargs)
+    # get the error in terms of the exponent of the number
+    exponent_num = float(exponent) * -1 if sign == "-" else float(exponent)
+    error_rel = error / (10 ** (exponent_num))
+    string_number_and_error = sigfig + r"\pm" + error_fmt.format(error_rel)
+    # add parenths
+    string_number_and_error = "(" + string_number_and_error + ")"
+    return _pretty_format_exp(string_number_and_error, sign, exponent)
+
+
+def _pretty_format_exp(sig_fig, sign, exponent):
+    """
+    pretty prints the number sig_fig as <number * 10^(exponent)>
+
+    Args:
+        sig_fig: number to print
+        sign: literal +/-
+        exponent: what to put in 10^{right here}
+    Returns:
+        formatted string
+    """
+    sign_str = "" if sign == "+" else "-"
+    to_ret = r"$" + sig_fig + r"\cdot 10^{" + sign_str + exponent + r"}$"
+    return to_ret
+
+
+def pretty_exp(number, **kwargs):
+    """
+    takes a number and returns its pretty-printed exponent format
+
+    Args:
+        number: see pretty_exp_with_error
+        **kwargs: passed to get_sigfig_sign_and_exponent
+    Returns:
+        see pretty_exp_with_error
+    """
+    args = sigfig_sign_and_exp(number, **kwargs)
+    return _pretty_format_exp(*args)
+
+
+def autolabel_points(xy,
+                     x_func = lambda i,r: r[0],
+                     y_func =lambda i,r: r[1] * 1.2,*args,**kwargs):
+    """
+    :param xy: tuple; first element is x list, second element is y list
+    :param x_func: takes in xy pair, gives back x
+    :param y_func: takes in xy pair, gives back y
+    :param args:
+    :param kwargs:
+    :return:
+    """
+    assert len(xy) == 2 , "Need to pass x then y "
+    x = xy[0]
+    y = xy[1]
+    assert len(x) * len(y) > 0 , "Need at least one point"
+    assert len(x) == len(y) , "x doesn't match y "
+    xy_pairs = [ [x[i],y[i]] for i,_ in enumerate(x) ]
+    return autolabel(xy_pairs,*args,
+                     x_func=x_func,y_func=y_func,
+                     **kwargs)
+
+def autolabel(rects,label_func=lambda i,r: "{:.3g}".format(r.get_height()),
+              x_func=None,y_func=None,fontsize=g_font_legend,ax=None,
+              color_func = lambda i,r: "k",**kwargs):
+    """
+    Attach a text label above each bar displaying its height
+
+    Args:
+        rects: return from ax.bar
+        label_func: takes a rect and its index, returns the label
+        x_func: takes in index and rectangle. returns where to put the label
+        y_func: as x func, but for y
+    Returns:
+        nothing, but sets text labels
+    """
+    ax = gca(ax)
+    if (x_func is None):
+        x_func = lambda i,rect: rect.get_x() + rect.get_width()/2.
+    if (y_func is None):
+        y_func = lambda i,rect: rect.get_height() * 1.2
+    for i,rect in enumerate(rects):
+        text = label_func(i,rect)
+        x = x_func(i,rect)
+        y = y_func(i,rect)
+        ax.text(x,y,text,ha='center', va='bottom',fontsize=fontsize,
+                color=color_func(i,rect),**kwargs)
 
 

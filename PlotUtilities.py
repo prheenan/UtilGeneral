@@ -200,30 +200,6 @@ def x_label_on_top(ax=None):
     ax.xaxis.set_tick_params(labeltop='on',labelbottom='off')
 
 
-
-def autolabel(rects,label_func=lambda i,r: "{:.3g}".format(r.get_height()),
-              x_func=None,y_func=None,fontsize=g_font_legend,ax=None,**kwargs):
-    """
-    Attach a text label above each bar displaying its height
-
-    Args:
-        rects: return from ax.bar
-        label_func: takes a rect and its index, returs the label
-    Returns:
-        nothing, but sets text labels
-    """
-    ax = gca(ax)
-    if (x_func is None):
-        x_func = lambda i,rect: rect.get_x() + rect.get_width()/2.
-    if (y_func is None):
-        y_func = lambda i,rect: rect.get_height() * 1.2
-    for i,rect in enumerate(rects):
-        height = rect.get_height()
-        text = label_func(i,rect)
-        x = x_func(i,rect)
-        y = y_func(i,rect)
-        ax.text(x,y,text,ha='center', va='bottom',fontsize=fontsize,**kwargs)
-
 def AddSubplotLabels(fig=None,axs=None,skip=0,
                      xloc=-0.03,yloc=1,fontsize=30,fontweight='bold',
                      bbox=dict(facecolor='none', edgecolor='black',
@@ -387,7 +363,8 @@ def gca(ax=None):
     return ax if ax is not None else plt.gca()
 
 def lazyLabel(xlab,ylab,titLab,yrotation=90,titley=1.0,bbox_to_anchor=None,
-              frameon=False,loc='best',axis_kwargs=dict(),tick_kwargs=dict(),
+              frameon=False,loc='best',axis_kwargs=dict(),
+              tick_kwargs=dict(add_minor=True),
               legend_kwargs=dict(),title_kwargs=dict(),legend_width=5,
               useLegend=True,zlab=None,ax=None):
     """
@@ -464,7 +441,8 @@ def axis_locator(ax,n_major,n_minor):
     scale = ax.get_scale()
     if (scale == 'log'):
         ax.set_major_locator(LogLocator(numticks=n_major))
-        ax.set_minor_locator(NullLocator())
+        if (n_minor > 0):
+            ax.set_minor_locator(LogLocator(numticks=n_minor))
     else:
         ax.set_major_locator(MaxNLocator(n_major))
         if (n_minor > 0):
