@@ -132,7 +132,7 @@ def sigfig_sign_and_exp(number, format_str="{:3.1e}"):
     return sig.groups()
 
 
-def pretty_error_exp(number, error, error_fmt="{:.1f}", **kwargs):
+def pretty_error_exp(number, error, error_fmt="{:.1g}", **kwargs):
     """
     retrns the number +/- the error
 
