@@ -65,6 +65,9 @@ from six.moves import zip
 _uppercase = ["{:s}".format(s.upper()) for s in string.ascii_uppercase]
 _lowercase = ["{:s}".format(s.lower()) for s in string.ascii_lowercase]
 
+def right_arrow():
+    return u"\u279c"
+
 def upright_mu(unit=u""):
     """
     Returns: an upright mu, optionally follow by <unit>. Recquires unicode. 
