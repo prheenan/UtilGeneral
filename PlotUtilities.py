@@ -35,19 +35,17 @@ mpl.rcParams['hatch.linewidth'] = 3
 mpl.rcParams['hatch.color'] = '0.5'
 # based on :http://stackoverflow.com/questions/18699027/write-an-upright-mu-in-matplotlib
 # following line sets the mathtext to whatever is our font
-"""
-mpl.rc("font", **{"sans-serif": "Arial",
+default_font = "DejaVu Sans"
+mpl.rc("font", **{"sans-serif": default_font,
                   "style": 'normal',
                   'family':'sans-serif'})
-plt.rcParams['font.sans-serif'] = 'Arial'
 plt.rcParams['font.family'] = 'sans-serif'
 mpl.rcParams['mathtext.fontset'] = 'custom'
-mpl.rcParams['mathtext.rm'] = 'Arial:bold'
+mpl.rcParams['mathtext.rm'] = '{}:bold'.format(default_font)
 mpl.rcParams['text.latex.unicode'] = True
-"""
 # anything that is italic should *also* be bold 
-mpl.rcParams['mathtext.it'] = 'Arial:italic:bold'
-mpl.rcParams['mathtext.bf'] = 'Arial:bold'
+mpl.rcParams['mathtext.it'] = '{}:italic:bold'.format(default_font)
+mpl.rcParams['mathtext.bf'] = '{}:bold'.format(default_font)
 # see: http://matplotlib.org/examples/pylab_examples/usetex_baseline_test.html
 # this line makes it slow, etc plt.rcParams['text.usetex'] = True
 from string import ascii_lowercase
