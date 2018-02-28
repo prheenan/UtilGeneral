@@ -70,8 +70,6 @@ def plot_setup():
     mpl.rc("font", **{"sans-serif": default_font,
                       "style": 'normal',
                       'family':'sans-serif'})
-    mpl.mathtext.SHRINK_FACTOR = 0.65
-    mpl.mathtext.GROW_FACTOR = 1 / 0.5
     plt.rcParams['font.family'] = 'sans-serif'
     mpl.rcParams['text.latex.unicode'] = True
     mpl.rcParams['mathtext.fontset'] = 'custom'
@@ -80,6 +78,14 @@ def plot_setup():
     mpl.rcParams['mathtext.it'] = '{}:bold:italic'.format(default_font)
     mpl.rcParams['mathtext.bf'] = '{}:bold'.format(default_font)
     mpl.rcParams['mathtext.sf'] = '{}'.format(default_font)
+    """
+    # See :
+#stackoverflow.com/questions/24684897/matplotlib-set-superscript-font-size?rq=1
+    """
+    # How much text shrinks when going to the next-smallest level.  GROW_FACTOR
+    # must be the inverse of SHRINK_FACTOR.
+    mpl.mathtext.SHRINK_FACTOR   = 0.55
+    mpl.mathtext.GROW_FACTOR     = 1.0 / mpl.mathtext.SHRINK_FACTOR
 
 
 def upright_mu(unit=u""):
