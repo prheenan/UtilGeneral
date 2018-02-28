@@ -21,33 +21,17 @@ import matplotlib as mpl
 
 from matplotlib import ticker
 g_tom_text_rendering = dict(on=False)
-g_font_label = 8
-g_font_title = 9.5
-g_font_subplot_label = 11
-g_font_tick = 7.5
+g_font_label = 7.5
+g_font_title = 9
+g_font_subplot_label = 10
+g_font_tick = 7
 g_font_legend = 8
 g_tick_thickness = 1
 g_tick_length = 4
 g_minor_tick_width = 1
 g_minor_tick_length= 2
 # make the hatches larges
-mpl.rcParams['hatch.linewidth'] = 3
-mpl.rcParams['hatch.color'] = '0.5'
-# based on :http://stackoverflow.com/questions/18699027/write-an-upright-mu-in-matplotlib
-# following line sets the mathtext to whatever is our font
-mpl.rc("font", **{"sans-serif": "Arial",
-                  "style": 'normal',
-                  'family':'sans-serif'})
-plt.rcParams['font.sans-serif'] = 'Arial'
-plt.rcParams['font.family'] = 'sans-serif'
-mpl.rcParams['mathtext.fontset'] = 'custom'
-mpl.rcParams['mathtext.rm'] = 'Arial:bold'
-mpl.rcParams['text.latex.unicode'] = True
-# anything that is italic should *also* be bold 
-mpl.rcParams['mathtext.it'] = 'Arial:italic:bold'
-mpl.rcParams['mathtext.bf'] = 'Arial:bold'
-# see: http://matplotlib.org/examples/pylab_examples/usetex_baseline_test.html
-# this line makes it slow, etc plt.rcParams['text.usetex'] = True
+
 from string import ascii_lowercase
 from matplotlib.ticker import LogLocator,MaxNLocator
 # for the zoom effect
@@ -64,6 +48,45 @@ from six.moves import zip
 
 _uppercase = ["{:s}".format(s.upper()) for s in string.ascii_uppercase]
 _lowercase = ["{:s}".format(s.lower()) for s in string.ascii_lowercase]
+
+def right_arrow_thin():
+    return u"\u279c"
+
+def right_arrow():
+    return u"\u27A1"
+
+def down_arrow():
+    return u'$\mathsf{\u2B07}$'
+
+def plot_setup():
+    """
+    Sets up the plotting options as we like them
+    """
+    mpl.rcParams['hatch.linewidth'] = 3
+    mpl.rcParams['hatch.color'] = '0.5'
+    # see :
+    # stackoverflow.com/questions/18699027/write-an-upright-mu-in-matplotlib
+    default_font = "DejaVu Sans"
+    mpl.rc("font", **{"sans-serif": default_font,
+                      "style": 'normal',
+                      'family':'sans-serif'})
+    plt.rcParams['font.family'] = 'sans-serif'
+    mpl.rcParams['text.latex.unicode'] = True
+    mpl.rcParams['mathtext.fontset'] = 'custom'
+    mpl.rcParams['mathtext.rm'] = '{}:bold'.format(default_font)
+    # anything that is italic should *also* be bold 
+    mpl.rcParams['mathtext.it'] = '{}:bold:italic'.format(default_font)
+    mpl.rcParams['mathtext.bf'] = '{}:bold'.format(default_font)
+    mpl.rcParams['mathtext.sf'] = '{}'.format(default_font)
+    """
+    # See :
+#stackoverflow.com/questions/24684897/matplotlib-set-superscript-font-size?rq=1
+    """
+    # How much text shrinks when going to the next-smallest level.  GROW_FACTOR
+    # must be the inverse of SHRINK_FACTOR.
+    mpl.mathtext.SHRINK_FACTOR   = 0.55
+    mpl.mathtext.GROW_FACTOR     = 1.0 / mpl.mathtext.SHRINK_FACTOR
+
 
 def upright_mu(unit=u""):
     """
@@ -703,6 +726,7 @@ def figure(figsize=None,xSize=3.5,ySize=3.5,dpi=600,**kw):
     Returns:
         figure it created
     """
+    plot_setup()
     if (figsize is not None):
         xSize = figsize[0]
         ySize = figsize[1]
