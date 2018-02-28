@@ -31,23 +31,7 @@ g_tick_length = 4
 g_minor_tick_width = 1
 g_minor_tick_length= 2
 # make the hatches larges
-mpl.rcParams['hatch.linewidth'] = 3
-mpl.rcParams['hatch.color'] = '0.5'
-# based on :http://stackoverflow.com/questions/18699027/write-an-upright-mu-in-matplotlib
-# following line sets the mathtext to whatever is our font
-default_font = "DejaVu Sans"
-mpl.rc("font", **{"sans-serif": default_font,
-                  "style": 'normal',
-                  'family':'sans-serif'})
-plt.rcParams['font.family'] = 'sans-serif'
-mpl.rcParams['mathtext.fontset'] = 'custom'
-mpl.rcParams['mathtext.rm'] = '{}:bold'.format(default_font)
-mpl.rcParams['text.latex.unicode'] = True
-# anything that is italic should *also* be bold 
-mpl.rcParams['mathtext.it'] = '{}:italic:bold'.format(default_font)
-mpl.rcParams['mathtext.bf'] = '{}:bold'.format(default_font)
-# see: http://matplotlib.org/examples/pylab_examples/usetex_baseline_test.html
-# this line makes it slow, etc plt.rcParams['text.usetex'] = True
+
 from string import ascii_lowercase
 from matplotlib.ticker import LogLocator,MaxNLocator
 # for the zoom effect
@@ -67,6 +51,28 @@ _lowercase = ["{:s}".format(s.lower()) for s in string.ascii_lowercase]
 
 def right_arrow():
     return u"\u279c"
+
+def plot_setup():
+    """
+    Sets up the plotting options as we like them
+    """
+    mpl.rcParams['hatch.linewidth'] = 3
+    mpl.rcParams['hatch.color'] = '0.5'
+    # see :
+    # stackoverflow.com/questions/18699027/write-an-upright-mu-in-matplotlib
+    default_font = "DejaVu Sans"
+    mpl.rc("font", **{"sans-serif": default_font,
+                      "style": 'normal',
+                      'family':'sans-serif'})
+    plt.rcParams['font.family'] = 'sans-serif'
+    mpl.rcParams['mathtext.fontset'] = 'custom'
+    mpl.rcParams['mathtext.rm'] = '{}:bold'.format(default_font)
+    mpl.rcParams['text.latex.unicode'] = True
+    # anything that is italic should *also* be bold 
+    mpl.rcParams['mathtext.it'] = '{}:italic:bold'.format(default_font)
+    mpl.rcParams['mathtext.bf'] = '{}:bold'.format(default_font)
+
+>>>>>>> 153c1eb919f849d4541ff065d504b158744733c6
 
 def upright_mu(unit=u""):
     """
@@ -706,6 +712,7 @@ def figure(figsize=None,xSize=3.5,ySize=3.5,dpi=600,**kw):
     Returns:
         figure it created
     """
+    plot_setup()
     if (figsize is not None):
         xSize = figsize[0]
         ySize = figsize[1]
