@@ -49,11 +49,14 @@ from six.moves import zip
 _uppercase = ["{:s}".format(s.upper()) for s in string.ascii_uppercase]
 _lowercase = ["{:s}".format(s.lower()) for s in string.ascii_lowercase]
 
-def right_arrow():
+def right_arrow_thin():
     return u"\u279c"
 
+def right_arrow():
+    return u"\u27A1"
+
 def down_arrow():
-    return u'$\u2193$'
+    return u'$\mathsf{\u2B07}$'
 
 def plot_setup():
     """
@@ -74,8 +77,9 @@ def plot_setup():
     mpl.rcParams['mathtext.fontset'] = 'custom'
     mpl.rcParams['mathtext.rm'] = '{}:bold'.format(default_font)
     # anything that is italic should *also* be bold 
-    mpl.rcParams['mathtext.it'] = '{}:italic:bold'.format(default_font)
+    mpl.rcParams['mathtext.it'] = '{}:bold:italic'.format(default_font)
     mpl.rcParams['mathtext.bf'] = '{}:bold'.format(default_font)
+    mpl.rcParams['mathtext.sf'] = '{}'.format(default_font)
 
 
 def upright_mu(unit=u""):
