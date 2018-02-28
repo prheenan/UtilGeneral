@@ -21,10 +21,10 @@ import matplotlib as mpl
 
 from matplotlib import ticker
 g_tom_text_rendering = dict(on=False)
-g_font_label = 8
-g_font_title = 9.5
-g_font_subplot_label = 11
-g_font_tick = 7.5
+g_font_label = 7.5
+g_font_title = 9
+g_font_subplot_label = 10
+g_font_tick = 7
 g_font_legend = 8
 g_tick_thickness = 1
 g_tick_length = 4
@@ -52,6 +52,9 @@ _lowercase = ["{:s}".format(s.lower()) for s in string.ascii_lowercase]
 def right_arrow():
     return u"\u279c"
 
+def down_arrow():
+    return u'$\u2193$'
+
 def plot_setup():
     """
     Sets up the plotting options as we like them
@@ -64,15 +67,16 @@ def plot_setup():
     mpl.rc("font", **{"sans-serif": default_font,
                       "style": 'normal',
                       'family':'sans-serif'})
+    mpl.mathtext.SHRINK_FACTOR = 0.65
+    mpl.mathtext.GROW_FACTOR = 1 / 0.5
     plt.rcParams['font.family'] = 'sans-serif'
+    mpl.rcParams['text.latex.unicode'] = True
     mpl.rcParams['mathtext.fontset'] = 'custom'
     mpl.rcParams['mathtext.rm'] = '{}:bold'.format(default_font)
-    mpl.rcParams['text.latex.unicode'] = True
     # anything that is italic should *also* be bold 
     mpl.rcParams['mathtext.it'] = '{}:italic:bold'.format(default_font)
     mpl.rcParams['mathtext.bf'] = '{}:bold'.format(default_font)
 
->>>>>>> 153c1eb919f849d4541ff065d504b158744733c6
 
 def upright_mu(unit=u""):
     """
