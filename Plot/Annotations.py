@@ -48,7 +48,25 @@ def relative_annotate(ax,s,xy,xycoords='axes fraction',**font_kwargs):
     see: _annotate, except xy are given in 0-1 from bottom left ('natural')
     """
     return _annotate(ax,s,xy,xycoords=xycoords,**font_kwargs)
-    
+
+def add_zero_rel(ax,x_pos,y_zero,s="0",**kwargs):
+    """
+    :param ax: axis to put a zero tick
+    :param x_pos: where to center the text, in relative axis coords
+    :param y_zero: where to place the y, in relative axis coors
+    :param s: string to use
+    :param kwargs: passed to relative_annotate
+    :return: nothing; throws an error if this isn't y_zero in the data units
+    """
+    ylim_data = ax.get_ylim()
+    data_range = (ylim_data[1] - ylim_data[0])
+    should_be_zero = y_zero * data_range + ylim_data[0]
+    assert should_be_zero < data_range * 1e-3 , "Didn't get proper zero"
+    relative_annotate(ax=ax,s=s, xy=(x_pos, y_zero),
+                      xycoords='axes fraction', clip_on=False,
+                      verticalalignment="center",**kwargs)
+
+
 def add_rectangle(ax,xlim,ylim,fudge_pct=0,facecolor="None",linestyle='-',
                   edgecolor='k',linewidth=0.75,zorder=10,**kw):
     """

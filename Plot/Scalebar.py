@@ -513,3 +513,41 @@ def _scale_bar(text,xy_text,xy_line,ax=plt.gca(),
     t = Annotations._annotate(ax=ax,s=text,xy=xy_text,**font_kwargs)
     ax.plot(x_draw,y_draw,**line_kwargs)
     return t,x_draw,y_draw
+
+def scalebar_offset_for_zero(limits,range_scalebar):
+    """
+    :param limits: of the relevant axis
+    :param range_scalebar: of the scalebar size
+    :return: tuple of <offset, delta>. Any scalebar with an offset at
+    offset + N*delta, where N is a number, will have a tick at zero.
+    """
+    min_y, max_y = min(limits), max(limits)
+    y_range = (max_y-min_y)
+    rel_range = range_scalebar/y_range
+    rel_zero = (0 - min_y)/y_range
+    return rel_zero, rel_range
+
+def _scale_deltas(rel_zero,rel_scale):
+    """
+    :param rel_zero: see max_offset
+    :param rel_scale: see max_offset
+    :return:
+    """
+    return np.floor(rel_zero/rel_scale),\
+           np.floor((1-rel_zero)/rel_scale)
+
+def max_offset(rel_zero,rel_scale,offset=1):
+    """
+    :param rel_zero: where the scalebar can go, modulo rel_scale
+    :param rel_scale: we want to place the scalebar at rel_zero + N * rel_scale
+    :param offset: number of deltas to offset by, in case of extra text
+    :return: tuple of (maximum relative offset, minimum relative offset)
+    for scalebar to be completely in the range [0,1]
+    """
+    # determine how many deltas we can go up or down. In order to always
+    # keep things in bounds, we subtract one from the possible deltas..
+    lower_delta,upper_delta = _scale_deltas(rel_zero,rel_scale)
+    max_delta_lower = max(0,lower_delta-offset)
+    max_delta_upper = max(0,upper_delta-offset)
+    return rel_zero - max_delta_lower * rel_scale,\
+           rel_zero + max_delta_upper * rel_scale
