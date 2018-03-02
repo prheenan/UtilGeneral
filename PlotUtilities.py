@@ -58,6 +58,12 @@ def right_arrow():
 def down_arrow():
     return u'$\mathsf{\u2B07}$'
 
+def math_it(s,add_dollars=False):
+    to_ret =  "\mathsf{" + s + "}"
+    if add_dollars:
+        to_ret = "$" + to_ret + "$"
+    return to_ret 
+
 def plot_setup():
     """
     Sets up the plotting options as we like them
@@ -77,7 +83,8 @@ def plot_setup():
     # anything that is italic should *also* be bold 
     mpl.rcParams['mathtext.it'] = '{}:bold:italic'.format(default_font)
     mpl.rcParams['mathtext.bf'] = '{}:bold'.format(default_font)
-    mpl.rcParams['mathtext.sf'] = '{}'.format(default_font)
+    # we use sf as a hack to get the italic font, if we need it 
+    mpl.rcParams['mathtext.sf'] = '{}:italic'.format(default_font)
     """
     # See :
 #stackoverflow.com/questions/24684897/matplotlib-set-superscript-font-size?rq=1
@@ -86,6 +93,7 @@ def plot_setup():
     # must be the inverse of SHRINK_FACTOR.
     mpl.mathtext.SHRINK_FACTOR   = 0.55
     mpl.mathtext.GROW_FACTOR     = 1.0 / mpl.mathtext.SHRINK_FACTOR
+    mpl.mathtext.NUM_SIZE_LEVELS      = 2
 
 
 def upright_mu(unit=u""):
