@@ -49,7 +49,7 @@ def relative_annotate(ax,s,xy,xycoords='axes fraction',**font_kwargs):
     """
     return _annotate(ax,s,xy,xycoords=xycoords,**font_kwargs)
 
-def add_zero_rel(ax,x_pos,y_zero,s="0",**kwargs):
+def add_zero_rel(ax,x_pos,y_zero=None,s="0",**kwargs):
     """
     :param ax: axis to put a zero tick
     :param x_pos: where to center the text, in relative axis coords
@@ -58,8 +58,10 @@ def add_zero_rel(ax,x_pos,y_zero,s="0",**kwargs):
     :param kwargs: passed to relative_annotate
     :return: nothing; throws an error if this isn't y_zero in the data units
     """
-    ylim_data = ax.get_ylim()
-    data_range = (ylim_data[1] - ylim_data[0])
+    min_y, max_y = ax.get_ylim()
+    data_range = max_y - min_y
+    if (y_zero is None):
+        y_zero = (0 - min_y)/data_range
     should_be_zero = y_zero * data_range + ylim_data[0]
     assert should_be_zero < data_range * 1e-3 , "Didn't get proper zero"
     relative_annotate(ax=ax,s=s, xy=(x_pos, y_zero),
