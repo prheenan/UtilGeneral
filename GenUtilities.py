@@ -204,20 +204,21 @@ def ensurePathExists(globalOutput,subPaths):
         ensureDirExists(path)
     return path + os.sep
 
-def getAllFiles(path,ext):
+def getAllFiles(path,ext=None):
     """
     Gets all files with extension "ext" in path
 
     Args:
         path: which path
-        ext: extension the file must end with
+        ext: extension the file must end with. if none, gets all
     Returns:
         list of path-appended filenames
     """
     # add the trailing slash
     path = os.path.join(path, '')
     filesRaw = os.listdir(path)
-    filesFull = [path + f for f in filesRaw if f.endswith(ext)]
+    filesFull = [path + f for f in filesRaw
+                if (ext is None or f.endswith(ext))]
     return filesFull
 
 def humanReadableSave(listToSave,fileName,header):
