@@ -347,6 +347,7 @@ def genLabel(func,label,fontsize=g_font_label,fontweight='bold',
                   family='sans-serif',**kwargs)
     return to_ret
 
+
         
 def xlabel(lab,ax=None,**kwargs):
     """
@@ -533,7 +534,7 @@ def tickAxisFont(fontsize=g_font_tick,
                  minor_tick_length=g_minor_tick_length,direction='in',
                  ax=None,common_dict=None,axis='both',bottom=True,
                  top=True,left=True,right=True,add_minor=False,
-                 **kwargs):
+                 pad=2,**kwargs):
     """
     sets the tick axis font and tick sizes
 
@@ -545,7 +546,7 @@ def tickAxisFont(fontsize=g_font_tick,
          kwargs: passed directly to tick_params
     """
     ax = gca(ax)
-    common_dict = dict(direction=direction,
+    common_dict = dict(direction=direction,pad=pad,
                        axis=axis,bottom=bottom,top=top,right=right,left=left,
                        **kwargs)
     ax.tick_params(length=major_tick_length, width=major_tick_width,
