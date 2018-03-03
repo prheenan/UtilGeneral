@@ -24,7 +24,7 @@ g_tom_text_rendering = dict(on=False)
 g_font_label = 7.5
 g_font_title = 9
 g_font_subplot_label = 10
-g_font_tick = 7
+g_font_tick = 7.5
 g_font_legend = 8
 g_tick_thickness = 1
 g_tick_length = 4
@@ -347,6 +347,7 @@ def genLabel(func,label,fontsize=g_font_label,fontweight='bold',
                   family='sans-serif',**kwargs)
     return to_ret
 
+
         
 def xlabel(lab,ax=None,**kwargs):
     """
@@ -460,6 +461,42 @@ def setLegendBackground(legend,color):
     legend.get_frame().set_facecolor(color)
                 
 
+def _log_decade_ticks(ax,min_log,max_log,ax_set_func,num=None,**kw_ticks):
+    """
+    Utility function for placing ticks exactly were we want them in logspace
+
+    :param ax: axis to use
+    :param min_log:  minimum log10 to display
+    :param max_log:  maximum log10 to display
+    :param ax_set_func: e.g. ax.set_xticks
+    :param num: of ticks; defaults to 1 per decade
+    :param kw_ticks: passed to tickAxisFont
+    :return: see tickAxisFont
+    """
+    if (num is None):
+        num = max_log - min_log + 1
+    ax_set_func(np.logspace(min_log, max_log, base=10, num=num))
+    return tickAxisFont(ax=ax,**kw_ticks)
+
+def x_log_ticks(ax,*args,**kw):
+    """
+    :param ax: to set
+    :param args: see  _log_decade_ticks
+    :param kw: see _log_decade_ticks
+    :return: see _log_decade_ticks
+    """
+    return _log_decade_ticks(ax,*args,ax_set_func=ax.set_xticks,**kw)
+
+def log_limits(ax_lim):
+    """
+    :param ax_lim: limits of the axis
+    :return: minimum and maximum log10 decades, rounded.
+    E.g. if plot is from 5 to  105, it will return 1,2 for 10 and 100
+    """
+    return np.ceil(np.log10(min(ax_lim))), np.floor(np.log10(max(ax_lim)))
+
+
+
 def axis_locator(ax,n_major,n_minor):
     """
     utility function; given an axis, returns sets the locator properly
@@ -471,9 +508,8 @@ def axis_locator(ax,n_major,n_minor):
     """
     scale = ax.get_scale()
     if (scale == 'log'):
-        ax.set_major_locator(LogLocator(numticks=n_major))
-        if (n_minor > 0):
-            ax.set_minor_locator(LogLocator(numticks=n_minor))
+        subs = [1,] if n_minor <= 1 else np.linspace(1,n_minor+1,n_minor)
+        ax.set_major_locator(LogLocator(numticks=n_major,subs=subs))
     else:
         ax.set_major_locator(MaxNLocator(n_major))
         if (n_minor > 0):
@@ -533,7 +569,7 @@ def tickAxisFont(fontsize=g_font_tick,
                  minor_tick_length=g_minor_tick_length,direction='in',
                  ax=None,common_dict=None,axis='both',bottom=True,
                  top=True,left=True,right=True,add_minor=False,
-                 **kwargs):
+                 pad=2,**kwargs):
     """
     sets the tick axis font and tick sizes
 
@@ -545,7 +581,7 @@ def tickAxisFont(fontsize=g_font_tick,
          kwargs: passed directly to tick_params
     """
     ax = gca(ax)
-    common_dict = dict(direction=direction,
+    common_dict = dict(direction=direction,pad=pad,
                        axis=axis,bottom=bottom,top=top,right=right,left=left,
                        **kwargs)
     ax.tick_params(length=major_tick_length, width=major_tick_width,
