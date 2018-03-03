@@ -62,7 +62,7 @@ def add_zero_rel(ax,x_pos,y_zero=None,s="0",**kwargs):
     data_range = max_y - min_y
     if (y_zero is None):
         y_zero = (0 - min_y)/data_range
-    should_be_zero = y_zero * data_range + ylim_data[0]
+    should_be_zero = y_zero * data_range + min_y
     assert should_be_zero < data_range * 1e-3 , "Didn't get proper zero"
     relative_annotate(ax=ax,s=s, xy=(x_pos, y_zero),
                       xycoords='axes fraction', clip_on=False,
