@@ -327,7 +327,7 @@ def errorbar(x,y,yerr,label,fmt=None,alpha=0.1,ecolor='r',markersize=3.0,
 def legend(fontsize=g_font_legend,loc=None,frameon=False,ncol=1,
            fontweight='bold',handlelength=1,handletextpad=1,ax=None,
            bbox_to_anchor=None,fancybox=False,markerscale=1,color='k',
-           numpoints=2,**kwargs):
+           numpoints=1,scatterpoints=1,**kwargs):
     ax = gca(ax)
     if (loc is None):
         loc = 'best'
@@ -335,6 +335,7 @@ def legend(fontsize=g_font_legend,loc=None,frameon=False,ncol=1,
     leg = ax.legend(loc=loc,frameon=frameon,prop=prop,ncol=ncol,
                     handlelength=handlelength,handletextpad=handletextpad,
                     fancybox=fancybox,bbox_to_anchor=bbox_to_anchor,
+                    scatterpoints=scatterpoints,
                     markerscale=markerscale,numpoints=numpoints)
     if (leg is not None):
         for text in leg.get_texts():
