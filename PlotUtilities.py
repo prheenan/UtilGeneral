@@ -79,7 +79,7 @@ def plot_setup():
     plt.rcParams['font.family'] = 'sans-serif'
     mpl.rcParams['text.latex.unicode'] = True
     mpl.rcParams['mathtext.fontset'] = 'custom'
-    mpl.rcParams['mathtext.rm'] = '{}:bold'.format(default_font)
+    mpl.rcParams['mathtext.rm'] = '{}'.format(default_font)
     # anything that is italic should *also* be bold 
     mpl.rcParams['mathtext.it'] = '{}:bold:italic'.format(default_font)
     mpl.rcParams['mathtext.bf'] = '{}:bold'.format(default_font)
