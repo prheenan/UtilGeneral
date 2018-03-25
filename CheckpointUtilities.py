@@ -77,6 +77,8 @@ def lazy_save(file_path,data):
     return saveFile(file_path,data,useNpy=False)
 
 def lazy_load(file_path):
+    assert pGenUtil.isfile(file_path) , \
+        "File {:} doesn't exist".format(file_path)
     return loadFile(file_path,useNpy=False)
         
 def saveFile(filePath,dataToSave,useNpy):

@@ -251,3 +251,72 @@ def autolabel(rects,label_func=lambda i,r: "{:.3g}".format(r.get_height()),
                 color=color_func(i,rect),**kwargs)
 
 
+def broken_axis(f_plot,range1,range2,ax1,ax2,axis_ratio,linewidth=1):
+    """
+    :param f_plot: takes in an axis and a number, plots the data
+    :param range1: range for ax1
+    :param range2: range for ax2
+    :param ax1: first axis to use
+    :param ax2: second axis to use
+    :param axis_ratio: if not the same width, ratio of widths
+    :param linewidth: for the plot
+    :return: Nothing, consider using with fmt_broken
+    """
+    # If we were to simply plot pts, we'd lose most of the interesting
+    # details due to the outliers. So let's 'break' or 'cut-out' the y-axis
+    # into two portions - use the top (ax) for the outliers, and the bottom
+    # (ax2) for the details of the majority of our data
+
+    # plot the same data on both axes
+    f_plot(ax1,1)
+    f_plot(ax2,2)
+
+    ax1.set_xlim(range1)
+    ax2.set_xlim(range2)
+
+    # This looks pretty good, and was fairly painless, but you can get that
+    # cut-out diagonal lines look with just a bit more work. The important
+    # thing to know here is that in axes coordinates, which are always
+    # between 0-1, spine endpoints are at these locations (0,0), (0,1),
+    # (1,0), and (1,1).  Thus, we just need to put the diagonals in the
+    # appropriate corners of each of our axes, and so long as we use the
+    # right transform and disable clipping.
+
+    d = .015 # how big to make the diagonal lines in axes coordinates
+    # arguments to pass plot, just so we don't keep repeating them
+    d1 = d * axis_ratio
+    d2 = d
+    kwargs = dict(transform=ax1.transAxes, color='k', clip_on=False,
+                  linewidth=linewidth)
+    ax1.plot((1-d1,1+d1), (-d,+d), **kwargs)
+    ax1.plot((1-d1,1+d1),(1-d,1+d), **kwargs)
+
+    kwargs.update(transform=ax2.transAxes)  # switch to the bottom axes
+    ax2.plot((-d2,+d2), (1-d2,1+d2), **kwargs)
+    ax2.plot((-d2,+d2), (-d2,+d2), **kwargs)
+
+    return ax1,ax2
+
+
+def fmt_broken(ax1,ax2):
+    """
+    Formats a broken (x) axis
+
+    :param ax1: the first axis to format
+    :param ax2: the second axis to format
+    :return:
+    """
+    # hide the spines between ax and ax2
+    ax1.spines['right'].set_visible(False)
+    ax2.spines['left'].set_visible(False)
+    ax1.yaxis.tick_left()
+    ax1.tick_params(labelright='off')
+    ax2.yaxis.tick_right()
+    tickAxisFont(ax=ax1)
+    # get rid of annoying ticks
+    ax1.spines['right'].set_visible(False)
+    ax2.spines['left'].set_visible(False)
+    ax1.tick_params(right=False)
+    ax2.tick_params(left=False, labelright='off')
+    ylabel("",ax=ax2)
+
