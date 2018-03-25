@@ -64,7 +64,7 @@ def math_it(s,add_dollars=False):
         to_ret = "$" + to_ret + "$"
     return to_ret 
 
-def plot_setup():
+def plot_setup(mt_shrink_factor=0.7,mt_sup1=0.8):
     """
     Sets up the plotting options as we like them
     """
@@ -91,9 +91,15 @@ def plot_setup():
     """
     # How much text shrinks when going to the next-smallest level.  GROW_FACTOR
     # must be the inverse of SHRINK_FACTOR.
-    mpl.mathtext.SHRINK_FACTOR   = 0.55
+    mpl.mathtext.SHRINK_FACTOR   = mt_shrink_factor
     mpl.mathtext.GROW_FACTOR     = 1.0 / mpl.mathtext.SHRINK_FACTOR
+    mpl.mathtext.SUP1            = mt_sup1
     mpl.mathtext.NUM_SIZE_LEVELS      = 2
+    # Percentage of x-height that sub/superscripts drop below the baseline
+    base_font = mpl.mathtext.FontConstantsBase
+    # Percentage of x-height that superscripts drop below the baseline
+    base_font.sup1 = mt_sup1
+
 
 
 def upright_mu(unit=u""):
@@ -748,7 +754,7 @@ def savefig(figure,fileName,close=True,tight=True,subplots_adjust=None,
     if (close):
         plt.close(figure)
 
-def figure(figsize=None,xSize=3.5,ySize=3.5,dpi=600,**kw):
+def figure(figsize=None,xSize=3.5,ySize=3.5,dpi=600,kw_setup=dict(),**kw):
     """
     wrapper for figure, allowing easier setting I think
 
@@ -760,7 +766,7 @@ def figure(figsize=None,xSize=3.5,ySize=3.5,dpi=600,**kw):
     Returns:
         figure it created
     """
-    plot_setup()
+    plot_setup(**kw_setup)
     if (figsize is not None):
         xSize = figsize[0]
         ySize = figsize[1]

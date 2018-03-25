@@ -185,7 +185,8 @@ def _pretty_format_exp(sig_fig, sign, exponent):
         formatted string
     """
     sign_str = "" if sign == "+" else "-"
-    to_ret = r"$" + sig_fig + r"\cdot 10^{" + sign_str + exponent + r"}$"
+    to_ret = r"$\mathbf{" + \
+             sig_fig + r"\cdot 10^{" + sign_str + exponent + r"}}$"
     return to_ret
 
 
