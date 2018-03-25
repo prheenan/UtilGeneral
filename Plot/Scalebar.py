@@ -84,7 +84,38 @@ def _get_tick_locator_fixed(offset,width,lim=plt.xlim()):
     ticks = list(ticks_before) + list(ticks_after)
     locator = FixedLocator(locs=ticks, nbins=None)
     return locator
-    
+
+def ticks(ax,axis,lim,x,y,is_x,add_minor):
+    """
+    :param ax: axis to put the ticks on
+    :param axis: e.g. ax.xaxis
+    :param lim: limits to use (xaxis.get_xlim)
+    :param x: x[1]-x[0] gives the tick spacing if is_x=True
+    :param y: y[1]-y[0] gives the tick spacing if is_x=False
+    :param is_x: if we are changing the x ticks
+    :param add_minor: if we should add the minor ticks 
+    :return:
+    """
+    if (is_x):
+        tick_spacing = abs(np.diff(x))
+        offset = min(x)
+    else:
+        tick_spacing = abs(np.diff(y))
+        offset = min(y)
+    locator_x = _get_tick_locator_fixed(offset=offset, width=tick_spacing,
+                                        lim=lim)
+    locator_minor_x = _get_tick_locator_fixed(offset=offset + tick_spacing / 2,
+                                              width=tick_spacing, lim=lim)
+    axis.set_major_locator(locator_x)
+    if (add_minor):
+        axis.set_minor_locator(locator_minor_x)
+    """
+    make sure the ticks are ontop of the data 
+    See (e.g.):
+stackoverflow.com/questions/19677963/matplotlib-keep-grid-lines-behind-the-graph-but-the-y-and-x-axis-above
+    """
+    ax.set_axisbelow(False)
+
 def _scale_bar_and_ticks(ax,axis,lim,is_x=True,add_minor=False,**kwargs):
     """
     convenience wrapper for create a scale bar with convenient ticks 
@@ -97,25 +128,7 @@ def _scale_bar_and_ticks(ax,axis,lim,is_x=True,add_minor=False,**kwargs):
         nothing
     """
     box,x,y = _scale_bar(ax=ax,**kwargs)
-    if (is_x):       
-        tick_spacing = abs(np.diff(x))
-        offset = min(x)
-    else:
-        tick_spacing = abs(np.diff(y))
-        offset = min(y)
-    locator_x = _get_tick_locator_fixed(offset=offset,width=tick_spacing,
-                                        lim=lim)
-    locator_minor_x = _get_tick_locator_fixed(offset=offset+tick_spacing/2,
-                                              width=tick_spacing,lim=lim)
-    axis.set_major_locator(locator_x)
-    if (add_minor):
-        axis.set_minor_locator(locator_minor_x) 
-    """
-    make sure the ticks are ontop of the data 
-    See (e.g.):
-stackoverflow.com/questions/19677963/matplotlib-keep-grid-lines-behind-the-graph-but-the-y-and-x-axis-above
-    """
-    ax.set_axisbelow(False)
+    return ticks(ax,axis,lim,x,y,is_x,add_minor)
     
 def _y_scale_bar_and_ticks(ax=plt.gca(),**kwargs):
     """
@@ -392,7 +405,8 @@ def crossed_x_and_y_relative(offset_x,offset_y,ax=plt.gca(),**kwargs):
     offset_x,offset_y = x_and_y_to_abs(offset_x,offset_y,ax=ax)
     return crossed_x_and_y(offset_x,offset_y,ax=ax,**kwargs)                    
 
-def _scale_bar_rectangle(ax,x,y,s,width,height,font_color='w',
+def _scale_bar_rectangle(ax,x,y,s,width,height,is_x,
+                         font_color='w',add_minor=False,
                          box_props=dict(facecolor='black',edgecolor='black'),
                          rotation=90,fontsize=6.5,**kw):
     """
@@ -407,18 +421,24 @@ def _scale_bar_rectangle(ax,x,y,s,width,height,font_color='w',
         tuple of (rectangle, annotaton)
     """
     x_abs,y_abs = x_and_y_to_abs(x_rel=x,y_rel=y,ax=ax)    
-    xlim = [x_abs-width/2,x_abs+width/2]
-    ylim = [y_abs-height/2,y_abs+height/2]
+    xlim = [x_abs,x_abs+width]
+    ylim = [y_abs,y_abs+height]
     # add an *un-clipped* scalebar, so we can draw outside the axes
     r = Annotations.add_rectangle(ax=ax,xlim=xlim,ylim=ylim,zorder=0,
                                   clip_on=False,
                                   **box_props)
-    ax = ax.annotate(xy=(x,y),s=s, color=font_color,
-                     horizontalalignment='center',fontweight='bold',
-                     verticalalignment='center',xycoords='axes fraction',
-                     clip_on=False,fontsize=fontsize,annotation_clip=False,
-                     rotation=rotation,**kw)
-    return r,ax
+    x_text = x_abs + width/2
+    y_text = y_abs + height/2
+    annot = ax.annotate(xy=(x_text,y_text),s=s, color=font_color,
+                        horizontalalignment='center',fontweight='bold',
+                        verticalalignment='center',xycoords='data',
+                        clip_on=False,fontsize=fontsize,annotation_clip=False,
+                        rotation=rotation,**kw)
+    axis = ax.xaxis if is_x else ax.yaxis
+    lim = ax.get_xlim() if is_x else ax.get_ylim()
+    ticks(ax, axis=axis, lim=lim, x=xlim, y=ylim, is_x=is_x,
+          add_minor=add_minor)
+    return r,annot
 
 def scale_bar_rectangle_x(ax,x_rel,y_rel,unit,width,height_rel=0.3,
                           unit_kwargs=dict(),
@@ -430,7 +450,7 @@ def scale_bar_rectangle_x(ax,x_rel,y_rel,unit,width,height_rel=0.3,
     height_abs = height_rel * (ylim[1]-ylim[0])
     s = unit_format(val=width,unit=unit,**unit_kwargs)
     _scale_bar_rectangle(ax=ax,x=x_rel,y=y_rel,s=s,width=width,
-                         height=height_abs,rotation=0,**kw)
+                         height=height_abs,rotation=0,is_x=True,**kw)
 
 def scale_bar_rectangle_y(ax,x_rel,y_rel,unit,height,unit_kwargs=dict(),
                           width_rel=0.3,**kw):
@@ -441,7 +461,7 @@ def scale_bar_rectangle_y(ax,x_rel,y_rel,unit,height,unit_kwargs=dict(),
     width_abs = width_rel * (xlim[1]-xlim[0])
     s = unit_format(val=height,unit=unit,**unit_kwargs)
     _scale_bar_rectangle(ax=ax,x=x_rel,y=y_rel,s=s,width=width_abs,
-                         height=height,rotation=90,**kw)
+                         height=height,rotation=90,is_x=False,**kw)
 
 def _line_width_to_data_units(width,ax,is_x):
     """
@@ -551,3 +571,17 @@ def max_offset(rel_zero,rel_scale,offset=1):
     max_delta_upper = max(0,upper_delta-offset)
     return rel_zero - max_delta_lower * rel_scale,\
            rel_zero + max_delta_upper * rel_scale
+
+def offsets_zero_tick(*args,**kwargs):
+    """
+    Syntactic sugar for getting where to put scalebar to get a tick at zero.
+
+    :param args: see scalebar_offset_for_zero
+    :param kwargs: see scalebar_offset_for_zero
+    :return: tuple of <minimum offset, maximum offset, offset spacing in axis
+    units >
+    """
+    rel_zero, rel_delta = scalebar_offset_for_zero(*args,**kwargs)
+    # figure out where to put the scalebar so that F=0 is at a tick
+    min_offset, max_off = max_offset(rel_zero,rel_delta)
+    return min_offset, max_off, rel_delta
