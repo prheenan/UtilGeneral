@@ -379,8 +379,8 @@ def zoom_effect01(ax1, ax2, xmin, xmax, color='m', alpha_line=0.5,
     trans1 = blended_transform_factory(ax1.transData, ax1.transAxes)
     trans2 = blended_transform_factory(ax2.transData, ax2.transAxes)
 
-    xmin2 = xmin2 if xmin is not None else xmin
-    xmax2 = xmax2 if xmax is not None else xmax
+    xmin2 = xmin2 if xmin2 is not None else xmin
+    xmax2 = xmax2 if xmax2 is not None else xmax
 
     alpha_patch2 = alpha_patch2 if alpha_patch2 is not None else alpha_patch
 
