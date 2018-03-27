@@ -352,7 +352,7 @@ def zoom_left_to_right_kw():
 def zoom_effect01(ax1, ax2, xmin, xmax, color='m', alpha_line=0.5,
                   alpha_patch=0.15, loc1a=3, loc2a=2, loc1b=4, loc2b=1,
                   linestyle='--', linewidth=1.5, xmin2=None, xmax2=None,
-                  **kwargs):
+                  alpha_patch2=None,**kwargs):
     """
     connect ax1 & ax2. The x-range of (xmin, xmax) in both axes will
     be marked.  The keywords parameters will be used to create
@@ -382,6 +382,8 @@ def zoom_effect01(ax1, ax2, xmin, xmax, color='m', alpha_line=0.5,
     xmin2 = xmin2 if xmin is not None else xmin
     xmax2 = xmax2 if xmax is not None else xmax
 
+    alpha_patch2 = alpha_patch2 if alpha_patch2 is not None else alpha_patch
+
     bbox1 = Bbox.from_extents(xmin, 0, xmax, 1)
     bbox2 = Bbox.from_extents(xmin2, 0, xmax2, 1)
 
@@ -397,6 +399,7 @@ def zoom_effect01(ax1, ax2, xmin, xmax, color='m', alpha_line=0.5,
         connect_bbox(mybbox1, mybbox2,
                      loc1a=loc1a, loc2a=loc2a, loc1b=loc1b, loc2b=loc2b,
                      prop_lines=prop_lines, prop_patches=prop_patches)
+    bbox_patch2.alpha = alpha_patch2
     ax1.add_patch(bbox_patch1)
     ax2.add_patch(bbox_patch2)
     ax2.add_patch(c1)
