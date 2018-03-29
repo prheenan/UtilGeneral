@@ -95,7 +95,7 @@ def add_rectangle(ax,xlim,ylim,fudge_pct=0,facecolor="None",linestyle='-',
     ax.add_patch(r)  
     return r 
     
-def _rainbow_gen(x,y,strings,colors,ax=None,kw=[dict()]):
+def _rainbow_gen(x,y,strings,colors,ax=None,kw=[dict()],add_space=True):
     """
     See: rainbow_text, except kw is an array now.
     """
@@ -106,14 +106,18 @@ def _rainbow_gen(x,y,strings,colors,ax=None,kw=[dict()]):
     # horizontal version
     n_kw = len(kw)
     for i,(s, c) in enumerate(zip(strings, colors)):
-        text = ax.text(x, y, s + " ", color=c, transform=t, 
+        if (add_space):
+            s_text = s + " "
+        else:
+            s_text = s
+        text = ax.text(x, y, s_text, color=c, transform=t,
                        clip_on=False,**(kw[i % n_kw]))
         text.draw(canvas.get_renderer())
         ex = text.get_window_extent()
         t = transforms.offset_copy(text._transform, x=ex.width, units='dots')  
                         
 
-def rainbow_text(x, y, strings, colors, ax=None, **kw):
+def rainbow_text(x, y, strings, colors, ax=None,add_space=False, **kw):
     """
     Take a list of ``strings`` and ``colors`` and place them next to each
     other, with text strings[i] being shown in colors[i].
@@ -129,7 +133,8 @@ def rainbow_text(x, y, strings, colors, ax=None, **kw):
         matplotlib.org/examples/text_labels_and_annotations/rainbow_text.html
           
     """
-    return _rainbow_gen(x=x,y=y,strings=strings,colors=colors,ax=ax,kw=[kw])
+    return _rainbow_gen(x=x,y=y,strings=strings,colors=colors,ax=ax,
+                        add_space=add_space,kw=[kw])
 
 
 def sigfig_sign_and_exp(number, format_str="{:3.1e}"):
