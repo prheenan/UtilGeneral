@@ -230,6 +230,70 @@ def autolabel_points(xy,
                      x_func=x_func,y_func=y_func,
                      **kwargs)
 
+def smart_fmt_str(n,err=None):
+    """
+    :param n: number to format
+    :param err: error, if any.
+    :return: correct formatting string, where correct means:
+
+    (1) in the presence of error:
+        -- we add an extra digit for each factor of 10 difference
+    (2) assuming we are a one (and didn't add digits because of a small error)
+        -- add another digits (so that we dont just display an OOM)
+    """
+    sigfig, _, exp = sigfig_sign_and_exp(n,format_str="{:.0e}")
+    min_digits = 1
+    to_add = 0
+    if (err is not None):
+        # determine the error exponent
+        _, _, exp_err = sigfig_sign_and_exp(err, format_str="{:.0e}")
+        # if the error is less, add that many sig figs.
+        # e.g., suppose n = 10.2, error = 0.1, then we add 1 - (-1) = 2
+        # so that we display as something like:
+        # {:.2g}
+        # meaning for the example (instead of just 10, we get
+        # 10.2
+        to_add = max(0,int(exp_err)-int(exp))
+        min_digits += to_add
+    # if the errror didnt add anything, and we are a 1, add a second digit.
+    # this is more or less so we get more than an order of magnitude. i.e.,
+    # 11 will be displayed as 11, not as 10.
+    if ( (min_digits == 1) and np.round(float(sigfig), 0) == 1):
+        min_digits += 1
+    assert abs(int(min_digits) - min_digits) < 1e-6
+    fmt = r"{:." + str(min_digits) + "g}"
+    return fmt
+
+def _autolabel_f_str(i,r,errs=None,fmt=None):
+    """
+    :param i: index of the rectangle (should also index into errrs, if present
+    :param r: something with a .getheight() method
+    :param errs: list of errors; index i shold be assoctaed with the height
+    :param fmt: formatting string. if none, does its best to format the error
+    accoreding to smart_fmt_str
+
+    :return: formatting string
+    """
+    h = r.get_height()
+    if (fmt is None):
+        fmt_was_none = True
+        # if we have error, use it to get the formatting
+        if (errs is None):
+            fmt = smart_fmt_str(h)
+        else:
+            fmt = smart_fmt_str(h,errs[i])
+    # POST: have the formatting string
+    if (errs is None):
+        # just format as formatl
+        to_ret = fmt.format(h)
+    else:
+        e = errs[i]
+        # use smart fotmatting on the errror if we used it on the format.
+        fmt_err = smart_fmt_str(e) if fmt_was_none else fmt
+        to_ret = (fmt + r" $\pm$ " + fmt_err).format(h,e)
+    return to_ret
+
+
 def autolabel(rects,label_func=lambda i,r: "{:.3g}".format(r.get_height()),
               x_func=None,y_func=None,fontsize=g_font_legend,ax=None,
               color_func = lambda i,r: "k",**kwargs):
