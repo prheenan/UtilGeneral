@@ -434,6 +434,8 @@ def _scale_bar_rectangle(ax,x,y,s,width,height,is_x,
     # differently)
     if ('zorder' in box_props):
         min_z_text = box_props['zorder'] + 1
+    else:
+        min_z_text = 3
     if ('zorder' not in kw):
         kw['zorder'] = min_z_text
     annot = ax.annotate(xy=(x_text,y_text),s=s, color=font_color,
