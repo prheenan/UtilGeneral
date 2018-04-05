@@ -230,20 +230,24 @@ def autolabel_points(xy,
                      x_func=x_func,y_func=y_func,
                      **kwargs)
 
-def smart_fmt_str(n,err=None):
+def smart_fmt_str(n,err=None,min_digits=1,def_fmt_type="g"):
     """
     :param n: number to format
     :param err: error, if any.
+    :param min_digits: minimum number of significant figures to show. defaults
+    to 1, but adds extra (see notes below)
+    :param def_fmt_type: the default way to format (e.g. 'g' or 'f'). Should
+    be able to use like 'X' in {:.2X}
     :return: correct formatting string, where correct means:
 
     (1) in the presence of error:
         -- we add an extra digit for each factor of 10 difference
+        -- suppose n = 10.2, err = 0.1, then default total of 3 digits
     (2) assuming we are a one (and didn't add digits because of a small error)
         -- add another digits (so that we dont just display an OOM)
+        -- e.g. suppose n=11.2, then we displace as 11 instead of 10
     """
     sigfig, _, exp = sigfig_sign_and_exp(n,format_str="{:.0e}")
-    min_digits = 1
-    to_add = 0
     if (err is not None):
         # determine the error exponent
         _, _, exp_err = sigfig_sign_and_exp(err, format_str="{:.0e}")
@@ -261,7 +265,7 @@ def smart_fmt_str(n,err=None):
     if ( (min_digits == 1) and np.round(float(sigfig), 0) == 1):
         min_digits += 1
     assert abs(int(min_digits) - min_digits) < 1e-6
-    fmt = r"{:." + str(min_digits) + "g}"
+    fmt = r"{:." + str(min_digits) + def_fmt_type + "}"
     return fmt
 
 def _autolabel_f_str(i,r,errs=None,fmt=None):
