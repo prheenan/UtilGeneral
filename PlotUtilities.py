@@ -632,13 +632,29 @@ def color_frame(color,ax=None,**kw):
     """
     See : color_axis_ticks, except colors the entire frame. kw is shared
     """
+    color_x(ax=ax,color=color,**kw)
+    color_y(ax=ax,color=color,**kw)
+
+def _color_gen(color,ax,keywords):
+    """
+    :param ax: axis to choose
+    :param color: to make the spines
+    :param keywords: see color_axis_ticks
+    :return:
+    """
     ax = gca(ax)
-    keywords = [dict(spine_name="left",axis_name="y",**kw),
-                dict(spine_name="right",axis_name="y",**kw),
-                dict(spine_name="top",axis_name="x",**kw),
-                dict(spine_name="bottom",axis_name="x",**kw)]
     for kw_tmp in keywords:
-        color_axis_ticks(color=color,ax=ax,**kw_tmp)
+        color_axis_ticks(color=color, ax=ax, **kw_tmp)
+
+def color_x(color,ax=None,**kw):
+    keywords = [dict(spine_name="top",axis_name="x",**kw),
+                dict(spine_name="bottom",axis_name="x",**kw)]
+    _color_gen(color,ax,keywords)
+
+def color_y(color,ax=None,**kw):
+    keywords = [dict(spine_name="left", axis_name="y", **kw),
+                dict(spine_name="right", axis_name="y", **kw)]
+    _color_gen(color,ax, keywords)
 
 def color_axis_ticks(color,spine_name="left",axis_name="y",ax=None):
     """
