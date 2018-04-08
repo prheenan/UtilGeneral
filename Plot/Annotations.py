@@ -22,7 +22,24 @@ default_font_dict = dict(fontsize=g_font_label,
                          verticalalignment='lower',
                          bbox=dict(color='w',alpha=0,pad=0))
 import re
-    
+
+def round_to_n_sigfigs(to_round,n=1):
+    """
+    :param to_round: number to round (Can be array, too)
+    :param n: how many sig figs
+    :return: rounded number
+    """
+    # exponent = floor of log10(x)
+    # so 1 sig fig is rounding to -(exponent)
+    # so 2 sig figs is rounding to -(exponent) + 1
+    # so n sig figs is rounding to -(exponent) + (n-1)
+    f = lambda x : np.round(x, -int(np.floor(np.log10(x))) + (n - 1))
+    if (hasattr(to_round,'size')):
+        to_ret = [f(tmp) for tmp in to_round]
+    else:
+        to_ret = f(to_round)
+    return to_ret
+
 def _annotate(ax,s,xy,**font_kwargs):
     """
     Adds a simpel text annotation. 
