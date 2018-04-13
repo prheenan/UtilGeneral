@@ -19,13 +19,16 @@ def _fix_string(n,list_v):
     :return: updated list. Throws error if something bad happens
     """
     if (isinstance(list_v,list) or isinstance(list_v,tuple)):
+        # if we are a list or a tuple, make sure we have n items
         n_list = len(list_v)
+        # if just one, then repeat it n times
         if (n_list == 1):
             return [list_v[0] for _ in range(n)]
         else:
             assert n_list == n , "Didn't provide correct number of labels"
             return list_v
     elif (isinstance(list_v,str) or isinstance(list_v,unicode)):
+        # if just a string, repeat N times 
         return [list_v for _ in range(n)]
     else:
         assert False, "Didnt understand input: {:s}".format(list_v)
