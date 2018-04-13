@@ -632,13 +632,29 @@ def color_frame(color,ax=None,**kw):
     """
     See : color_axis_ticks, except colors the entire frame. kw is shared
     """
+    color_x(ax=ax,color=color,**kw)
+    color_y(ax=ax,color=color,**kw)
+
+def _color_gen(color,ax,keywords):
+    """
+    :param ax: axis to choose
+    :param color: to make the spines
+    :param keywords: see color_axis_ticks
+    :return:
+    """
     ax = gca(ax)
-    keywords = [dict(spine_name="left",axis_name="y",**kw),
-                dict(spine_name="right",axis_name="y",**kw),
-                dict(spine_name="top",axis_name="x",**kw),
-                dict(spine_name="bottom",axis_name="x",**kw)]
     for kw_tmp in keywords:
-        color_axis_ticks(color=color,ax=ax,**kw_tmp)
+        color_axis_ticks(color=color, ax=ax, **kw_tmp)
+
+def color_x(color,ax=None,**kw):
+    keywords = [dict(spine_name="top",axis_name="x",**kw),
+                dict(spine_name="bottom",axis_name="x",**kw)]
+    _color_gen(color,ax,keywords)
+
+def color_y(color,ax=None,**kw):
+    keywords = [dict(spine_name="left", axis_name="y", **kw),
+                dict(spine_name="right", axis_name="y", **kw)]
+    _color_gen(color,ax, keywords)
 
 def color_axis_ticks(color,spine_name="left",axis_name="y",ax=None):
     """
@@ -693,7 +709,7 @@ def secondAxis(ax,label,limits,secondY =True,color="Black",scale=None,
         ax.yaxis.tick_left()
     else:
         ax2 = ax.twiny()
-        ax2.set_xscale(scale, nonposy='clip')
+        ax2.set_xscale(scale, nonposx='clip')
         ax2.set_xlim(limits)
         # set the x axis to the appropriate label
         lab = xlabel(label,ax=ax2)
@@ -774,74 +790,6 @@ def figure(figsize=None,xSize=3.5,ySize=3.5,dpi=600,kw_setup=dict(),**kw):
 
 def getNStr(n,space = " "):
     return space + "n={:d}".format(n)
-
-def connect_bbox(bbox1, bbox2,
-                 loc1a, loc2a, loc1b, loc2b,
-                 prop_lines, prop_patches=None):
-    """
-    connect the two bboxes see zoom_effect01(ax1, ax2, xmin, xmax)
-    """
-    if prop_patches is None:
-        prop_patches = prop_lines.copy()
-    c1 = BboxConnector(bbox1, bbox2, loc1=loc1a, loc2=loc2a, **prop_lines)
-    c1.set_clip_on(False)
-    c2 = BboxConnector(bbox1, bbox2, loc1=loc1b, loc2=loc2b, **prop_lines)
-    c2.set_clip_on(False)
-    bbox_patch1 = BboxPatch(bbox1, color='k',**prop_patches)
-    bbox_patch2 = BboxPatch(bbox2, color='w',**prop_patches)
-    p = BboxConnectorPatch(bbox1, bbox2,
-                           # loc1a=3, loc2a=2, loc1b=4, loc2b=1,
-                           loc1a=loc1a, loc2a=loc2a, loc1b=loc1b, loc2b=loc2b,
-                           **prop_patches)
-    p.set_clip_on(False)
-
-    return c1, c2, bbox_patch1, bbox_patch2, p
-
-
-def zoom_left_to_right_kw():
-    return dict(loc1a=1,loc2a=2,loc1b=4,loc2b=3)
-    
-def zoom_effect01(ax1, ax2, xmin, xmax, color='m',alpha_line=0.5,
-                  alpha_patch = 0.15,loc1a=3,loc2a=2,loc1b=4,loc2b=1,
-                  linestyle='--',linewidth=1.5,**kwargs):
-    """
-    connect ax1 & ax2. The x-range of (xmin, xmax) in both axes will
-    be marked.  The keywords parameters will be used to create
-    patches.
-
-    Args:
-        ax1 : the main axes
-        ax2 : the zoomed axes
-        alpha_<line/patch>: the transparency of the line or patch
-        (xmin,xmax) : the limits of the colored area in both plot axes.
-        **kwargs: passed to prop_lines
-    """
-
-    trans1 = blended_transform_factory(ax1.transData, ax1.transAxes)
-    trans2 = blended_transform_factory(ax2.transData, ax2.transAxes)
-
-    bbox = Bbox.from_extents(xmin, 0, xmax, 1)
-
-    mybbox1 = TransformedBbox(bbox, trans1)
-    mybbox2 = TransformedBbox(bbox, trans2)
-
-    prop_patches = kwargs.copy()
-    prop_patches["ec"] = "none"
-    prop_patches["alpha"] = alpha_patch
-    prop_lines = dict(color=color,alpha=alpha_line,linewidth=linewidth,
-                      linestyle='--',**kwargs)
-    c1, c2, bbox_patch1, bbox_patch2, p = \
-        connect_bbox(mybbox1, mybbox2,
-                     loc1a=loc1a, loc2a=loc2a, loc1b=loc1b, loc2b=loc2b,
-                     prop_lines=prop_lines, prop_patches=prop_patches)
-    ax1.add_patch(bbox_patch1)
-    ax2.add_patch(bbox_patch2)
-    ax2.add_patch(c1)
-    ax2.add_patch(c2)
-    ax2.add_patch(p)
-
-    return c1, c2, bbox_patch1, bbox_patch2, p
-
 
 def tom_text_rendering():
     """

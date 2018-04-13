@@ -407,7 +407,8 @@ def crossed_x_and_y_relative(offset_x,offset_y,ax=plt.gca(),**kwargs):
 
 def _scale_bar_rectangle(ax,x,y,s,width,height,is_x,
                          font_color='w',add_minor=False,
-                         box_props=dict(facecolor='black',edgecolor='black'),
+                         box_props=dict(facecolor='black',edgecolor='black',
+                                        zorder=0),
                          rotation=90,fontsize=6.5,**kw):
     """
     Makes a scalebar (usually outside of the axes)
@@ -424,11 +425,19 @@ def _scale_bar_rectangle(ax,x,y,s,width,height,is_x,
     xlim = [x_abs,x_abs+width]
     ylim = [y_abs,y_abs+height]
     # add an *un-clipped* scalebar, so we can draw outside the axes
-    r = Annotations.add_rectangle(ax=ax,xlim=xlim,ylim=ylim,zorder=0,
+    r = Annotations.add_rectangle(ax=ax,xlim=xlim,ylim=ylim,
                                   clip_on=False,
                                   **box_props)
     x_text = x_abs + width/2
     y_text = y_abs + height/2
+    # make sure that text is above box (unless we explicitly set them
+    # differently)
+    if ('zorder' in box_props):
+        min_z_text = box_props['zorder'] + 1
+    else:
+        min_z_text = 3
+    if ('zorder' not in kw):
+        kw['zorder'] = min_z_text
     annot = ax.annotate(xy=(x_text,y_text),s=s, color=font_color,
                         horizontalalignment='center',fontweight='bold',
                         verticalalignment='center',xycoords='data',

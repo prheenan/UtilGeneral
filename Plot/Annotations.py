@@ -22,7 +22,24 @@ default_font_dict = dict(fontsize=g_font_label,
                          verticalalignment='lower',
                          bbox=dict(color='w',alpha=0,pad=0))
 import re
-    
+
+def round_to_n_sigfigs(to_round,n=1):
+    """
+    :param to_round: number to round (Can be array, too)
+    :param n: how many sig figs
+    :return: rounded number
+    """
+    # exponent = floor of log10(x)
+    # so 1 sig fig is rounding to -(exponent)
+    # so 2 sig figs is rounding to -(exponent) + 1
+    # so n sig figs is rounding to -(exponent) + (n-1)
+    f = lambda x : np.round(x, -int(np.floor(np.log10(x))) + (n - 1))
+    if (hasattr(to_round,'size')):
+        to_ret = [f(tmp) for tmp in to_round]
+    else:
+        to_ret = f(to_round)
+    return to_ret
+
 def _annotate(ax,s,xy,**font_kwargs):
     """
     Adds a simpel text annotation. 
@@ -95,7 +112,7 @@ def add_rectangle(ax,xlim,ylim,fudge_pct=0,facecolor="None",linestyle='-',
     ax.add_patch(r)  
     return r 
     
-def _rainbow_gen(x,y,strings,colors,ax=None,kw=[dict()]):
+def _rainbow_gen(x,y,strings,colors,ax=None,kw=[dict()],add_space=True):
     """
     See: rainbow_text, except kw is an array now.
     """
@@ -106,14 +123,18 @@ def _rainbow_gen(x,y,strings,colors,ax=None,kw=[dict()]):
     # horizontal version
     n_kw = len(kw)
     for i,(s, c) in enumerate(zip(strings, colors)):
-        text = ax.text(x, y, s + " ", color=c, transform=t, 
+        if (add_space):
+            s_text = s + " "
+        else:
+            s_text = s
+        text = ax.text(x, y, s_text, color=c, transform=t,
                        clip_on=False,**(kw[i % n_kw]))
         text.draw(canvas.get_renderer())
         ex = text.get_window_extent()
         t = transforms.offset_copy(text._transform, x=ex.width, units='dots')  
                         
 
-def rainbow_text(x, y, strings, colors, ax=None, **kw):
+def rainbow_text(x, y, strings, colors, ax=None,add_space=False, **kw):
     """
     Take a list of ``strings`` and ``colors`` and place them next to each
     other, with text strings[i] being shown in colors[i].
@@ -129,7 +150,8 @@ def rainbow_text(x, y, strings, colors, ax=None, **kw):
         matplotlib.org/examples/text_labels_and_annotations/rainbow_text.html
           
     """
-    return _rainbow_gen(x=x,y=y,strings=strings,colors=colors,ax=ax,kw=[kw])
+    return _rainbow_gen(x=x,y=y,strings=strings,colors=colors,ax=ax,
+                        add_space=add_space,kw=[kw])
 
 
 def sigfig_sign_and_exp(number, format_str="{:3.1e}"):
@@ -224,6 +246,74 @@ def autolabel_points(xy,
     return autolabel(xy_pairs,*args,
                      x_func=x_func,y_func=y_func,
                      **kwargs)
+
+def smart_fmt_str(n,err=None,min_digits=1,def_fmt_type="g"):
+    """
+    :param n: number to format
+    :param err: error, if any.
+    :param min_digits: minimum number of significant figures to show. defaults
+    to 1, but adds extra (see notes below)
+    :param def_fmt_type: the default way to format (e.g. 'g' or 'f'). Should
+    be able to use like 'X' in {:.2X}
+    :return: correct formatting string, where correct means:
+
+    (1) in the presence of error:
+        -- we add an extra digit for each factor of 10 difference
+        -- suppose n = 10.2, err = 0.1, then default total of 3 digits
+    (2) assuming we are a one (and didn't add digits because of a small error)
+        -- add another digits (so that we dont just display an OOM)
+        -- e.g. suppose n=11.2, then we displace as 11 instead of 10
+    """
+    sigfig, _, exp = sigfig_sign_and_exp(n,format_str="{:.0e}")
+    if (err is not None):
+        # determine the error exponent
+        _, _, exp_err = sigfig_sign_and_exp(err, format_str="{:.0e}")
+        # if the error is less, add that many sig figs.
+        # e.g., suppose n = 10.2, error = 0.1, then we add 1 - (-1) = 2
+        # so that we display as something like:
+        # {:.2g}
+        # meaning for the example (instead of just 10, we get
+        # 10.2
+        to_add = max(0,int(exp_err)-int(exp))
+        min_digits += to_add
+    # if the errror didnt add anything, and we are a 1, add a second digit.
+    # this is more or less so we get more than an order of magnitude. i.e.,
+    # 11 will be displayed as 11, not as 10.
+    if ( (min_digits == 1) and np.round(float(sigfig), 0) == 1):
+        min_digits += 1
+    assert abs(int(min_digits) - min_digits) < 1e-6
+    fmt = r"{:." + str(min_digits) + def_fmt_type + "}"
+    return fmt
+
+def _autolabel_f_str(i,r,errs=None,fmt=None):
+    """
+    :param i: index of the rectangle (should also index into errrs, if present
+    :param r: something with a .getheight() method
+    :param errs: list of errors; index i shold be assoctaed with the height
+    :param fmt: formatting string. if none, does its best to format the error
+    accoreding to smart_fmt_str
+
+    :return: formatting string
+    """
+    h = r.get_height()
+    if (fmt is None):
+        fmt_was_none = True
+        # if we have error, use it to get the formatting
+        if (errs is None):
+            fmt = smart_fmt_str(h)
+        else:
+            fmt = smart_fmt_str(h,errs[i])
+    # POST: have the formatting string
+    if (errs is None):
+        # just format as formatl
+        to_ret = fmt.format(h)
+    else:
+        e = errs[i]
+        # use smart fotmatting on the errror if we used it on the format.
+        fmt_err = smart_fmt_str(e) if fmt_was_none else fmt
+        to_ret = (fmt + r" $\pm$ " + fmt_err).format(h,e)
+    return to_ret
+
 
 def autolabel(rects,label_func=lambda i,r: "{:.3g}".format(r.get_height()),
               x_func=None,y_func=None,fontsize=g_font_legend,ax=None,
@@ -320,4 +410,91 @@ def fmt_broken(ax1,ax2):
     ax1.tick_params(right=False)
     ax2.tick_params(left=False, labelright='off')
     ylabel("",ax=ax2)
+
+
+def connect_bbox(bbox1, bbox2,
+                 loc1a, loc2a, loc1b, loc2b,
+                 prop_lines, prop_patches=None):
+    """
+    connect the two bboxes see zoom_effect01(ax1, ax2, xmin, xmax)
+    """
+    if prop_patches is None:
+        prop_patches = prop_lines.copy()
+    c1 = BboxConnector(bbox1, bbox2, loc1=loc1a, loc2=loc2a, **prop_lines)
+    c1.set_clip_on(False)
+    c2 = BboxConnector(bbox1, bbox2, loc1=loc1b, loc2=loc2b, **prop_lines)
+    c2.set_clip_on(False)
+    bbox_patch1 = BboxPatch(bbox1, color='k',**prop_patches)
+    bbox_patch2 = BboxPatch(bbox2, color='w',**prop_patches)
+    p = BboxConnectorPatch(bbox1, bbox2,
+                           # loc1a=3, loc2a=2, loc1b=4, loc2b=1,
+                           loc1a=loc1a, loc2a=loc2a, loc1b=loc1b, loc2b=loc2b,
+                           **prop_patches)
+    p.set_clip_on(False)
+
+    return c1, c2, bbox_patch1, bbox_patch2, p
+
+
+def zoom_left_to_right_kw():
+    return dict(loc1a=1,loc2a=2,loc1b=4,loc2b=3)
+
+
+def zoom_effect01(ax1, ax2, xmin, xmax, color='m', alpha_line=0.5,
+                  alpha_patch=0.15, loc1a=3, loc2a=2, loc1b=4, loc2b=1,
+                  linestyle='--', linewidth=1.5, xmin2=None, xmax2=None,
+                  alpha_patch2=None,**kwargs):
+    """
+    connect ax1 & ax2. The x-range of (xmin, xmax) in both axes will
+    be marked.  The keywords parameters will be used to create
+    patches.
+
+    Args:
+        ax1 : the main axes
+        ax2 : the zoomed axes
+        alpha_<line/patch>: the transparency of the line or patch
+        (xmin,xmax) : the limits of the colored area in both plot axes.
+        **kwargs: passed to prop_lines
+        xmin2/xmax2: for the second axis, if we want a different limits
+        (e.g. axes with different units), can specify separate limit for each
+
+    Note:
+
+        'loc' proceeds counter-clockwise from upper right (which is 1)
+        'upper right'  : 1,
+        'upper left'   : 2,
+        'lower left'   : 3,
+        'lower right'  : 4
+    """
+
+    trans1 = blended_transform_factory(ax1.transData, ax1.transAxes)
+    trans2 = blended_transform_factory(ax2.transData, ax2.transAxes)
+
+    xmin2 = xmin2 if xmin2 is not None else xmin
+    xmax2 = xmax2 if xmax2 is not None else xmax
+
+    alpha_patch2 = alpha_patch2 if alpha_patch2 is not None else alpha_patch
+
+    bbox1 = Bbox.from_extents(xmin, 0, xmax, 1)
+    bbox2 = Bbox.from_extents(xmin2, 0, xmax2, 1)
+
+    mybbox1 = TransformedBbox(bbox1, trans1)
+    mybbox2 = TransformedBbox(bbox2, trans2)
+
+    prop_patches = kwargs.copy()
+    prop_patches["ec"] = "none"
+    prop_patches["alpha"] = alpha_patch
+    prop_lines = dict(color=color, alpha=alpha_line, linewidth=linewidth,
+                      linestyle=linestyle, **kwargs)
+    c1, c2, bbox_patch1, bbox_patch2, p = \
+        connect_bbox(mybbox1, mybbox2,
+                     loc1a=loc1a, loc2a=loc2a, loc1b=loc1b, loc2b=loc2b,
+                     prop_lines=prop_lines, prop_patches=prop_patches)
+    bbox_patch2.alpha = alpha_patch2
+    ax1.add_patch(bbox_patch1)
+    ax2.add_patch(bbox_patch2)
+    ax2.add_patch(c1)
+    ax2.add_patch(c2)
+    ax2.add_patch(p)
+
+    return c1, c2, bbox_patch1, bbox_patch2, p
 
