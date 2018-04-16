@@ -325,8 +325,8 @@ def _autolabel_f_str(i,r,errs=None,fmt=None):
     :return: formatting string
     """
     h = r.get_height()
+    fmt_was_none = fmt is None
     if (fmt is None):
-        fmt_was_none = True
         # if we have error, use it to get the formatting
         if (errs is None):
             fmt = smart_fmt_str(h)
