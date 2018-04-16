@@ -22,6 +22,9 @@ default_font_dict = dict(fontsize=g_font_label,
                          verticalalignment='lower',
                          bbox=dict(color='w',alpha=0,pad=0))
 import re
+
+from matplotlib.path import Path
+from matplotlib.patches import PathPatch
     
 def _annotate(ax,s,xy,**font_kwargs):
     """
@@ -93,7 +96,33 @@ def add_rectangle(ax,xlim,ylim,fudge_pct=0,facecolor="None",linestyle='-',
                                      edgecolor=edgecolor,zorder=zorder,
                                      linewidth=linewidth,**kw)
     ax.add_patch(r)  
-    return r 
+    return r
+
+def _triangle_patch(x,y,width,height,fig,transform=None):
+    """
+    :param x: offset for the triangle 'bottom left'
+    :param y: offset for the triangle 'bottom left'
+    :param width: of the triangle
+    :param height: of the triangle
+    :param fig:  to use
+    :param transform: to use; defaults to figure units
+    :return: patch; can use (e.g.) fig.patches.extend([patch]) to add
+    """
+    if (transform is None):
+        transform = fig.transFigure
+    triangle_x,triangle_y = [x,y]
+    triangle_width = width
+    triangle_height = height
+    triangle_path_array = \
+        [[triangle_x, triangle_y],
+         [triangle_x+triangle_width, triangle_y],
+         [triangle_x+triangle_width, triangle_y+triangle_height],
+         [triangle_x, triangle_y]]
+    path = Path(triangle_path_array)
+    patch = PathPatch(path, fill=True, color='g', alpha=0.5,
+                      zorder=0,transform=transform, figure=fig,
+                      linewidth=0,linestyle='None',clip_on=True)
+    return patch
     
 def _rainbow_gen(x,y,strings,colors,ax=None,kw=[dict()],add_space=True):
     """
