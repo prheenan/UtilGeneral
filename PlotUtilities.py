@@ -709,7 +709,7 @@ def secondAxis(ax,label,limits,secondY =True,color="Black",scale=None,
         ax.yaxis.tick_left()
     else:
         ax2 = ax.twiny()
-        ax2.set_xscale(scale, nonposy='clip')
+        ax2.set_xscale(scale, nonposx='clip')
         ax2.set_xlim(limits)
         # set the x axis to the appropriate label
         lab = xlabel(label,ax=ax2)
