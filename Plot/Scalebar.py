@@ -408,7 +408,7 @@ def crossed_x_and_y_relative(offset_x,offset_y,ax=plt.gca(),**kwargs):
 def _scale_bar_rectangle(ax,x,y,s,width,height,is_x,
                          font_color='w',add_minor=False,
                          box_props=dict(facecolor='black',edgecolor='black',
-                                        zorder=0),
+                                        zorder=0),center_x=False,center_y=False,
                          rotation=90,fontsize=6.5,**kw):
     """
     Makes a scalebar (usually outside of the axes)
@@ -421,7 +421,11 @@ def _scale_bar_rectangle(ax,x,y,s,width,height,is_x,
     Returns:
         tuple of (rectangle, annotaton)
     """
-    x_abs,y_abs = x_and_y_to_abs(x_rel=x,y_rel=y,ax=ax)    
+    x_abs,y_abs = x_and_y_to_abs(x_rel=x,y_rel=y,ax=ax)
+    if (center_x):
+        x_abs -= width/2
+    if (center_y):
+        y_abs -= height/2
     xlim = [x_abs,x_abs+width]
     ylim = [y_abs,y_abs+height]
     # add an *un-clipped* scalebar, so we can draw outside the axes
