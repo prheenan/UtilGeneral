@@ -314,34 +314,41 @@ def smart_fmt_str(n,err=None,min_digits=1,def_fmt_type="g"):
     fmt = r"{:." + str(min_digits) + def_fmt_type + "}"
     return fmt
 
-def _autolabel_f_str(i,r,errs=None,fmt=None):
+def _smart_str_with_err(h,errs=None,fmt=None):
     """
-    :param i: index of the rectangle (should also index into errrs, if present
-    :param r: something with a .getheight() method
-    :param errs: list of errors; index i shold be assoctaed with the height
+    :param h:  value
+    :param errs: optional associated error.
     :param fmt: formatting string. if none, does its best to format the error
     accoreding to smart_fmt_str
-
-    :return: formatting string
     """
-    h = r.get_height()
     fmt_was_none = fmt is None
     if (fmt is None):
         # if we have error, use it to get the formatting
         if (errs is None):
             fmt = smart_fmt_str(h)
         else:
-            fmt = smart_fmt_str(h,errs[i])
+            fmt = smart_fmt_str(h,errs)
     # POST: have the formatting string
     if (errs is None):
         # just format as formatl
         to_ret = fmt.format(h)
     else:
-        e = errs[i]
+        e = errs
         # use smart fotmatting on the errror if we used it on the format.
         fmt_err = smart_fmt_str(e) if fmt_was_none else fmt
         to_ret = (fmt + r" $\pm$ " + fmt_err).format(h,e)
     return to_ret
+
+def _autolabel_f_str(i,r,errs=None,*args,**kwargs):
+    """
+    :param i: index of the rectangle (should also index into errrs, if present
+    :param r: something with a .getheight() method
+    :param errs: list of errors; index i shold be assoctaed with the height
+    :param args,**kwargs: see _smart_str_with_err
+    :return: formatting string
+    """
+    h = r.get_height()
+    _smart_str_with_err(h,*args,errs=errs[i],**kwargs)
 
 
 def autolabel(rects,label_func=lambda i,r: "{:.3g}".format(r.get_height()),
