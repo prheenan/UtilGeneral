@@ -231,10 +231,12 @@ def no_y_anything(ax=None):
     no_y_label(ax)   
     _remove_ticks(ax.get_yaxis()) 
 
-def x_label_on_top(ax=None):
+def x_label_on_top(ax=None,ticks_on_bottom='off'):
     ax = gca(ax)
-    ax.xaxis.set_label_position('top') 
-    ax.xaxis.set_tick_params(labeltop='on',labelbottom='off')
+    ax.xaxis.set_label_position('top')
+    tick_dict = dict(labeltop='on',labelbottom=ticks_on_bottom)
+    ax.xaxis.set_tick_params(which='major',**tick_dict)
+    ax.xaxis.set_tick_params(which='minor',**tick_dict)
 
 
 def AddSubplotLabels(fig=None,axs=None,skip=0,
