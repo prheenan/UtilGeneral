@@ -673,7 +673,18 @@ def color_axis_ticks(color,spine_name="left",axis_name="y",ax=None):
     ax = gca(ax)
     ax.tick_params(axis_name,color=color,which='both',labelcolor=color)       
     ax.spines[spine_name].set_color(color)        
-    ax.spines[spine_name].set_edgecolor(color)    
+    ax.spines[spine_name].set_edgecolor(color)
+
+def color_x_tick_minor_labels(ax,colors_cat):
+    """
+    :param ax: to get the x axis on
+    :param colors_cat: the colors for the *minor* tick labels
+    :return: nothing
+    """
+    ax = gca(ax)
+    tick_labels_minor_tmp = ax.xaxis.get_minorticklabels()
+    for i,t in enumerate(tick_labels_minor_tmp):
+        t.set_color(colors_cat[i])
     
 def secondAxis(ax,label,limits,secondY =True,color="Black",scale=None,
                tick_color='k'):
