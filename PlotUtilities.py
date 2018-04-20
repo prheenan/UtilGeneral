@@ -322,21 +322,29 @@ def colorbar(label,labelpad=15,rotation=270,fontsize=g_font_legend,
     cbar.update_ticks()
     return cbar
 
-def errorbar(x,y,yerr,label,fmt=None,alpha=0.1,ecolor='r',markersize=3.0,
-             *args,**kwargs):
-    # plot the data, a 'haze' around it, and dotted lines 
-    if (fmt is None):
-        fmt = "go"
-    plt.fill_between(x, y - yerr,y + yerr, alpha=alpha,color=ecolor)
-    plt.plot(x, y,fmt,label=label,markersize=markersize,*args,**kwargs)
-    plt.plot(x, y+yerr,'b--')
-    plt.plot(x, y-yerr,'b--')
-    
 def legend(loc=None,frameon=False,ncol=1,
            handlelength=1,handletextpad=1,ax=None,
            bbox_to_anchor=None,fancybox=False,markerscale=1,color='k',
            numpoints=1,scatterpoints=1,
            font_dict=dict(weight='bold',size=g_font_legend),**kwargs):
+    """
+    :param loc: location of the legend
+    :param frameon:  see plt.legend
+    :param ncol: see plt.legend
+    :param handlelength: see plt.legend
+    :param handletextpad: see plt.legend
+    :param ax: axis to assign the legend to
+    :param bbox_to_anchor: see plt.legend
+    :param fancybox: see plt.legend
+    :param markerscale: see plt.legend
+    :param color: see plt.legend
+    :param numpoints: see plt.legend
+    :param scatterpoints: see plt.legend
+    :param font_dict: passed to legend as 'prop', which are the font properties.
+    I don't like 'prop', not descriptive enough
+    :param kwargs: see plt.legend
+    :return:
+    """
     ax = gca(ax)
     if (loc is None):
         loc = 'best'
@@ -351,8 +359,28 @@ def legend(loc=None,frameon=False,ncol=1,
             plt.setp(text,color=color)
     return leg
 
+def color_legend_items(leg,colors):
+    """
+    :param leg: legend to color
+    :param colors: for each of the labels
+    :return: nothing
+    """
+    texts = leg.get_texts()
+    assert len(colors) == len(texts) , \
+        "Didn't provide the correct number of labels"
+    for c,text in zip(colors,texts):
+        text.set_color(c)
+
 def genLabel(func,label,fontsize=g_font_label,fontweight='bold',
              **kwargs):
+    """
+    :param func: function to call (e.g. plt.xlabel)
+    :param label:  to use for the label
+    :param fontsize:  passed to func
+    :param fontweight: passed to func
+    :param kwargs:  passed to func
+    :return:
+    """
     to_ret = func(label,fontsize=fontsize,fontweight=fontweight,
                   family='sans-serif',**kwargs)
     return to_ret
