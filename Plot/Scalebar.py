@@ -357,7 +357,7 @@ def _crossed_sanitized(ax,x_kwargs,y_kwargs,factor_x_x=0,factor_x_y=-1,
     
 
 def crossed_x_and_y(offset_x,offset_y,x_kwargs,y_kwargs,ax=plt.gca(),
-                    x_on_top=False,sanitize_kwargs=dict()):
+                    x_on_top=False,sanitize_kwargs=dict(),y_on_right=False):
     """
     ease of use for making a 'crossed' x and y scale bar. 
     
@@ -381,6 +381,7 @@ def crossed_x_and_y(offset_x,offset_y,x_kwargs,y_kwargs,ax=plt.gca(),
                                            y_kwargs=y_kwargs,
                                            **sanitize_kwargs)
     x_scalebar_y_offset = offset_y
+    y_scalebar_x_offset = offset_x-width/2
     # move the x scalebar up, if need be
     if (x_on_top):
         x_scalebar_y_offset += height
@@ -390,11 +391,17 @@ def crossed_x_and_y(offset_x,offset_y,x_kwargs,y_kwargs,ax=plt.gca(),
         # |
         x_kwargs['fudge_text_pct']['y'] = abs(x_kwargs['fudge_text_pct']['y'])
         x_kwargs['font_kwargs']['verticalalignment'] = 'bottom'
+    # move the y scale bar right, if need be
+    if (y_on_right):
+        y_scalebar_x_offset += width
+        y_kwargs['fudge_text_pct']['x'] = abs(y_kwargs['fudge_text_pct']['x'])
+        y_kwargs['font_kwargs']['horizontalalignment'] = 'left'
     # since the inputs have been sanitized, the x and y scalebars
     # shouldnt so anything
     x_scale_bar_and_ticks(offset_x=offset_x,offset_y= x_scalebar_y_offset,
                           ax=ax,smart_nudge=False,**x_kwargs) 
-    y_scale_bar_and_ticks(offset_x=offset_x-width/2,offset_y=offset_y+height/2,
+    y_scale_bar_and_ticks(offset_x=y_scalebar_x_offset,
+                          offset_y=offset_y + height / 2,
                           ax=ax,smart_nudge=False,**y_kwargs)         
 
 
