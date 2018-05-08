@@ -686,7 +686,8 @@ def color_y(color,ax=None,**kw):
                 dict(spine_name="right", axis_name="y", **kw)]
     _color_gen(color,ax, keywords)
 
-def color_axis_ticks(color,spine_name="left",axis_name="y",ax=None):
+def color_axis_ticks(color,spine_name="left",axis_name="y",ax=None,
+                     label_color=None):
     """
     colors the specific axis as desired 
     
@@ -698,8 +699,10 @@ def color_axis_ticks(color,spine_name="left",axis_name="y",ax=None):
     Returns: 
         nothing
     """
+    if (label_color) is None:
+        label_color = color
     ax = gca(ax)
-    ax.tick_params(axis_name,color=color,which='both',labelcolor=color)       
+    ax.tick_params(axis_name,color=color,which='both',labelcolor=label_color)
     ax.spines[spine_name].set_color(color)        
     ax.spines[spine_name].set_edgecolor(color)
 
