@@ -715,7 +715,7 @@ def color_x_tick_minor_labels(ax,colors_cat):
         t.set_color(colors_cat[i])
     
 def secondAxis(ax,label,limits,secondY =True,color="Black",scale=None,
-               tick_color='k'):
+               tick_color='k',tick_axis_kw=dict()):
     """
     Adds a second axis to the named axis
 
@@ -745,7 +745,7 @@ def secondAxis(ax,label,limits,secondY =True,color="Black",scale=None,
         lab = ylabel(label,ax=ax2)
         tickLabels = ax2.get_yticklabels()
         tickLims =  ax2.get_yticks()
-        axis_opt = dict(axis=axis,left=False)
+        axis_opt = dict(axis=axis,left=False,**tick_axis_kw)
         other_axis_opt = dict(axis=axis,right=False)
         ax.yaxis.tick_left()
     else:
@@ -756,7 +756,7 @@ def secondAxis(ax,label,limits,secondY =True,color="Black",scale=None,
         lab = xlabel(label,ax=ax2)
         tickLabels = ax2.get_xticklabels()
         tickLims =  ax2.get_xticks()
-        axis_opt = dict(axis=axis,bottom=False)
+        axis_opt = dict(axis=axis,bottom=False,**tick_axis_kw)
         other_axis_opt = dict(axis=axis,top=False)
     color_axis_ticks(color=tick_color,spine_name=spines,axis_name=axis,ax=ax2)          
     [i.set_color(color) for i in tickLabels]
