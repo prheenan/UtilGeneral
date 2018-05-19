@@ -231,10 +231,12 @@ def no_y_anything(ax=None):
     no_y_label(ax)   
     _remove_ticks(ax.get_yaxis()) 
 
-def x_label_on_top(ax=None):
+def x_label_on_top(ax=None,ticks_on_bottom='off'):
     ax = gca(ax)
-    ax.xaxis.set_label_position('top') 
-    ax.xaxis.set_tick_params(labeltop='on',labelbottom='off')
+    ax.xaxis.set_label_position('top')
+    tick_dict = dict(labeltop='on',labelbottom=ticks_on_bottom)
+    ax.xaxis.set_tick_params(which='major',**tick_dict)
+    ax.xaxis.set_tick_params(which='minor',**tick_dict)
 
 
 def AddSubplotLabels(fig=None,axs=None,skip=0,
@@ -320,21 +322,29 @@ def colorbar(label,labelpad=15,rotation=270,fontsize=g_font_legend,
     cbar.update_ticks()
     return cbar
 
-def errorbar(x,y,yerr,label,fmt=None,alpha=0.1,ecolor='r',markersize=3.0,
-             *args,**kwargs):
-    # plot the data, a 'haze' around it, and dotted lines 
-    if (fmt is None):
-        fmt = "go"
-    plt.fill_between(x, y - yerr,y + yerr, alpha=alpha,color=ecolor)
-    plt.plot(x, y,fmt,label=label,markersize=markersize,*args,**kwargs)
-    plt.plot(x, y+yerr,'b--')
-    plt.plot(x, y-yerr,'b--')
-    
 def legend(loc=None,frameon=False,ncol=1,
            handlelength=1,handletextpad=1,ax=None,
            bbox_to_anchor=None,fancybox=False,markerscale=1,color='k',
            numpoints=1,scatterpoints=1,
            font_dict=dict(weight='bold',size=g_font_legend),**kwargs):
+    """
+    :param loc: location of the legend
+    :param frameon:  see plt.legend
+    :param ncol: see plt.legend
+    :param handlelength: see plt.legend
+    :param handletextpad: see plt.legend
+    :param ax: axis to assign the legend to
+    :param bbox_to_anchor: see plt.legend
+    :param fancybox: see plt.legend
+    :param markerscale: see plt.legend
+    :param color: see plt.legend
+    :param numpoints: see plt.legend
+    :param scatterpoints: see plt.legend
+    :param font_dict: passed to legend as 'prop', which are the font properties.
+    I don't like 'prop', not descriptive enough
+    :param kwargs: see plt.legend
+    :return:
+    """
     ax = gca(ax)
     if (loc is None):
         loc = 'best'
@@ -349,8 +359,28 @@ def legend(loc=None,frameon=False,ncol=1,
             plt.setp(text,color=color)
     return leg
 
+def color_legend_items(leg,colors):
+    """
+    :param leg: legend to color
+    :param colors: for each of the labels
+    :return: nothing
+    """
+    texts = leg.get_texts()
+    assert len(colors) == len(texts) , \
+        "Didn't provide the correct number of labels"
+    for c,text in zip(colors,texts):
+        text.set_color(c)
+
 def genLabel(func,label,fontsize=g_font_label,fontweight='bold',
              **kwargs):
+    """
+    :param func: function to call (e.g. plt.xlabel)
+    :param label:  to use for the label
+    :param fontsize:  passed to func
+    :param fontweight: passed to func
+    :param kwargs:  passed to func
+    :return:
+    """
     to_ret = func(label,fontsize=fontsize,fontweight=fontweight,
                   family='sans-serif',**kwargs)
     return to_ret
@@ -656,7 +686,8 @@ def color_y(color,ax=None,**kw):
                 dict(spine_name="right", axis_name="y", **kw)]
     _color_gen(color,ax, keywords)
 
-def color_axis_ticks(color,spine_name="left",axis_name="y",ax=None):
+def color_axis_ticks(color,spine_name="left",axis_name="y",ax=None,
+                     label_color=None):
     """
     colors the specific axis as desired 
     
@@ -668,13 +699,26 @@ def color_axis_ticks(color,spine_name="left",axis_name="y",ax=None):
     Returns: 
         nothing
     """
+    if (label_color) is None:
+        label_color = color
     ax = gca(ax)
-    ax.tick_params(axis_name,color=color,which='both',labelcolor=color)       
+    ax.tick_params(axis_name,color=color,which='both',labelcolor=label_color)
     ax.spines[spine_name].set_color(color)        
-    ax.spines[spine_name].set_edgecolor(color)    
+    ax.spines[spine_name].set_edgecolor(color)
+
+def color_x_tick_minor_labels(ax,colors_cat):
+    """
+    :param ax: to get the x axis on
+    :param colors_cat: the colors for the *minor* tick labels
+    :return: nothing
+    """
+    ax = gca(ax)
+    tick_labels_minor_tmp = ax.xaxis.get_minorticklabels()
+    for i,t in enumerate(tick_labels_minor_tmp):
+        t.set_color(colors_cat[i])
     
 def secondAxis(ax,label,limits,secondY =True,color="Black",scale=None,
-               tick_color='k'):
+               tick_color='k',tick_axis_kw=dict()):
     """
     Adds a second axis to the named axis
 
@@ -704,7 +748,7 @@ def secondAxis(ax,label,limits,secondY =True,color="Black",scale=None,
         lab = ylabel(label,ax=ax2)
         tickLabels = ax2.get_yticklabels()
         tickLims =  ax2.get_yticks()
-        axis_opt = dict(axis=axis,left=False)
+        axis_opt = dict(axis=axis,left=False,**tick_axis_kw)
         other_axis_opt = dict(axis=axis,right=False)
         ax.yaxis.tick_left()
     else:
@@ -715,7 +759,7 @@ def secondAxis(ax,label,limits,secondY =True,color="Black",scale=None,
         lab = xlabel(label,ax=ax2)
         tickLabels = ax2.get_xticklabels()
         tickLims =  ax2.get_xticks()
-        axis_opt = dict(axis=axis,bottom=False)
+        axis_opt = dict(axis=axis,bottom=False,**tick_axis_kw)
         other_axis_opt = dict(axis=axis,top=False)
     color_axis_ticks(color=tick_color,spine_name=spines,axis_name=axis,ax=ax2)          
     [i.set_color(color) for i in tickLabels]

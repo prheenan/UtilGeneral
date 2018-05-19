@@ -23,6 +23,9 @@ default_font_dict = dict(fontsize=g_font_label,
                          bbox=dict(color='w',alpha=0,pad=0))
 import re
 
+from matplotlib.path import Path
+from matplotlib.patches import PathPatch
+    
 def round_to_n_sigfigs(to_round,n=1):
     """
     :param to_round: number to round (Can be array, too)
@@ -110,7 +113,33 @@ def add_rectangle(ax,xlim,ylim,fudge_pct=0,facecolor="None",linestyle='-',
                                      edgecolor=edgecolor,zorder=zorder,
                                      linewidth=linewidth,**kw)
     ax.add_patch(r)  
-    return r 
+    return r
+
+def _triangle_patch(x,y,width,height,fig,transform=None,color='g',alpha=0.5):
+    """
+    :param x: offset for the triangle 'bottom left'
+    :param y: offset for the triangle 'bottom left'
+    :param width: of the triangle
+    :param height: of the triangle
+    :param fig:  to use
+    :param transform: to use; defaults to figure units
+    :return: patch; can use (e.g.) fig.patches.extend([patch]) to add
+    """
+    if (transform is None):
+        transform = fig.transFigure
+    triangle_x,triangle_y = [x,y]
+    triangle_width = width
+    triangle_height = height
+    triangle_path_array = \
+        [[triangle_x, triangle_y],
+         [triangle_x+triangle_width, triangle_y],
+         [triangle_x+triangle_width, triangle_y+triangle_height],
+         [triangle_x, triangle_y]]
+    path = Path(triangle_path_array)
+    patch = PathPatch(path, fill=True, color=color, alpha=alpha,
+                      zorder=0,transform=transform, figure=fig,
+                      linewidth=0,linestyle='None',clip_on=True)
+    return patch
     
 def _rainbow_gen(x,y,strings,colors,ax=None,kw=[dict()],add_space=True):
     """
@@ -285,34 +314,41 @@ def smart_fmt_str(n,err=None,min_digits=1,def_fmt_type="g"):
     fmt = r"{:." + str(min_digits) + def_fmt_type + "}"
     return fmt
 
-def _autolabel_f_str(i,r,errs=None,fmt=None):
+def _smart_str_with_err(h,errs=None,fmt=None):
     """
-    :param i: index of the rectangle (should also index into errrs, if present
-    :param r: something with a .getheight() method
-    :param errs: list of errors; index i shold be assoctaed with the height
+    :param h:  value
+    :param errs: optional associated error.
     :param fmt: formatting string. if none, does its best to format the error
     accoreding to smart_fmt_str
-
-    :return: formatting string
     """
-    h = r.get_height()
+    fmt_was_none = fmt is None
     if (fmt is None):
-        fmt_was_none = True
         # if we have error, use it to get the formatting
         if (errs is None):
             fmt = smart_fmt_str(h)
         else:
-            fmt = smart_fmt_str(h,errs[i])
+            fmt = smart_fmt_str(h,errs)
     # POST: have the formatting string
     if (errs is None):
         # just format as formatl
         to_ret = fmt.format(h)
     else:
-        e = errs[i]
+        e = errs
         # use smart fotmatting on the errror if we used it on the format.
         fmt_err = smart_fmt_str(e) if fmt_was_none else fmt
         to_ret = (fmt + r" $\pm$ " + fmt_err).format(h,e)
     return to_ret
+
+def _autolabel_f_str(i,r,errs=None,*args,**kwargs):
+    """
+    :param i: index of the rectangle (should also index into errrs, if present
+    :param r: something with a .getheight() method
+    :param errs: list of errors; index i shold be assoctaed with the height
+    :param args,**kwargs: see _smart_str_with_err
+    :return: formatting string
+    """
+    h = r.get_height()
+    _smart_str_with_err(h,*args,errs=errs[i],**kwargs)
 
 
 def autolabel(rects,label_func=lambda i,r: "{:.3g}".format(r.get_height()),
