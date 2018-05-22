@@ -160,7 +160,12 @@ def _rainbow_gen(x,y,strings,colors,ax=None,kw=[dict()],add_space=True):
                        clip_on=False,**(kw[i % n_kw]))
         text.draw(canvas.get_renderer())
         ex = text.get_window_extent()
-        t = transforms.offset_copy(text._transform, x=ex.width, units='dots')  
+        if "\n" not in s:
+            t = transforms.offset_copy(text._transform, x=ex.width,
+                                       units='dots')
+        else:
+            t = transforms.offset_copy(text._transform, x=0,y=-ex.height/2,
+                                       units='dots')
                         
 
 def rainbow_text(x, y, strings, colors, ax=None,add_space=False, **kw):
