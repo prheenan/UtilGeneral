@@ -416,7 +416,7 @@ def _scale_bar_rectangle(ax,x,y,s,width,height,is_x,
                          font_color='w',add_minor=False,
                          box_props=dict(facecolor='black',edgecolor='black',
                                         zorder=0),center_x=False,center_y=False,
-                         rotation=90,fontsize=6.5,**kw):
+                         rotation=90,fontsize=6.5,fontweight='bold',**kw):
     """
     Makes a scalebar (usually outside of the axes)
 
@@ -450,7 +450,7 @@ def _scale_bar_rectangle(ax,x,y,s,width,height,is_x,
     if ('zorder' not in kw):
         kw['zorder'] = min_z_text
     annot = ax.annotate(xy=(x_text,y_text),s=s, color=font_color,
-                        horizontalalignment='center',fontweight='bold',
+                        horizontalalignment='center',fontweight=fontweight,
                         verticalalignment='center',xycoords='data',
                         clip_on=False,fontsize=fontsize,annotation_clip=False,
                         rotation=rotation,**kw)
