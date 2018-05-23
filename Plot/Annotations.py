@@ -354,7 +354,7 @@ def _autolabel_f_str(i,r,errs=None,*args,**kwargs):
     :return: formatting string
     """
     h = r.get_height()
-    _smart_str_with_err(h,*args,errs=errs[i],**kwargs)
+    return _smart_str_with_err(h,*args,errs=errs[i],**kwargs)
 
 
 def autolabel(rects,label_func=lambda i,r: "{:.3g}".format(r.get_height()),
