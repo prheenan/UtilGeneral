@@ -58,6 +58,8 @@ class SaveRecord(object):
         n_x = x.shape[-1]
         n_y = y.shape[-1]
         assert n_x == n_y , "Can't save out this data, the columns don't match"
+        assert n_x > 0 , "No X points given; can't save"
+        assert n_y > 0 , "No Y points given; can't save"
         # POST: columns match
         # make into column arrays
         self.save_name = save_name
