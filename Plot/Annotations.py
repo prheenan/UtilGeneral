@@ -115,7 +115,8 @@ def add_rectangle(ax,xlim,ylim,fudge_pct=0,facecolor="None",linestyle='-',
     ax.add_patch(r)  
     return r
 
-def _triangle_patch(x,y,width,height,fig,transform=None,color='g',alpha=0.5):
+def _triangle_patch(x,y,width,height,fig,transform=None,color='g',alpha=0.5,
+                    clip_on=True,**kw):
     """
     :param x: offset for the triangle 'bottom left'
     :param y: offset for the triangle 'bottom left'
@@ -138,7 +139,7 @@ def _triangle_patch(x,y,width,height,fig,transform=None,color='g',alpha=0.5):
     path = Path(triangle_path_array)
     patch = PathPatch(path, fill=True, color=color, alpha=alpha,
                       zorder=0,transform=transform, figure=fig,
-                      linewidth=0,linestyle='None',clip_on=True)
+                      linewidth=0,linestyle='None',clip_on=clip_on,**kw)
     return patch
     
 def _rainbow_gen(x,y,strings,colors,ax=None,kw=[dict()],add_space=True):
@@ -160,7 +161,12 @@ def _rainbow_gen(x,y,strings,colors,ax=None,kw=[dict()],add_space=True):
                        clip_on=False,**(kw[i % n_kw]))
         text.draw(canvas.get_renderer())
         ex = text.get_window_extent()
-        t = transforms.offset_copy(text._transform, x=ex.width, units='dots')  
+        if "\n" not in s:
+            t = transforms.offset_copy(text._transform, x=ex.width,
+                                       units='dots')
+        else:
+            t = transforms.offset_copy(text._transform, x=0,y=-ex.height/2,
+                                       units='dots')
                         
 
 def rainbow_text(x, y, strings, colors, ax=None,add_space=False, **kw):
@@ -348,7 +354,7 @@ def _autolabel_f_str(i,r,errs=None,*args,**kwargs):
     :return: formatting string
     """
     h = r.get_height()
-    _smart_str_with_err(h,*args,errs=errs[i],**kwargs)
+    return _smart_str_with_err(h,*args,errs=errs[i],**kwargs)
 
 
 def autolabel(rects,label_func=lambda i,r: "{:.3g}".format(r.get_height()),

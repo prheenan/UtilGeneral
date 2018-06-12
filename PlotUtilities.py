@@ -543,7 +543,7 @@ def axis_locator(ax,n_major,n_minor):
             n_minor_per_major = int(np.round(n_minor/n_major))
             ax.set_minor_locator(AutoMinorLocator(n_minor_per_major))
 
-def tom_ticks(ax=None,num_major=4,num_minor=0,**kwargs):
+def tom_ticks(ax=None,num_major=4,num_minor=0,fontsize=g_font_label,**kwargs):
     """
     Convenience wrapper for tick_axis_number to make ticks like tom likes
 
@@ -563,6 +563,7 @@ def tom_ticks(ax=None,num_major=4,num_minor=0,**kwargs):
     if (num_minor == 0):                     
         ax.tick_params(which='minor',right=False,left=False,top=False,
                        bottom=False,axis='both')
+    tickAxisFont(ax=ax,fontsize=fontsize)
                     
     
 def tick_axis_number(ax=None,num_x_major=5,num_x_minor=None,num_y_major=5,
