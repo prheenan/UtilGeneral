@@ -523,7 +523,7 @@ def _line_width_to_rel_units(width,ax,is_x):
 def _scale_bar(text,xy_text,xy_line,ax=plt.gca(),
                line_kwargs=def_line_kwargs,
                font_kwargs=default_font_dict,
-               fudge_text_pct=dict(x=0,y=0)):
+               fudge_text_pct=dict(x=0,y=0),no_bar=False):
     """
     Creates a scale bar using the specified, absolute x and y
     
@@ -535,7 +535,7 @@ def _scale_bar(text,xy_text,xy_line,ax=plt.gca(),
         <line/font>_kwargs: passed to plot and annotate, respectively
         fudge_text_pct: as a percentage of the scale bar, how much to shift the 
         text. Useful for preventing overlap. 
-    
+        no_bar: if true, dont actually draw, just get where it would be.
     Returns:
         tuple of <annnotation, x coordinates of line, y coords of line>
     """
@@ -550,8 +550,11 @@ def _scale_bar(text,xy_text,xy_line,ax=plt.gca(),
     y_text += y_diff * fudge_text_pct['y']   
     # POST: shifted     
     xy_text = [x_text,y_text]
-    t = Annotations._annotate(ax=ax,s=text,xy=xy_text,**font_kwargs)
-    ax.plot(x_draw,y_draw,**line_kwargs)
+    if not no_bar:
+        t = Annotations._annotate(ax=ax,s=text,xy=xy_text,**font_kwargs)
+        ax.plot(x_draw,y_draw,**line_kwargs)
+    else:
+        t = None
     return t,x_draw,y_draw
 
 def scalebar_offset_for_zero(limits,range_scalebar):
