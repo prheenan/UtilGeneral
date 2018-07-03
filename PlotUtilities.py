@@ -915,13 +915,14 @@ def save_png_and_svg(fig,base,**kwargs):
     """
     save_twice(fig,base +".png",base+".svg",**kwargs)
     
-def save_tom(fig,base,**kwargs):
+def save_tom(fig,base,save_tiff=False,**kwargs):
     """
     Saves however tom would like me to 
     
     2017-10-12: he wants jpeg.
     """
-    savefig(fig,base + ".tiff",close=False,**kwargs)   
+    if save_tiff:
+        savefig(fig,base + ".tiff",close=False,**kwargs)
     save_twice(fig,base +".jpeg",base+".svg",**kwargs)
     
 # legacy API. plan is now to mimic matplotlib 
