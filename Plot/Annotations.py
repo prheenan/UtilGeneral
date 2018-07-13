@@ -400,6 +400,9 @@ def broken_axis(f_plot,range1,range2,ax1,ax2,axis_ratio,linewidth=1):
     # into two portions - use the top (ax) for the outliers, and the bottom
     # (ax2) for the details of the majority of our data
 
+    ax1.set_xlim(range1)
+    ax2.set_xlim(range2)
+
     # plot the same data on both axes
     f_plot(ax1,1)
     f_plot(ax2,2)
