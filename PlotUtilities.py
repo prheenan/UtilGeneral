@@ -781,7 +781,7 @@ def pm(stdOrMinMax,mean=None,fmt=".3g"):
     return ("{:"+ fmt + "}+/-{:.2g}").format(mean,delta)
 
 def savefig(figure,fileName,close=True,tight=True,subplots_adjust=None,
-            bbox_inches='tight',pad=0,pad_inches=0.00,**kwargs):
+            bbox_inches=None,pad=0,pad_inches=0.00,**kwargs):
     """
     Saves the given figure with the options and filenames
     
@@ -799,10 +799,6 @@ def savefig(figure,fileName,close=True,tight=True,subplots_adjust=None,
         figure.tight_layout(pad=pad)
     if (subplots_adjust is not None):
         plt.subplots_adjust(**subplots_adjust)
-    if bbox_inches is None:
-        size = figure.get_size_inches()
-        from matplotlib.transforms import Bbox
-        bbox_inches =Bbox( [[0, 0] ,[size[0], size[1]]])
     baseName = util.getFileFromPath(fileName)
     if ("." not in baseName):
         formatStr = ".jpeg"
