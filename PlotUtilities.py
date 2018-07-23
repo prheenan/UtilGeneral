@@ -781,7 +781,7 @@ def pm(stdOrMinMax,mean=None,fmt=".3g"):
     return ("{:"+ fmt + "}+/-{:.2g}").format(mean,delta)
 
 def savefig(figure,fileName,close=True,tight=True,subplots_adjust=None,
-            bbox_inches=None,pad=0,pad_inches=0.00,**kwargs):
+            bbox_inches='tight',pad=0,pad_inches=0.00,**kwargs):
     """
     Saves the given figure with the options and filenames
     
