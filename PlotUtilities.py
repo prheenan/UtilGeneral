@@ -172,7 +172,7 @@ def FormatImageAxis(ax=None):
     """
     ax = gca(ax)
     # Turn off axes and set axes limits
-    ax.axis('off')
+    ax.axis(False)
 
 def _remove_labels(ax):
     ax.set_ticklabels([])
@@ -231,10 +231,10 @@ def no_y_anything(ax=None):
     no_y_label(ax)   
     _remove_ticks(ax.get_yaxis()) 
 
-def x_label_on_top(ax=None,ticks_on_bottom='off'):
+def x_label_on_top(ax=None,ticks_on_bottom=False):
     ax = gca(ax)
     ax.xaxis.set_label_position('top')
-    tick_dict = dict(labeltop='on',labelbottom=ticks_on_bottom)
+    tick_dict = dict(labeltop=True,labelbottom=ticks_on_bottom)
     ax.xaxis.set_tick_params(which='major',**tick_dict)
     ax.xaxis.set_tick_params(which='minor',**tick_dict)
 
