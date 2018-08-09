@@ -374,6 +374,9 @@ def crossed_x_and_y(offset_x,offset_y,x_kwargs,y_kwargs,ax=plt.gca(),
     """
     assert ("height" in y_kwargs.keys()) , "Height not specified"
     assert ("width" in x_kwargs.keys()) , "Width not specified"
+    assert ("unit" in x_kwargs.keys()) , "x unit not specified"
+    assert ("unit" in y_kwargs.keys()) , "y unit not specified"
+
     width = x_kwargs['width']
     height = y_kwargs['height']
     # make the scalebars make sense.
