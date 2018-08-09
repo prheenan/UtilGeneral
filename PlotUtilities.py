@@ -108,6 +108,16 @@ def upright_mu(unit=u""):
     """
     return u"\u03bc" + unit
 
+def kbT(add_parenthesis=False):
+    """
+    :param add_parenthesis: if true, return like (k_B T), otherwise no parenth
+    :return: boltman string, formatted properly. 
+    """
+    to_ret = "$k_\mathbf{B}T$"
+    if add_parenthesis:
+        to_ret = "(" + to_ret + ")"
+    return to_ret
+
 def label_axes(fig, labels=None, loc=None, add_bold=False,
                axis_func= lambda x: x,**kwargs):
     """
