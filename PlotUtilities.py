@@ -108,6 +108,16 @@ def upright_mu(unit=u""):
     """
     return u"\u03bc" + unit
 
+def kbT(add_parenthesis=False):
+    """
+    :param add_parenthesis: if true, return like (k_B T), otherwise no parenth
+    :return: boltman string, formatted properly. 
+    """
+    to_ret = "$k_\mathbf{B}T$"
+    if add_parenthesis:
+        to_ret = "(" + to_ret + ")"
+    return to_ret
+
 def label_axes(fig, labels=None, loc=None, add_bold=False,
                axis_func= lambda x: x,**kwargs):
     """
@@ -172,7 +182,7 @@ def FormatImageAxis(ax=None):
     """
     ax = gca(ax)
     # Turn off axes and set axes limits
-    ax.axis('off')
+    ax.axis(False)
 
 def _remove_labels(ax):
     ax.set_ticklabels([])
@@ -231,10 +241,10 @@ def no_y_anything(ax=None):
     no_y_label(ax)   
     _remove_ticks(ax.get_yaxis()) 
 
-def x_label_on_top(ax=None,ticks_on_bottom='off'):
+def x_label_on_top(ax=None,ticks_on_bottom=False):
     ax = gca(ax)
     ax.xaxis.set_label_position('top')
-    tick_dict = dict(labeltop='on',labelbottom=ticks_on_bottom)
+    tick_dict = dict(labeltop=True,labelbottom=ticks_on_bottom)
     ax.xaxis.set_tick_params(which='major',**tick_dict)
     ax.xaxis.set_tick_params(which='minor',**tick_dict)
 
@@ -781,7 +791,7 @@ def pm(stdOrMinMax,mean=None,fmt=".3g"):
     return ("{:"+ fmt + "}+/-{:.2g}").format(mean,delta)
 
 def savefig(figure,fileName,close=True,tight=True,subplots_adjust=None,
-            bbox_inches='tight',pad=1,pad_inches=0.02,**kwargs):
+            bbox_inches='tight',pad=1,pad_inches=0.01,**kwargs):
     """
     Saves the given figure with the options and filenames
     
@@ -796,7 +806,7 @@ def savefig(figure,fileName,close=True,tight=True,subplots_adjust=None,
         nothing
     """
     if (tight):
-        plt.tight_layout(pad=pad)
+        figure.tight_layout(pad=pad)
     if (subplots_adjust is not None):
         plt.subplots_adjust(**subplots_adjust)
     baseName = util.getFileFromPath(fileName)
@@ -915,7 +925,7 @@ def save_png_and_svg(fig,base,**kwargs):
     """
     save_twice(fig,base +".png",base+".svg",**kwargs)
     
-def save_tom(fig,base,save_tiff=False,**kwargs):
+def save_tom(fig,base,save_tiff=False,save_pdf=False,**kwargs):
     """
     Saves however tom would like me to 
     
@@ -923,6 +933,8 @@ def save_tom(fig,base,save_tiff=False,**kwargs):
     """
     if save_tiff:
         savefig(fig,base + ".tiff",close=False,**kwargs)
+    if save_pdf:
+        savefig(fig,base + ".pdf",close=False,**kwargs)
     save_twice(fig,base +".jpeg",base+".svg",**kwargs)
     
 # legacy API. plan is now to mimic matplotlib 
