@@ -415,8 +415,9 @@ def crossed_x_and_y_relative(offset_x,offset_y,ax=plt.gca(),**kwargs):
 def _scale_bar_rectangle(ax,x,y,s,width,height,is_x,
                          font_color='w',add_minor=False,
                          box_props=dict(facecolor='black',edgecolor='black',
-                                        zorder=0),center_x=False,center_y=False,
-                         rotation=90,fontsize=6.5,fontweight='bold',**kw):
+                                        zorder=10),center_x=False,center_y=False,
+                         rotation=90,fontsize=6.5,fontweight='bold',
+                         verticalalignment='center',y_text_shift_rel=1/2,**kw):
     """
     Makes a scalebar (usually outside of the axes)
 
@@ -440,7 +441,7 @@ def _scale_bar_rectangle(ax,x,y,s,width,height,is_x,
                                   clip_on=False,
                                   **box_props)
     x_text = x_abs + width/2
-    y_text = y_abs + height/2
+    y_text = y_abs + height * y_text_shift_rel
     # make sure that text is above box (unless we explicitly set them
     # differently)
     if ('zorder' in box_props):
@@ -451,7 +452,7 @@ def _scale_bar_rectangle(ax,x,y,s,width,height,is_x,
         kw['zorder'] = min_z_text
     annot = ax.annotate(xy=(x_text,y_text),s=s, color=font_color,
                         horizontalalignment='center',fontweight=fontweight,
-                        verticalalignment='center',xycoords='data',
+                        verticalalignment=verticalalignment,xycoords='data',
                         clip_on=False,fontsize=fontsize,annotation_clip=False,
                         rotation=rotation,**kw)
     axis = ax.xaxis if is_x else ax.yaxis
