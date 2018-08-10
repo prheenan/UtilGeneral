@@ -34,10 +34,11 @@ if [ $delete_cache -eq "1" ]
 	echo "Deleting"
 	find $input_dir -type f -name "*.pkl" | xargs rm 
 fi
-exit
+# find all the python files 
 files=$( find "$python_dir" -path "*/_*" -name "main*.py" -type f  )
 for f in $files
     do
+	# go to the directory, to run the python file where it expects 
 	dir=$( dirname "$f")
 	file=$( basename "$f")
 	cd "$dir"  > /dev/null
@@ -53,7 +54,9 @@ for f in $files
 			continue
 		fi
 	fi
+	# POST: we should run this file
 	str_to_run="python $file --base $abs_input"
+	# tell the user what we are doing 
 	echo -e "In $dir, running: \n$str_to_run \n"
 	$( eval "$str_to_run" )
 	# go back to the original directory
