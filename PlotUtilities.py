@@ -171,7 +171,7 @@ def label_tom(fig,labels=None, loc=None,fontsize=g_font_subplot_label,
                      fontsize=fontsize,**kwargs)
     label_axes(fig,labels=labels,loc=loc,**text_args)
     
-def FormatImageAxis(ax=None):
+def format_image_axis(ax=None):
     """
     Formats the given (default current) axis for displaying an image 
     (no ticks,etc)
@@ -181,8 +181,11 @@ def FormatImageAxis(ax=None):
          aspect: passed to the axis
     """
     ax = gca(ax)
-    # Turn off axes and set axes limits
-    ax.axis(False)
+    no_x_label(ax)
+    no_x_ticks(ax)
+    no_y_label(ax)
+    no_y_ticks(ax)
+    ax.axis('off')
 
 def _remove_labels(ax):
     ax.set_ticklabels([])
