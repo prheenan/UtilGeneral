@@ -104,7 +104,8 @@ def plot_setup(mt_shrink_factor=0.7,mt_sup1=0.8):
 
 def upright_mu(unit=u""):
     """
-    Returns: an upright mu, optionally follow by <unit>. Recquires unicode. 
+    Returns: an upright mu (micron), optionally follow by <unit>.
+    Recquires unicode.
     """
     return u"\u03bc" + unit
 
