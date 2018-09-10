@@ -13,7 +13,7 @@ try:
     import cPickle
     kw_load = dict()
 except ImportError:
-    import _pickle as cPickle
+    import pickle as cPickle
     kw_load = dict(encoding='latin1')
 
 
