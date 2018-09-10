@@ -31,6 +31,7 @@ g_tick_length = 4
 g_minor_tick_width = 1
 g_minor_tick_length= 2
 # make the hatches larges
+import matplotlib.transforms as mtrans
 
 from string import ascii_lowercase
 from matplotlib.ticker import LogLocator,MaxNLocator
@@ -940,7 +941,29 @@ def save_tom(fig,base,save_tiff=False,save_pdf=False,**kwargs):
     if save_pdf:
         savefig(fig,base + ".pdf",close=False,**kwargs)
     save_twice(fig,base +".jpeg",base+".svg",**kwargs)
-    
+
+
+def make_image_flush(fig,ax_image,ax_flush):
+    """
+    :param fig: figure
+    :param ax_image: image axis
+    :param ax_flush: axis we want the image to be flush with.
+    :return:  nothing , updated the figure
+    """
+    ax = ax_flush
+    fig.canvas.draw()
+    xlabel_bbox = ax.xaxis.get_tightbbox(fig.canvas.get_renderer())
+    xlabel_bbox = xlabel_bbox.transformed(fig.transFigure.inverted())
+    bbox1 = ax.get_position().union((ax.get_position(), xlabel_bbox))
+    bbox2 = ax_image.get_position()
+    aspect = bbox2.height / bbox2.width
+    bbox3 = mtrans.Bbox.from_bounds(
+        bbox2.x0 - (bbox1.height / aspect - bbox2.width) / 2.,
+        bbox1.y0, bbox1.height / aspect, bbox1.height)
+    ax_image.set_position(bbox3)
+    fig.canvas.draw()
+
+
 # legacy API. plan is now to mimic matplotlib 
 def colorCyc(num,cmap = plt.cm.winter):
     cmap(num,cmap)
