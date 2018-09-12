@@ -120,6 +120,18 @@ def kbT(add_parenthesis=False):
         to_ret = "(" + to_ret + ")"
     return to_ret
 
+def G_0(substring="0",add_kbT=False,add_parenthesis=True):
+    """
+    :param substring: what to put in the subscript
+    :param add_kT: if true, add kbT
+    :param add_parenthesis:  see kbT
+    :return: G_0, with kbT if add_kT is true
+    """
+    str = "$G_\mathbf{" + substring + "}$"
+    if add_kbT:
+        str += " " + kbT(add_parenthesis=add_parenthesis)
+    return str
+
 def label_axes(fig, labels=None, loc=None, add_bold=False,
                axis_func= lambda x: x,**kwargs):
     """
