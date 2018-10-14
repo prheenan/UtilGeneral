@@ -61,7 +61,7 @@ def _annotate(ax,s,xy,**font_kwargs):
         if k not in font_kwargs:
             font_kwargs[k] = v
     # POST: all default added   
-    return ax.annotate(s=s, xy=xy,**font_kwargs)
+    return ax.annotate(s, xy=xy,**font_kwargs)
     
 def relative_annotate(ax,s,xy,xycoords='axes fraction',**font_kwargs):
     """

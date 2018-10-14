@@ -453,7 +453,7 @@ def _scale_bar_rectangle(ax,x,y,s,width,height,is_x,
         min_z_text = 3
     if ('zorder' not in kw):
         kw['zorder'] = min_z_text
-    annot = ax.annotate(xy=(x_text,y_text),s=s, color=font_color,
+    annot = ax.annotate(s,xy=(x_text,y_text),color=font_color,
                         horizontalalignment='center',fontweight=fontweight,
                         verticalalignment=verticalalignment,xycoords='data',
                         clip_on=False,fontsize=fontsize,annotation_clip=False,
