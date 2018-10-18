@@ -439,6 +439,8 @@ def _scale_bar_rectangle(ax,x,y,s,width,height,is_x,
         y_abs -= height/2
     xlim = [x_abs,x_abs+width]
     ylim = [y_abs,y_abs+height]
+    if 'linewidth' not in box_props:
+        box_props['linewidth'] = 0
     # add an *un-clipped* scalebar, so we can draw outside the axes
     r = Annotations.add_rectangle(ax=ax,xlim=xlim,ylim=ylim,
                                   clip_on=False,
