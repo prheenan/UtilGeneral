@@ -185,7 +185,7 @@ def label_tom(fig,labels=None, loc=None,fontsize=g_font_subplot_label,
                      fontsize=fontsize,**kwargs)
     label_axes(fig,labels=labels,loc=loc,**text_args)
     
-def format_image_axis(ax=None):
+def format_image_axis(ax=None,remove_frame=True):
     """
     Formats the given (default current) axis for displaying an image 
     (no ticks,etc)
@@ -199,7 +199,8 @@ def format_image_axis(ax=None):
     no_x_ticks(ax)
     no_y_label(ax)
     no_y_ticks(ax)
-    ax.axis('off')
+    if remove_frame:
+        ax.axis('off')
 
 def _remove_labels(ax):
     ax.set_ticklabels([])
@@ -243,6 +244,14 @@ def no_x_ticks(ax=None):
 def no_y_ticks(ax=None):
     ax = gca(ax)
     _remove_ticks(ax.get_yaxis())
+
+def no_z_label(ax=None):
+    """
+    :param ax: axis to use. defaults to gca
+    :return: nothing, removed z tick labels 
+    """
+    ax = gca(ax)
+    _remove_ticks(ax.zaxis)
     
 def no_x_anything(ax=None):
     ax = gca(ax)
@@ -256,14 +265,32 @@ def no_y_anything(ax=None):
     no_y_axis(ax)
     no_y_grid(ax)    
     no_y_label(ax)   
-    _remove_ticks(ax.get_yaxis()) 
+    _remove_ticks(ax.get_yaxis())
+
+def _format_axis(axis,position,**kw):
+    axis.set_label_position(position)
+    axis.set_tick_params(which='major',**kw)
+    axis.set_tick_params(which='minor',**kw)
 
 def x_label_on_top(ax=None,ticks_on_bottom=False):
+    """
+    :param ax: axis
+    :return:  nothing, moves the x label and ticks to the top
+    """
     ax = gca(ax)
-    ax.xaxis.set_label_position('top')
+    axis = ax.xaxis
     tick_dict = dict(labeltop=True,labelbottom=ticks_on_bottom)
-    ax.xaxis.set_tick_params(which='major',**tick_dict)
-    ax.xaxis.set_tick_params(which='minor',**tick_dict)
+    _format_axis(axis,position="top",**tick_dict)
+
+def y_label_on_right(ax=None):
+    """
+    :param ax: axis
+    :return:  nothing, moves the y label and ticks to the right side
+    """
+    ax = gca(ax)
+    tick_dict = dict(labelright=True,labelleft=False)
+    _format_axis(ax.yaxis,position="right",**tick_dict)
+
 
 
 def AddSubplotLabels(fig=None,axs=None,skip=0,

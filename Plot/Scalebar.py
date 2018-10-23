@@ -439,6 +439,8 @@ def _scale_bar_rectangle(ax,x,y,s,width,height,is_x,
         y_abs -= height/2
     xlim = [x_abs,x_abs+width]
     ylim = [y_abs,y_abs+height]
+    if 'linewidth' not in box_props:
+        box_props['linewidth'] = 0
     # add an *un-clipped* scalebar, so we can draw outside the axes
     r = Annotations.add_rectangle(ax=ax,xlim=xlim,ylim=ylim,
                                   clip_on=False,
@@ -453,7 +455,7 @@ def _scale_bar_rectangle(ax,x,y,s,width,height,is_x,
         min_z_text = 3
     if ('zorder' not in kw):
         kw['zorder'] = min_z_text
-    annot = ax.annotate(xy=(x_text,y_text),s=s, color=font_color,
+    annot = ax.annotate(s,xy=(x_text,y_text),color=font_color,
                         horizontalalignment='center',fontweight=fontweight,
                         verticalalignment=verticalalignment,xycoords='data',
                         clip_on=False,fontsize=fontsize,annotation_clip=False,
