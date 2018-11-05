@@ -97,10 +97,10 @@ def ticks(ax,axis,lim,x,y,is_x,add_minor):
     :return:
     """
     if (is_x):
-        tick_spacing = abs(np.diff(x))
+        tick_spacing = abs(np.diff(x)[0])
         offset = min(x)
     else:
-        tick_spacing = abs(np.diff(y))
+        tick_spacing = abs(np.diff(y)[0])
         offset = min(y)
     locator_x = _get_tick_locator_fixed(offset=offset, width=tick_spacing,
                                         lim=lim)
