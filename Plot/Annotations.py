@@ -459,18 +459,20 @@ def fmt_broken(ax1,ax2):
 
 def connect_bbox(bbox1, bbox2,
                  loc1a, loc2a, loc1b, loc2b,
-                 prop_lines, prop_patches=None):
+                 prop_lines, prop_patches=None,prop_patches_2=None):
     """
     connect the two bboxes see zoom_effect01(ax1, ax2, xmin, xmax)
     """
     if prop_patches is None:
         prop_patches = prop_lines.copy()
+    if prop_patches_2 is None:
+        prop_patches_2 = dict(**prop_patches)
     c1 = BboxConnector(bbox1, bbox2, loc1=loc1a, loc2=loc2a, **prop_lines)
     c1.set_clip_on(False)
     c2 = BboxConnector(bbox1, bbox2, loc1=loc1b, loc2=loc2b, **prop_lines)
     c2.set_clip_on(False)
     bbox_patch1 = BboxPatch(bbox1, color='k',**prop_patches)
-    bbox_patch2 = BboxPatch(bbox2, color='w',**prop_patches)
+    bbox_patch2 = BboxPatch(bbox2, color='w',**prop_patches_2)
     p = BboxConnectorPatch(bbox1, bbox2,
                            # loc1a=3, loc2a=2, loc1b=4, loc2b=1,
                            loc1a=loc1a, loc2a=loc2a, loc1b=loc1b, loc2b=loc2b,
@@ -528,13 +530,15 @@ def zoom_effect01(ax1, ax2, xmin, xmax, color='m', alpha_line=0.5,
     prop_patches = kwargs.copy()
     prop_patches["ec"] = "none"
     prop_patches["alpha"] = alpha_patch
+    prop_patches_2 = dict(**prop_patches)
+    prop_patches_2["alpha"] = alpha_patch2
     prop_lines = dict(color=color, alpha=alpha_line, linewidth=linewidth,
                       linestyle=linestyle, **kwargs)
     c1, c2, bbox_patch1, bbox_patch2, p = \
         connect_bbox(mybbox1, mybbox2,
                      loc1a=loc1a, loc2a=loc2a, loc1b=loc1b, loc2b=loc2b,
-                     prop_lines=prop_lines, prop_patches=prop_patches)
-    bbox_patch2.alpha = alpha_patch2
+                     prop_lines=prop_lines, prop_patches=prop_patches,
+                     prop_patches_2=prop_patches_2)
     ax1.add_patch(bbox_patch1)
     ax2.add_patch(bbox_patch2)
     ax2.add_patch(c1)
