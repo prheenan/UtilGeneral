@@ -384,7 +384,7 @@ def autolabel(rects,label_func=lambda i,r: "{:.3g}".format(r.get_height()),
                 color=color_func(i,rect),**kwargs)
 
 
-def broken_axis(f_plot,range1,range2,ax1,ax2,axis_ratio,linewidth=1):
+def broken_axis(f_plot,range1,range2,ax1,ax2,axis_ratio,linewidth=1,d=0.015):
     """
     :param f_plot: takes in an axis and a number, plots the data
     :param range1: range for ax1
@@ -418,7 +418,6 @@ def broken_axis(f_plot,range1,range2,ax1,ax2,axis_ratio,linewidth=1):
     # appropriate corners of each of our axes, and so long as we use the
     # right transform and disable clipping.
 
-    d = .015 # how big to make the diagonal lines in axes coordinates
     # arguments to pass plot, just so we don't keep repeating them
     d1 = d * axis_ratio
     d2 = d
