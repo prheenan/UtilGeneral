@@ -384,15 +384,20 @@ def autolabel(rects,label_func=lambda i,r: "{:.3g}".format(r.get_height()),
                 color=color_func(i,rect),**kwargs)
 
 
-def broken_axis(f_plot,range1,range2,ax1,ax2,axis_ratio,linewidth=1,d=0.015):
+def broken_axis(f_plot,range1,range2,ax1,ax2,fudge_marker_pct_x=0.015,
+                linewidths=0.3,s=40,
+                marker=r'$\mathrm{\u222B}$'):
     """
     :param f_plot: takes in an axis and a number, plots the data
     :param range1: range for ax1
     :param range2: range for ax2
     :param ax1: first axis to use
     :param ax2: second axis to use
-    :param axis_ratio: if not the same width, ratio of widths
-    :param linewidth: for the plot
+    :param fudge_marker_pct_x: how much, in pct of axis, to move markers to
+    center
+    :param linewidths: for the marker
+    :param s: size of the scatter marker
+    :param marker: marker to use
     :return: Nothing, consider using with fmt_broken
     """
     # If we were to simply plot pts, we'd lose most of the interesting
@@ -418,17 +423,14 @@ def broken_axis(f_plot,range1,range2,ax1,ax2,axis_ratio,linewidth=1,d=0.015):
     # appropriate corners of each of our axes, and so long as we use the
     # right transform and disable clipping.
 
-    # arguments to pass plot, just so we don't keep repeating them
-    d1 = d * axis_ratio
-    d2 = d
     kwargs = dict(transform=ax1.transAxes, color='k', clip_on=False,
-                  linewidth=linewidth)
-    ax1.plot((1-d1,1+d1), (-d,+d), **kwargs)
-    ax1.plot((1-d1,1+d1),(1-d,1+d), **kwargs)
+                  linewidths=linewidths, s=s, marker=marker)
+    ax1.scatter([1+fudge_marker_pct_x],[0], **kwargs)
+    ax1.scatter([1+fudge_marker_pct_x],[1], **kwargs)
 
     kwargs.update(transform=ax2.transAxes)  # switch to the bottom axes
-    ax2.plot((-d2,+d2), (1-d2,1+d2), **kwargs)
-    ax2.plot((-d2,+d2), (-d2,+d2), **kwargs)
+    ax2.scatter([0-fudge_marker_pct_x], [1], **kwargs)
+    ax2.scatter([0-fudge_marker_pct_x], [0], **kwargs)
 
     return ax1,ax2
 
