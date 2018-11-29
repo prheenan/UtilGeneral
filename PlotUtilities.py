@@ -320,7 +320,7 @@ def AddSubplotLabels(fig=None,axs=None,skip=0,
 
 
 def _LegendAndSave(Fig,SaveName,loc="upper right",frameon=True,close=False,
-                  tight=True,use_legend=True,**kwargs):
+                  tight=True,use_legend=True,handlelength=1,**kwargs):
     """
     Refreshes the legend on the given figure, saves it *without* closing
     by default
@@ -333,7 +333,7 @@ def _LegendAndSave(Fig,SaveName,loc="upper right",frameon=True,close=False,
         Nothing
     """
     if use_legend:
-        legend(loc=loc,frameon=frameon)
+        legend(loc=loc,frameon=frameon,handlelength=handlelength)
     savefig(Fig,SaveName,close=close,tight=tight,**kwargs)
 
 def legend_and_save(Fig,Base,Number=0,ext=".png",**kwargs):
