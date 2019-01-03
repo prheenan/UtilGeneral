@@ -113,7 +113,7 @@ def upright_mu(unit=u""):
 def kbT(add_parenthesis=False):
     """
     :param add_parenthesis: if true, return like (k_B T), otherwise no parenth
-    :return: boltman string, formatted properly. 
+    :return: boltzmann string, formatted properly.
     """
     to_ret = "$k_\mathbf{B}T$"
     if add_parenthesis:
