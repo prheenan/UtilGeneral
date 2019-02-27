@@ -563,6 +563,23 @@ def _scale_bar(text,xy_text,xy_line,ax=plt.gca(),
         t = None
     return t,x_draw,y_draw
 
+def range_for_zero_at_relative_y(range_desired,limits):
+    """
+    :param range_desired: amount of y desired
+    :param limits:  of the data; we want the zero in the returned range
+    to be consistent with the zero in the given limits
+    :return: ylimits (in units of range_desired) such that the 0 location
+    is the same relative location in the input <limits> as it is in the return
+    range
+    """
+    ax_0, ax_1 = min(limits), max(limits)
+    zero_location_rel = (0 - ax_0) / (ax_1 - ax_0)
+    dy_desired = range_desired
+    y_range = [-dy_desired * (zero_location_rel),
+               dy_desired * (1-zero_location_rel)]
+    return y_range
+
+
 def scalebar_offset_for_zero(limits,range_scalebar):
     """
     :param limits: of the relevant axis
