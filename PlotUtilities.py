@@ -78,7 +78,6 @@ def plot_setup(mt_shrink_factor=0.7,mt_sup1=0.8):
                       "style": 'normal',
                       'family':'sans-serif'})
     plt.rcParams['font.family'] = 'sans-serif'
-    mpl.rcParams['text.latex.unicode'] = True
     mpl.rcParams['mathtext.fontset'] = 'custom'
     mpl.rcParams['mathtext.rm'] = '{}'.format(default_font)
     # anything that is italic should *also* be bold 
@@ -900,7 +899,6 @@ def tom_text_rendering():
     g_tom_text_rendering['on'] = True
     # we need latex and unicode to be safe
     mpl.rc('text', usetex=True)
-    mpl.rcParams['text.latex.unicode'] =True
     """
     make the normal font Helvetica :
     stackoverflow.com/questions/11367736/matplotlib-consistent-font-using-latex  
