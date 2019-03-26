@@ -126,7 +126,7 @@ def _save_to_csv(record,header_kwargs=dict(),data_kwargs=dict(),
     header = _header(record,**header_kwargs)
     data = _data(record,**data_kwargs)
     fname = record.save_name + ".csv"
-    _csv_save_base(fname=fname,X=data,header=header)
+    _csv_save_base(fname=fname,X=data,header=header,**save_kwargs)
     
 def save_csv(record_kwargs=dict(),**kw):
     record = SaveRecord(**record_kwargs)
