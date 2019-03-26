@@ -78,7 +78,6 @@ def plot_setup(mt_shrink_factor=0.7,mt_sup1=0.8):
                       "style": 'normal',
                       'family':'sans-serif'})
     plt.rcParams['font.family'] = 'sans-serif'
-    mpl.rcParams['text.latex.unicode'] = True
     mpl.rcParams['mathtext.fontset'] = 'custom'
     mpl.rcParams['mathtext.rm'] = '{}'.format(default_font)
     # anything that is italic should *also* be bold 
@@ -113,7 +112,7 @@ def upright_mu(unit=u""):
 def kbT(add_parenthesis=False):
     """
     :param add_parenthesis: if true, return like (k_B T), otherwise no parenth
-    :return: boltman string, formatted properly. 
+    :return: boltzmann string, formatted properly.
     """
     to_ret = "$k_\mathbf{B}T$"
     if add_parenthesis:
@@ -320,7 +319,7 @@ def AddSubplotLabels(fig=None,axs=None,skip=0,
 
 
 def _LegendAndSave(Fig,SaveName,loc="upper right",frameon=True,close=False,
-                  tight=True,**kwargs):
+                  tight=True,use_legend=True,handlelength=1,**kwargs):
     """
     Refreshes the legend on the given figure, saves it *without* closing
     by default
@@ -332,7 +331,8 @@ def _LegendAndSave(Fig,SaveName,loc="upper right",frameon=True,close=False,
     Returns:
         Nothing
     """
-    legend(loc=loc,frameon=frameon)
+    if use_legend:
+        legend(loc=loc,frameon=frameon,handlelength=handlelength)
     savefig(Fig,SaveName,close=close,tight=tight,**kwargs)
 
 def legend_and_save(Fig,Base,Number=0,ext=".png",**kwargs):
@@ -899,7 +899,6 @@ def tom_text_rendering():
     g_tom_text_rendering['on'] = True
     # we need latex and unicode to be safe
     mpl.rc('text', usetex=True)
-    mpl.rcParams['text.latex.unicode'] =True
     """
     make the normal font Helvetica :
     stackoverflow.com/questions/11367736/matplotlib-consistent-font-using-latex  
