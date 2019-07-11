@@ -377,7 +377,7 @@ def colorbar(label,labelpad=15,rotation=270,fontsize=g_font_legend,
     return cbar
 
 def legend(loc=None,frameon=False,ncol=1,
-           handlelength=1,handletextpad=1,ax=None,
+           handlelength=1,handletextpad=0.3,ax=None,
            bbox_to_anchor=None,fancybox=False,markerscale=1,color='k',
            numpoints=1,scatterpoints=1,
            font_dict=dict(weight='bold',size=g_font_legend),**kwargs):
