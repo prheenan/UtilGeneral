@@ -160,7 +160,7 @@ def label_axes(fig, labels=None, loc=None, add_bold=False,
     axes = axis_func(fig.axes)
     n_ax = len(axes)
     if loc is None:
-        loc = (-0.2, 0.95)
+        loc = [(-0.2, 0.95) for _ in axes]
     if (isinstance(loc,tuple)):
         loc = [loc for _ in range(n_ax)]
     for ax, lab,loc_tmp in zip(axes, labels,loc):
