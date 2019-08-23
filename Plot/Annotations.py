@@ -116,7 +116,7 @@ def add_rectangle(ax,xlim,ylim,fudge_pct=0,facecolor="None",linestyle='-',
     return r
 
 def _triangle_patch(x,y,width,height,fig,transform=None,color='g',alpha=0.5,
-                    clip_on=True,zorder=5,**kw): 
+                    clip_on=True,zorder=5,reversed=False,**kw):
     """
     :param x: offset for the triangle 'bottom left'
     :param y: offset for the triangle 'bottom left'
@@ -131,10 +131,16 @@ def _triangle_patch(x,y,width,height,fig,transform=None,color='g',alpha=0.5,
     triangle_x,triangle_y = [x,y]
     triangle_width = width
     triangle_height = height
+    if reversed:
+        v1 = [triangle_x + triangle_width, triangle_y],
+        v2 = [triangle_x + triangle_width, triangle_y + triangle_height],
+
+    else:
+        v1 = [triangle_x, triangle_y + triangle_height]
+        v2 = [triangle_x + triangle_width, triangle_y]
     triangle_path_array = \
         [[triangle_x, triangle_y],
-         [triangle_x+triangle_width, triangle_y],
-         [triangle_x+triangle_width, triangle_y+triangle_height],
+         v1,v2,
          [triangle_x, triangle_y]]
     path = Path(triangle_path_array)
     patch = PathPatch(path, fill=True, color=color, alpha=alpha,
