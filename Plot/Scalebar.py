@@ -11,6 +11,9 @@ import sys,copy,matplotlib
 
 from ..PlotUtilities import *
 from . import Annotations
+import matplotlib
+
+
 
 default_font_dict = dict(fontsize=g_font_label,
                          fontweight='bold',
@@ -455,11 +458,13 @@ def _scale_bar_rectangle(ax,x,y,s,width,height,is_x,
         min_z_text = 3
     if ('zorder' not in kw):
         kw['zorder'] = min_z_text
-    annot = ax.annotate(s,xy=(x_text,y_text),color=font_color,
-                        horizontalalignment='center',fontweight=fontweight,
+    kw_final = dict(horizontalalignment='center',fontweight=fontweight,
                         verticalalignment=verticalalignment,xycoords='data',
                         clip_on=False,fontsize=fontsize,annotation_clip=False,
                         rotation=rotation,**kw)
+    kw_final = sanitize_text_dict(kw_final)
+    annot = ax.annotate(s,xy=(x_text,y_text),color=font_color,
+                        **kw_final)
     axis = ax.xaxis if is_x else ax.yaxis
     lim = ax.get_xlim() if is_x else ax.get_ylim()
     ticks(ax, axis=axis, lim=lim, x=xlim, y=ylim, is_x=is_x,
@@ -557,7 +562,8 @@ def _scale_bar(text,xy_text,xy_line,ax=plt.gca(),
     # POST: shifted     
     xy_text = [x_text,y_text]
     if not no_bar:
-        t = Annotations._annotate(ax=ax,s=text,xy=xy_text,**font_kwargs)
+        t = Annotations._annotate(ax=ax,s=text,xy=xy_text,
+                                  **sanitize_text_dict(font_kwargs))
         ax.plot(x_draw,y_draw,**line_kwargs)
     else:
         t = None

@@ -61,7 +61,7 @@ def _annotate(ax,s,xy,**font_kwargs):
         if k not in font_kwargs:
             font_kwargs[k] = v
     # POST: all default added   
-    return ax.annotate(s, xy=xy,**font_kwargs)
+    return ax.annotate(s, xy=xy,**sanitize_text_dict(font_kwargs))
     
 def relative_annotate(ax,s,xy,xycoords='axes fraction',**font_kwargs):
     """
@@ -157,8 +157,9 @@ def _rainbow_gen(x,y,strings,colors,ax=None,kw=[dict()],add_space=True):
             s_text = s + " "
         else:
             s_text = s
+        kw_tmp = sanitize_text_dict(kw[i % n_kw])
         text = ax.text(x, y, s_text, color=c, transform=t,
-                       clip_on=False,**(kw[i % n_kw]))
+                       clip_on=False,**(kw_tmp))
         text.draw(canvas.get_renderer())
         ex = text.get_window_extent()
         if "\n" not in s:
@@ -381,7 +382,7 @@ def autolabel(rects,label_func=lambda i,r: "{:.3g}".format(r.get_height()),
         x = x_func(i,rect)
         y = y_func(i,rect)
         ax.text(x,y,text,ha='center', va='bottom',fontsize=fontsize,
-                color=color_func(i,rect),**kwargs)
+                color=color_func(i,rect),**sanitize_text_dict(kwargs))
 
 
 def broken_axis(f_plot,range1,range2,ax1,ax2,fudge_marker_pct_x=0.015,

@@ -18,6 +18,7 @@ import sys
 import os
 from matplotlib.ticker import FixedLocator,NullLocator,AutoMinorLocator
 import matplotlib as mpl
+mpl_major_version = float(mpl.__version__[0])
 
 from matplotlib import ticker
 g_tom_text_rendering = dict(on=False)
@@ -100,6 +101,15 @@ def plot_setup(mt_shrink_factor=0.7,mt_sup1=0.8):
     # Percentage of x-height that superscripts drop below the baseline
     base_font.sup1 = mt_sup1
 
+
+def sanitize_text_dict(kw):
+    to_ret = dict(**kw)
+    # they changed verticalalignment in v3 for some reason
+    if 'verticalalignment' in to_ret and \
+                    to_ret['verticalalignment'] == 'lower' and \
+            mpl_major_version > 2:
+        to_ret['verticalalignment'] = 'bottom'
+    return to_ret
 
 
 def upright_mu(unit=u""):
@@ -588,7 +598,7 @@ def axis_locator(ax,n_major,n_minor):
     """
     scale = ax.get_scale()
     if (scale == 'log'):
-        subs = [1,] if n_minor <= 1 else np.linspace(1,n_minor+1,n_minor)
+        subs = [1, ] if n_minor <= 1 else np.linspace(1, 10, 10)
         ax.set_major_locator(LogLocator(numticks=n_major,subs=subs))
     else:
         ax.set_major_locator(MaxNLocator(n_major))
@@ -614,9 +624,9 @@ def tom_ticks(ax=None,num_major=4,num_minor=0,fontsize=g_font_label,**kwargs):
                      num_x_minor=num_minor,
                      num_y_major=num_major,
                      num_y_minor=num_minor,**kwargs)
-    if (num_minor == 0):                     
-        ax.tick_params(which='minor',right=False,left=False,top=False,
-                       bottom=False,axis='both')
+    if (num_minor == 0):
+        ax.tick_params(which='minor', right=False, left=False,top=False,
+                       bottom = False, axis = 'both')
     tickAxisFont(ax=ax,fontsize=fontsize)
                     
     
