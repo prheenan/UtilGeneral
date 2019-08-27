@@ -170,7 +170,7 @@ def label_axes(fig, labels=None, loc=None, add_bold=False,
     axes = axis_func(fig.axes)
     n_ax = len(axes)
     if loc is None:
-        loc = (-0.2, 0.95)
+        loc = [(-0.2, 0.95) for _ in axes]
     if (isinstance(loc,tuple)):
         loc = [loc for _ in range(n_ax)]
     for ax, lab,loc_tmp in zip(axes, labels,loc):
@@ -387,7 +387,7 @@ def colorbar(label,labelpad=15,rotation=270,fontsize=g_font_legend,
     return cbar
 
 def legend(loc=None,frameon=False,ncol=1,
-           handlelength=1,handletextpad=1,ax=None,
+           handlelength=1,handletextpad=0.3,ax=None,
            bbox_to_anchor=None,fancybox=False,markerscale=1,color='k',
            numpoints=1,scatterpoints=1,
            font_dict=dict(weight='bold',size=g_font_legend),**kwargs):

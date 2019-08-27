@@ -116,7 +116,7 @@ def add_rectangle(ax,xlim,ylim,fudge_pct=0,facecolor="None",linestyle='-',
     return r
 
 def _triangle_patch(x,y,width,height,fig,transform=None,color='g',alpha=0.5,
-                    clip_on=True,zorder=5,**kw): 
+                    clip_on=True,zorder=5,reversed=False,**kw):
     """
     :param x: offset for the triangle 'bottom left'
     :param y: offset for the triangle 'bottom left'
@@ -131,10 +131,16 @@ def _triangle_patch(x,y,width,height,fig,transform=None,color='g',alpha=0.5,
     triangle_x,triangle_y = [x,y]
     triangle_width = width
     triangle_height = height
+    if reversed:
+        v1 = [triangle_x + triangle_width, triangle_y],
+        v2 = [triangle_x + triangle_width, triangle_y + triangle_height],
+
+    else:
+        v1 = [triangle_x, triangle_y + triangle_height]
+        v2 = [triangle_x + triangle_width, triangle_y]
     triangle_path_array = \
         [[triangle_x, triangle_y],
-         [triangle_x+triangle_width, triangle_y],
-         [triangle_x+triangle_width, triangle_y+triangle_height],
+         v1,v2,
          [triangle_x, triangle_y]]
     path = Path(triangle_path_array)
     patch = PathPatch(path, fill=True, color=color, alpha=alpha,
@@ -491,7 +497,8 @@ def zoom_left_to_right_kw():
 def zoom_effect01(ax1, ax2, xmin, xmax, color='m', alpha_line=0.5,
                   alpha_patch=0.15, loc1a=3, loc2a=2, loc1b=4, loc2b=1,
                   linestyle='--', linewidth=1.5, xmin2=None, xmax2=None,
-                  alpha_patch2=None,**kwargs):
+                  alpha_patch2=None,ymin=0,ymax=1,ymin2=None,ymax2=None,
+                  **kwargs):
     """
     connect ax1 & ax2. The x-range of (xmin, xmax) in both axes will
     be marked.  The keywords parameters will be used to create
@@ -521,10 +528,14 @@ def zoom_effect01(ax1, ax2, xmin, xmax, color='m', alpha_line=0.5,
     xmin2 = xmin2 if xmin2 is not None else xmin
     xmax2 = xmax2 if xmax2 is not None else xmax
 
+    ymin2 = ymin2 if ymin2 is not None else ymin
+    ymax2 = ymax2 if ymax2 is not None else ymax
+
+
     alpha_patch2 = alpha_patch2 if alpha_patch2 is not None else alpha_patch
 
-    bbox1 = Bbox.from_extents(xmin, 0, xmax, 1)
-    bbox2 = Bbox.from_extents(xmin2, 0, xmax2, 1)
+    bbox1 = Bbox.from_extents(xmin, ymin, xmax, ymax)
+    bbox2 = Bbox.from_extents(xmin2, ymin2, xmax2, ymax2)
 
     mybbox1 = TransformedBbox(bbox1, trans1)
     mybbox2 = TransformedBbox(bbox2, trans2)
