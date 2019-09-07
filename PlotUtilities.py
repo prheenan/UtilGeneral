@@ -85,7 +85,6 @@ def plot_setup(mt_shrink_factor=0.7,mt_sup1=0.8):
                       "style": 'normal',
                       'family':'sans-serif'})
     plt.rcParams['font.family'] = 'sans-serif'
-    mpl.rcParams['text.latex.unicode'] = True
     mpl.rcParams['mathtext.fontset'] = 'custom'
     mpl.rcParams['mathtext.rm'] = '{}'.format(default_font)
     # anything that is italic should *also* be bold 
@@ -120,7 +119,7 @@ def upright_mu(unit=u""):
 def kbT(add_parenthesis=False):
     """
     :param add_parenthesis: if true, return like (k_B T), otherwise no parenth
-    :return: boltman string, formatted properly. 
+    :return: boltzmann string, formatted properly.
     """
     to_ret = "$k_\mathbf{B}T$"
     if add_parenthesis:
@@ -907,7 +906,6 @@ def tom_text_rendering():
     g_tom_text_rendering['on'] = True
     # we need latex and unicode to be safe
     mpl.rc('text', usetex=True)
-    mpl.rcParams['text.latex.unicode'] =True
     """
     make the normal font Helvetica :
     stackoverflow.com/questions/11367736/matplotlib-consistent-font-using-latex  
