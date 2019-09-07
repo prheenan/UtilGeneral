@@ -42,6 +42,8 @@ from matplotlib.transforms import Bbox, TransformedBbox, \
     blended_transform_factory
 from matplotlib import ticker
 
+from matplotlib.ticker import FormatStrFormatter
+fmt_smarter = FormatStrFormatter('%4.3g')
 
 import string
 from itertools import cycle
@@ -64,6 +66,11 @@ def math_it(s,add_dollars=False):
     if add_dollars:
         to_ret = "$" + to_ret + "$"
     return to_ret 
+
+def tom_tick_format(ax=None):
+    ax = gca(ax)
+    ax.yaxis.set_major_formatter(fmt_smarter)
+    ax.xaxis.set_major_formatter(fmt_smarter)
 
 def plot_setup(mt_shrink_factor=0.7,mt_sup1=0.8):
     """
