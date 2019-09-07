@@ -18,6 +18,7 @@ import sys
 import os
 from matplotlib.ticker import FixedLocator,NullLocator,AutoMinorLocator
 import matplotlib as mpl
+mpl_major_version = float(mpl.__version__[0])
 
 from matplotlib import ticker
 g_tom_text_rendering = dict(on=False)
@@ -108,6 +109,15 @@ def plot_setup(mt_shrink_factor=0.7,mt_sup1=0.8):
     base_font.sup1 = mt_sup1
 
 
+def sanitize_text_dict(kw):
+    to_ret = dict(**kw)
+    # they changed verticalalignment in v3 for some reason
+    if 'verticalalignment' in to_ret and \
+                    to_ret['verticalalignment'] == 'lower' and \
+            mpl_major_version > 2:
+        to_ret['verticalalignment'] = 'bottom'
+    return to_ret
+
 
 def upright_mu(unit=u""):
     """
@@ -167,7 +177,7 @@ def label_axes(fig, labels=None, loc=None, add_bold=False,
     axes = axis_func(fig.axes)
     n_ax = len(axes)
     if loc is None:
-        loc = (-0.2, 0.95)
+        loc = [(-0.2, 0.95) for _ in axes]
     if (isinstance(loc,tuple)):
         loc = [loc for _ in range(n_ax)]
     for ax, lab,loc_tmp in zip(axes, labels,loc):
@@ -384,7 +394,7 @@ def colorbar(label,labelpad=15,rotation=270,fontsize=g_font_legend,
     return cbar
 
 def legend(loc=None,frameon=False,ncol=1,
-           handlelength=1,handletextpad=1,ax=None,
+           handlelength=1,handletextpad=0.3,ax=None,
            bbox_to_anchor=None,fancybox=False,markerscale=1,color='k',
            numpoints=1,scatterpoints=1,
            font_dict=dict(weight='bold',size=g_font_legend),**kwargs):
@@ -595,7 +605,7 @@ def axis_locator(ax,n_major,n_minor):
     """
     scale = ax.get_scale()
     if (scale == 'log'):
-        subs = [1,] if n_minor <= 1 else np.linspace(1,n_minor+1,n_minor)
+        subs = [1, ] if n_minor <= 1 else np.linspace(1, 10, 10)
         ax.set_major_locator(LogLocator(numticks=n_major,subs=subs))
     else:
         ax.set_major_locator(MaxNLocator(n_major))
@@ -621,9 +631,9 @@ def tom_ticks(ax=None,num_major=4,num_minor=0,fontsize=g_font_label,**kwargs):
                      num_x_minor=num_minor,
                      num_y_major=num_major,
                      num_y_minor=num_minor,**kwargs)
-    if (num_minor == 0):                     
-        ax.tick_params(which='minor',right=False,left=False,top=False,
-                       bottom=False,axis='both')
+    if (num_minor == 0):
+        ax.tick_params(which='minor', right=False, left=False,top=False,
+                       bottom = False, axis = 'both')
     tickAxisFont(ax=ax,fontsize=fontsize)
                     
     

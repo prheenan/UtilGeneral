@@ -61,7 +61,7 @@ def _annotate(ax,s,xy,**font_kwargs):
         if k not in font_kwargs:
             font_kwargs[k] = v
     # POST: all default added   
-    return ax.annotate(s, xy=xy,**font_kwargs)
+    return ax.annotate(s, xy=xy,**sanitize_text_dict(font_kwargs))
     
 def relative_annotate(ax,s,xy,xycoords='axes fraction',**font_kwargs):
     """
@@ -116,7 +116,7 @@ def add_rectangle(ax,xlim,ylim,fudge_pct=0,facecolor="None",linestyle='-',
     return r
 
 def _triangle_patch(x,y,width,height,fig,transform=None,color='g',alpha=0.5,
-                    clip_on=True,zorder=5,**kw): 
+                    clip_on=True,zorder=5,reversed=False,**kw):
     """
     :param x: offset for the triangle 'bottom left'
     :param y: offset for the triangle 'bottom left'
@@ -131,10 +131,16 @@ def _triangle_patch(x,y,width,height,fig,transform=None,color='g',alpha=0.5,
     triangle_x,triangle_y = [x,y]
     triangle_width = width
     triangle_height = height
+    if reversed:
+        v1 = [triangle_x + triangle_width, triangle_y],
+        v2 = [triangle_x + triangle_width, triangle_y + triangle_height],
+
+    else:
+        v1 = [triangle_x, triangle_y + triangle_height]
+        v2 = [triangle_x + triangle_width, triangle_y]
     triangle_path_array = \
         [[triangle_x, triangle_y],
-         [triangle_x+triangle_width, triangle_y],
-         [triangle_x+triangle_width, triangle_y+triangle_height],
+         v1,v2,
          [triangle_x, triangle_y]]
     path = Path(triangle_path_array)
     patch = PathPatch(path, fill=True, color=color, alpha=alpha,
@@ -157,8 +163,9 @@ def _rainbow_gen(x,y,strings,colors,ax=None,kw=[dict()],add_space=True):
             s_text = s + " "
         else:
             s_text = s
+        kw_tmp = sanitize_text_dict(kw[i % n_kw])
         text = ax.text(x, y, s_text, color=c, transform=t,
-                       clip_on=False,**(kw[i % n_kw]))
+                       clip_on=False,**(kw_tmp))
         text.draw(canvas.get_renderer())
         ex = text.get_window_extent()
         if "\n" not in s:
@@ -381,7 +388,7 @@ def autolabel(rects,label_func=lambda i,r: "{:.3g}".format(r.get_height()),
         x = x_func(i,rect)
         y = y_func(i,rect)
         ax.text(x,y,text,ha='center', va='bottom',fontsize=fontsize,
-                color=color_func(i,rect),**kwargs)
+                color=color_func(i,rect),**sanitize_text_dict(kwargs))
 
 
 def broken_axis(f_plot,range1,range2,ax1,ax2,fudge_marker_pct_x=0.015,
@@ -490,7 +497,8 @@ def zoom_left_to_right_kw():
 def zoom_effect01(ax1, ax2, xmin, xmax, color='m', alpha_line=0.5,
                   alpha_patch=0.15, loc1a=3, loc2a=2, loc1b=4, loc2b=1,
                   linestyle='--', linewidth=1.5, xmin2=None, xmax2=None,
-                  alpha_patch2=None,**kwargs):
+                  alpha_patch2=None,ymin=0,ymax=1,ymin2=None,ymax2=None,
+                  **kwargs):
     """
     connect ax1 & ax2. The x-range of (xmin, xmax) in both axes will
     be marked.  The keywords parameters will be used to create
@@ -520,10 +528,14 @@ def zoom_effect01(ax1, ax2, xmin, xmax, color='m', alpha_line=0.5,
     xmin2 = xmin2 if xmin2 is not None else xmin
     xmax2 = xmax2 if xmax2 is not None else xmax
 
+    ymin2 = ymin2 if ymin2 is not None else ymin
+    ymax2 = ymax2 if ymax2 is not None else ymax
+
+
     alpha_patch2 = alpha_patch2 if alpha_patch2 is not None else alpha_patch
 
-    bbox1 = Bbox.from_extents(xmin, 0, xmax, 1)
-    bbox2 = Bbox.from_extents(xmin2, 0, xmax2, 1)
+    bbox1 = Bbox.from_extents(xmin, ymin, xmax, ymax)
+    bbox2 = Bbox.from_extents(xmin2, ymin2, xmax2, ymax2)
 
     mybbox1 = TransformedBbox(bbox1, trans1)
     mybbox2 = TransformedBbox(bbox2, trans2)
