@@ -43,8 +43,29 @@ from matplotlib.transforms import Bbox, TransformedBbox, \
     blended_transform_factory
 from matplotlib import ticker
 
-from matplotlib.ticker import FormatStrFormatter
-fmt_smarter = FormatStrFormatter('%4.3g')
+from matplotlib.ticker import FormatStrFormatter, Formatter
+
+class TomStrFormatter(Formatter):
+    """
+    Use an old-style ('%' operator) format string to format the tick.
+
+    The format string should have a single variable format (%) in it.
+    It will be applied to the value (not the position) of the tick.
+    """
+    def __init__(self, fmt):
+        self.fmt = fmt
+
+    def __call__(self, x, pos=None):
+        """
+        Return the formatted label string.
+
+        Only the value `x` is formatted. The position is ignored.
+        """
+        if x == 0:
+            return "0"
+        else:
+            return self.fmt % x
+
 
 import string
 from itertools import cycle
@@ -68,10 +89,13 @@ def math_it(s,add_dollars=False):
         to_ret = "$" + to_ret + "$"
     return to_ret 
 
-def tom_tick_format(ax=None):
+def tom_tick_format(ax=None,x=True,y=True,fmt="%4.3g"):
     ax = gca(ax)
-    ax.yaxis.set_major_formatter(fmt_smarter)
-    ax.xaxis.set_major_formatter(fmt_smarter)
+    fmt_smarter = TomStrFormatter(fmt)
+    if x:
+        ax.xaxis.set_major_formatter(fmt_smarter)
+    if y:
+        ax.yaxis.set_major_formatter(fmt_smarter)
 
 def plot_setup(mt_shrink_factor=0.7,mt_sup1=0.8):
     """
