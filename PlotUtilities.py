@@ -34,6 +34,11 @@ g_minor_tick_length= 2
 # make the hatches larges
 import matplotlib.transforms as mtrans
 
+
+import string
+from itertools import cycle
+from six.moves import zip
+
 from string import ascii_lowercase
 from matplotlib.ticker import LogLocator,MaxNLocator
 # for the zoom effect
@@ -66,10 +71,6 @@ class TomStrFormatter(Formatter):
         else:
             return self.fmt % x
 
-
-import string
-from itertools import cycle
-from six.moves import zip
 
 _uppercase = ["{:s}".format(s.upper()) for s in string.ascii_uppercase]
 _lowercase = ["{:s}".format(s.lower()) for s in string.ascii_lowercase]
