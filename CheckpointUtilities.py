@@ -10,10 +10,12 @@ pipe_funcIdx = 1
 from . import GenUtilities as pGenUtil
 import numpy as np
 try:
+    # python2
     import cPickle
     kw_load = dict()
 except ImportError:
-    import _pickle as cPickle
+    # python3
+    import pickle as cPickle
     kw_load = dict(encoding='latin1')
 
 
