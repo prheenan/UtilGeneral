@@ -60,8 +60,9 @@ def _annotate(ax,s,xy,**font_kwargs):
     for k,v in default_font_dict.items():
         if k not in font_kwargs:
             font_kwargs[k] = v
-    # POST: all default added   
-    return ax.annotate(s, xy=xy,**sanitize_text_dict(font_kwargs))
+    # POST: all default added
+    dict_sanit = sanitize_text_dict(font_kwargs)
+    return ax.annotate(s, xy=xy,**dict_sanit)
     
 def relative_annotate(ax,s,xy,xycoords='axes fraction',**font_kwargs):
     """

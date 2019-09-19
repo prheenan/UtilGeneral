@@ -137,10 +137,11 @@ def plot_setup(mt_shrink_factor=0.7,mt_sup1=0.8):
 def sanitize_text_dict(kw):
     to_ret = dict(**kw)
     # they changed verticalalignment in v3 for some reason
-    if 'verticalalignment' in to_ret and \
-                    to_ret['verticalalignment'] == 'lower' and \
-            mpl_major_version > 2:
-        to_ret['verticalalignment'] = 'bottom'
+    if mpl_major_version > 2:
+        if 'verticalalignment' in to_ret and to_ret['verticalalignment'] == 'lower':
+            to_ret['verticalalignment'] = 'bottom'
+        if 'verticalalignment' in to_ret and to_ret['verticalalignment'] == 'upper':
+            to_ret['verticalalignment'] = 'top'
     return to_ret
 
 
@@ -533,7 +534,7 @@ def lazyLabel(xlab,ylab,titLab,
               tick_kwargs=dict(add_minor=True),
               legend_kwargs=dict(frameon=False,loc='best'),
               title_kwargs=dict(),
-              useLegend=True,zlab=None,ax=None):
+              useLegend=None,zlab=None,ax=None):
     """
     Easy method of setting the x,y, and title, and adding a legend
     
@@ -554,6 +555,13 @@ def lazyLabel(xlab,ylab,titLab,
          nothings
     """
     ax = gca(ax)
+    handles, labels = ax.get_legend_handles_labels()
+    if useLegend is None and len(handles) > 0:
+        # then we should do a legend (default behavior)
+        useLegend = True
+    elif useLegend is None:
+        # no point in having a legend; no handles
+        useLegend = False
     # set the labels and title
     xlabel(xlab,ax=ax,**axis_kwargs)
     ylabel(ylab,ax=ax,**axis_kwargs)
