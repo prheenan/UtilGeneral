@@ -58,6 +58,8 @@ class SaveRecord(object):
         n_x = x.shape[-1]
         n_y = y.shape[-1]
         assert n_x == n_y , "Can't save out this data, the columns don't match"
+        assert n_x > 0 , "No X points given; can't save"
+        assert n_y > 0 , "No Y points given; can't save"
         # POST: columns match
         # make into column arrays
         self.save_name = save_name
@@ -124,7 +126,7 @@ def _save_to_csv(record,header_kwargs=dict(),data_kwargs=dict(),
     header = _header(record,**header_kwargs)
     data = _data(record,**data_kwargs)
     fname = record.save_name + ".csv"
-    _csv_save_base(fname=fname,X=data,header=header)
+    _csv_save_base(fname=fname,X=data,header=header,**save_kwargs)
     
 def save_csv(record_kwargs=dict(),**kw):
     record = SaveRecord(**record_kwargs)

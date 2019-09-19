@@ -11,6 +11,9 @@ import sys,copy,matplotlib
 
 from ..PlotUtilities import *
 from . import Annotations
+import matplotlib
+
+
 
 default_font_dict = dict(fontsize=g_font_label,
                          fontweight='bold',
@@ -97,10 +100,10 @@ def ticks(ax,axis,lim,x,y,is_x,add_minor):
     :return:
     """
     if (is_x):
-        tick_spacing = abs(np.diff(x))
+        tick_spacing = abs(np.diff(x)[0])
         offset = min(x)
     else:
-        tick_spacing = abs(np.diff(y))
+        tick_spacing = abs(np.diff(y)[0])
         offset = min(y)
     locator_x = _get_tick_locator_fixed(offset=offset, width=tick_spacing,
                                         lim=lim)
@@ -374,6 +377,9 @@ def crossed_x_and_y(offset_x,offset_y,x_kwargs,y_kwargs,ax=plt.gca(),
     """
     assert ("height" in y_kwargs.keys()) , "Height not specified"
     assert ("width" in x_kwargs.keys()) , "Width not specified"
+    assert ("unit" in x_kwargs.keys()) , "x unit not specified"
+    assert ("unit" in y_kwargs.keys()) , "y unit not specified"
+
     width = x_kwargs['width']
     height = y_kwargs['height']
     # make the scalebars make sense.
@@ -415,8 +421,9 @@ def crossed_x_and_y_relative(offset_x,offset_y,ax=plt.gca(),**kwargs):
 def _scale_bar_rectangle(ax,x,y,s,width,height,is_x,
                          font_color='w',add_minor=False,
                          box_props=dict(facecolor='black',edgecolor='black',
-                                        zorder=0),center_x=False,center_y=False,
-                         rotation=90,fontsize=6.5,**kw):
+                                        zorder=10),center_x=False,center_y=False,
+                         rotation=90,fontsize=6.5,fontweight='bold',
+                         verticalalignment='center',y_text_shift_rel=1/2,**kw):
     """
     Makes a scalebar (usually outside of the axes)
 
@@ -435,12 +442,14 @@ def _scale_bar_rectangle(ax,x,y,s,width,height,is_x,
         y_abs -= height/2
     xlim = [x_abs,x_abs+width]
     ylim = [y_abs,y_abs+height]
+    if 'linewidth' not in box_props:
+        box_props['linewidth'] = 0
     # add an *un-clipped* scalebar, so we can draw outside the axes
     r = Annotations.add_rectangle(ax=ax,xlim=xlim,ylim=ylim,
                                   clip_on=False,
                                   **box_props)
     x_text = x_abs + width/2
-    y_text = y_abs + height/2
+    y_text = y_abs + height * y_text_shift_rel
     # make sure that text is above box (unless we explicitly set them
     # differently)
     if ('zorder' in box_props):
@@ -449,11 +458,13 @@ def _scale_bar_rectangle(ax,x,y,s,width,height,is_x,
         min_z_text = 3
     if ('zorder' not in kw):
         kw['zorder'] = min_z_text
-    annot = ax.annotate(xy=(x_text,y_text),s=s, color=font_color,
-                        horizontalalignment='center',fontweight='bold',
-                        verticalalignment='center',xycoords='data',
+    kw_final = dict(horizontalalignment='center',fontweight=fontweight,
+                        verticalalignment=verticalalignment,xycoords='data',
                         clip_on=False,fontsize=fontsize,annotation_clip=False,
                         rotation=rotation,**kw)
+    kw_final = sanitize_text_dict(kw_final)
+    annot = ax.annotate(s,xy=(x_text,y_text),color=font_color,
+                        **kw_final)
     axis = ax.xaxis if is_x else ax.yaxis
     lim = ax.get_xlim() if is_x else ax.get_ylim()
     ticks(ax, axis=axis, lim=lim, x=xlim, y=ylim, is_x=is_x,
@@ -523,7 +534,7 @@ def _line_width_to_rel_units(width,ax,is_x):
 def _scale_bar(text,xy_text,xy_line,ax=plt.gca(),
                line_kwargs=def_line_kwargs,
                font_kwargs=default_font_dict,
-               fudge_text_pct=dict(x=0,y=0)):
+               fudge_text_pct=dict(x=0,y=0),no_bar=False):
     """
     Creates a scale bar using the specified, absolute x and y
     
@@ -535,7 +546,7 @@ def _scale_bar(text,xy_text,xy_line,ax=plt.gca(),
         <line/font>_kwargs: passed to plot and annotate, respectively
         fudge_text_pct: as a percentage of the scale bar, how much to shift the 
         text. Useful for preventing overlap. 
-    
+        no_bar: if true, dont actually draw, just get where it would be.
     Returns:
         tuple of <annnotation, x coordinates of line, y coords of line>
     """
@@ -550,9 +561,30 @@ def _scale_bar(text,xy_text,xy_line,ax=plt.gca(),
     y_text += y_diff * fudge_text_pct['y']   
     # POST: shifted     
     xy_text = [x_text,y_text]
-    t = Annotations._annotate(ax=ax,s=text,xy=xy_text,**font_kwargs)
-    ax.plot(x_draw,y_draw,**line_kwargs)
+    if not no_bar:
+        t = Annotations._annotate(ax=ax,s=text,xy=xy_text,
+                                  **sanitize_text_dict(font_kwargs))
+        ax.plot(x_draw,y_draw,**line_kwargs)
+    else:
+        t = None
     return t,x_draw,y_draw
+
+def range_for_zero_at_relative_y(range_desired,limits):
+    """
+    :param range_desired: amount of y desired
+    :param limits:  of the data; we want the zero in the returned range
+    to be consistent with the zero in the given limits
+    :return: ylimits (in units of range_desired) such that the 0 location
+    is the same relative location in the input <limits> as it is in the return
+    range
+    """
+    ax_0, ax_1 = min(limits), max(limits)
+    zero_location_rel = (0 - ax_0) / (ax_1 - ax_0)
+    dy_desired = range_desired
+    y_range = [-dy_desired * (zero_location_rel),
+               dy_desired * (1-zero_location_rel)]
+    return y_range
+
 
 def scalebar_offset_for_zero(limits,range_scalebar):
     """

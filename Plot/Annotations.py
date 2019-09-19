@@ -60,8 +60,9 @@ def _annotate(ax,s,xy,**font_kwargs):
     for k,v in default_font_dict.items():
         if k not in font_kwargs:
             font_kwargs[k] = v
-    # POST: all default added   
-    return ax.annotate(s=s, xy=xy,**font_kwargs)
+    # POST: all default added
+    dict_sanit = sanitize_text_dict(font_kwargs)
+    return ax.annotate(s, xy=xy,**dict_sanit)
     
 def relative_annotate(ax,s,xy,xycoords='axes fraction',**font_kwargs):
     """
@@ -115,7 +116,8 @@ def add_rectangle(ax,xlim,ylim,fudge_pct=0,facecolor="None",linestyle='-',
     ax.add_patch(r)  
     return r
 
-def _triangle_patch(x,y,width,height,fig,transform=None,color='g',alpha=0.5):
+def _triangle_patch(x,y,width,height,fig,transform=None,color='g',alpha=0.5,
+                    clip_on=True,zorder=5,reversed=False,**kw):
     """
     :param x: offset for the triangle 'bottom left'
     :param y: offset for the triangle 'bottom left'
@@ -130,15 +132,21 @@ def _triangle_patch(x,y,width,height,fig,transform=None,color='g',alpha=0.5):
     triangle_x,triangle_y = [x,y]
     triangle_width = width
     triangle_height = height
+    if reversed:
+        v1 = [triangle_x + triangle_width, triangle_y],
+        v2 = [triangle_x + triangle_width, triangle_y + triangle_height],
+
+    else:
+        v1 = [triangle_x, triangle_y + triangle_height]
+        v2 = [triangle_x + triangle_width, triangle_y]
     triangle_path_array = \
         [[triangle_x, triangle_y],
-         [triangle_x+triangle_width, triangle_y],
-         [triangle_x+triangle_width, triangle_y+triangle_height],
+         v1,v2,
          [triangle_x, triangle_y]]
     path = Path(triangle_path_array)
     patch = PathPatch(path, fill=True, color=color, alpha=alpha,
-                      zorder=0,transform=transform, figure=fig,
-                      linewidth=0,linestyle='None',clip_on=True)
+                      zorder=zorder,transform=transform, figure=fig,
+                      linewidth=0,linestyle='None',clip_on=clip_on,**kw)
     return patch
     
 def _rainbow_gen(x,y,strings,colors,ax=None,kw=[dict()],add_space=True):
@@ -156,11 +164,17 @@ def _rainbow_gen(x,y,strings,colors,ax=None,kw=[dict()],add_space=True):
             s_text = s + " "
         else:
             s_text = s
+        kw_tmp = sanitize_text_dict(kw[i % n_kw])
         text = ax.text(x, y, s_text, color=c, transform=t,
-                       clip_on=False,**(kw[i % n_kw]))
+                       clip_on=False,**(kw_tmp))
         text.draw(canvas.get_renderer())
         ex = text.get_window_extent()
-        t = transforms.offset_copy(text._transform, x=ex.width, units='dots')  
+        if "\n" not in s:
+            t = transforms.offset_copy(text._transform, x=ex.width,
+                                       units='dots')
+        else:
+            t = transforms.offset_copy(text._transform, x=0,y=-ex.height/2,
+                                       units='dots')
                         
 
 def rainbow_text(x, y, strings, colors, ax=None,add_space=False, **kw):
@@ -348,7 +362,7 @@ def _autolabel_f_str(i,r,errs=None,*args,**kwargs):
     :return: formatting string
     """
     h = r.get_height()
-    _smart_str_with_err(h,*args,errs=errs[i],**kwargs)
+    return _smart_str_with_err(h,*args,errs=errs[i],**kwargs)
 
 
 def autolabel(rects,label_func=lambda i,r: "{:.3g}".format(r.get_height()),
@@ -375,24 +389,32 @@ def autolabel(rects,label_func=lambda i,r: "{:.3g}".format(r.get_height()),
         x = x_func(i,rect)
         y = y_func(i,rect)
         ax.text(x,y,text,ha='center', va='bottom',fontsize=fontsize,
-                color=color_func(i,rect),**kwargs)
+                color=color_func(i,rect),**sanitize_text_dict(kwargs))
 
 
-def broken_axis(f_plot,range1,range2,ax1,ax2,axis_ratio,linewidth=1):
+def broken_axis(f_plot,range1,range2,ax1,ax2,fudge_marker_pct_x=0.015,
+                linewidths=0.3,s=40,
+                marker=r'$\mathrm{\u222B}$'):
     """
     :param f_plot: takes in an axis and a number, plots the data
     :param range1: range for ax1
     :param range2: range for ax2
     :param ax1: first axis to use
     :param ax2: second axis to use
-    :param axis_ratio: if not the same width, ratio of widths
-    :param linewidth: for the plot
+    :param fudge_marker_pct_x: how much, in pct of axis, to move markers to
+    center
+    :param linewidths: for the marker
+    :param s: size of the scatter marker
+    :param marker: marker to use
     :return: Nothing, consider using with fmt_broken
     """
     # If we were to simply plot pts, we'd lose most of the interesting
     # details due to the outliers. So let's 'break' or 'cut-out' the y-axis
     # into two portions - use the top (ax) for the outliers, and the bottom
     # (ax2) for the details of the majority of our data
+
+    ax1.set_xlim(range1)
+    ax2.set_xlim(range2)
 
     # plot the same data on both axes
     f_plot(ax1,1)
@@ -409,18 +431,14 @@ def broken_axis(f_plot,range1,range2,ax1,ax2,axis_ratio,linewidth=1):
     # appropriate corners of each of our axes, and so long as we use the
     # right transform and disable clipping.
 
-    d = .015 # how big to make the diagonal lines in axes coordinates
-    # arguments to pass plot, just so we don't keep repeating them
-    d1 = d * axis_ratio
-    d2 = d
     kwargs = dict(transform=ax1.transAxes, color='k', clip_on=False,
-                  linewidth=linewidth)
-    ax1.plot((1-d1,1+d1), (-d,+d), **kwargs)
-    ax1.plot((1-d1,1+d1),(1-d,1+d), **kwargs)
+                  linewidths=linewidths, s=s, marker=marker)
+    ax1.scatter([1+fudge_marker_pct_x],[0], **kwargs)
+    ax1.scatter([1+fudge_marker_pct_x],[1], **kwargs)
 
     kwargs.update(transform=ax2.transAxes)  # switch to the bottom axes
-    ax2.plot((-d2,+d2), (1-d2,1+d2), **kwargs)
-    ax2.plot((-d2,+d2), (-d2,+d2), **kwargs)
+    ax2.scatter([0-fudge_marker_pct_x], [1], **kwargs)
+    ax2.scatter([0-fudge_marker_pct_x], [0], **kwargs)
 
     return ax1,ax2
 
@@ -450,18 +468,20 @@ def fmt_broken(ax1,ax2):
 
 def connect_bbox(bbox1, bbox2,
                  loc1a, loc2a, loc1b, loc2b,
-                 prop_lines, prop_patches=None):
+                 prop_lines, prop_patches=None,prop_patches_2=None):
     """
     connect the two bboxes see zoom_effect01(ax1, ax2, xmin, xmax)
     """
     if prop_patches is None:
         prop_patches = prop_lines.copy()
+    if prop_patches_2 is None:
+        prop_patches_2 = dict(**prop_patches)
     c1 = BboxConnector(bbox1, bbox2, loc1=loc1a, loc2=loc2a, **prop_lines)
     c1.set_clip_on(False)
     c2 = BboxConnector(bbox1, bbox2, loc1=loc1b, loc2=loc2b, **prop_lines)
     c2.set_clip_on(False)
     bbox_patch1 = BboxPatch(bbox1, color='k',**prop_patches)
-    bbox_patch2 = BboxPatch(bbox2, color='w',**prop_patches)
+    bbox_patch2 = BboxPatch(bbox2, color='w',**prop_patches_2)
     p = BboxConnectorPatch(bbox1, bbox2,
                            # loc1a=3, loc2a=2, loc1b=4, loc2b=1,
                            loc1a=loc1a, loc2a=loc2a, loc1b=loc1b, loc2b=loc2b,
@@ -478,7 +498,8 @@ def zoom_left_to_right_kw():
 def zoom_effect01(ax1, ax2, xmin, xmax, color='m', alpha_line=0.5,
                   alpha_patch=0.15, loc1a=3, loc2a=2, loc1b=4, loc2b=1,
                   linestyle='--', linewidth=1.5, xmin2=None, xmax2=None,
-                  alpha_patch2=None,**kwargs):
+                  alpha_patch2=None,ymin=0,ymax=1,ymin2=None,ymax2=None,
+                  **kwargs):
     """
     connect ax1 & ax2. The x-range of (xmin, xmax) in both axes will
     be marked.  The keywords parameters will be used to create
@@ -508,10 +529,14 @@ def zoom_effect01(ax1, ax2, xmin, xmax, color='m', alpha_line=0.5,
     xmin2 = xmin2 if xmin2 is not None else xmin
     xmax2 = xmax2 if xmax2 is not None else xmax
 
+    ymin2 = ymin2 if ymin2 is not None else ymin
+    ymax2 = ymax2 if ymax2 is not None else ymax
+
+
     alpha_patch2 = alpha_patch2 if alpha_patch2 is not None else alpha_patch
 
-    bbox1 = Bbox.from_extents(xmin, 0, xmax, 1)
-    bbox2 = Bbox.from_extents(xmin2, 0, xmax2, 1)
+    bbox1 = Bbox.from_extents(xmin, ymin, xmax, ymax)
+    bbox2 = Bbox.from_extents(xmin2, ymin2, xmax2, ymax2)
 
     mybbox1 = TransformedBbox(bbox1, trans1)
     mybbox2 = TransformedBbox(bbox2, trans2)
@@ -519,13 +544,15 @@ def zoom_effect01(ax1, ax2, xmin, xmax, color='m', alpha_line=0.5,
     prop_patches = kwargs.copy()
     prop_patches["ec"] = "none"
     prop_patches["alpha"] = alpha_patch
+    prop_patches_2 = dict(**prop_patches)
+    prop_patches_2["alpha"] = alpha_patch2
     prop_lines = dict(color=color, alpha=alpha_line, linewidth=linewidth,
                       linestyle=linestyle, **kwargs)
     c1, c2, bbox_patch1, bbox_patch2, p = \
         connect_bbox(mybbox1, mybbox2,
                      loc1a=loc1a, loc2a=loc2a, loc1b=loc1b, loc2b=loc2b,
-                     prop_lines=prop_lines, prop_patches=prop_patches)
-    bbox_patch2.alpha = alpha_patch2
+                     prop_lines=prop_lines, prop_patches=prop_patches,
+                     prop_patches_2=prop_patches_2)
     ax1.add_patch(bbox_patch1)
     ax2.add_patch(bbox_patch2)
     ax2.add_patch(c1)

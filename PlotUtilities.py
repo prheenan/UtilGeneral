@@ -18,6 +18,7 @@ import sys
 import os
 from matplotlib.ticker import FixedLocator,NullLocator,AutoMinorLocator
 import matplotlib as mpl
+mpl_major_version = float(mpl.__version__[0])
 
 from matplotlib import ticker
 g_tom_text_rendering = dict(on=False)
@@ -31,6 +32,12 @@ g_tick_length = 4
 g_minor_tick_width = 1
 g_minor_tick_length= 2
 # make the hatches larges
+import matplotlib.transforms as mtrans
+
+
+import string
+from itertools import cycle
+from six.moves import zip
 
 from string import ascii_lowercase
 from matplotlib.ticker import LogLocator,MaxNLocator
@@ -41,10 +48,29 @@ from matplotlib.transforms import Bbox, TransformedBbox, \
     blended_transform_factory
 from matplotlib import ticker
 
+from matplotlib.ticker import FormatStrFormatter, Formatter
 
-import string
-from itertools import cycle
-from six.moves import zip
+class TomStrFormatter(Formatter):
+    """
+    Use an old-style ('%' operator) format string to format the tick.
+
+    The format string should have a single variable format (%) in it.
+    It will be applied to the value (not the position) of the tick.
+    """
+    def __init__(self, fmt):
+        self.fmt = fmt
+
+    def __call__(self, x, pos=None):
+        """
+        Return the formatted label string.
+
+        Only the value `x` is formatted. The position is ignored.
+        """
+        if x == 0:
+            return "0"
+        else:
+            return self.fmt % x
+
 
 _uppercase = ["{:s}".format(s.upper()) for s in string.ascii_uppercase]
 _lowercase = ["{:s}".format(s.lower()) for s in string.ascii_lowercase]
@@ -64,6 +90,14 @@ def math_it(s,add_dollars=False):
         to_ret = "$" + to_ret + "$"
     return to_ret 
 
+def tom_tick_format(ax=None,x=True,y=True,fmt="%4.3g"):
+    ax = gca(ax)
+    fmt_smarter = TomStrFormatter(fmt)
+    if x:
+        ax.xaxis.set_major_formatter(fmt_smarter)
+    if y:
+        ax.yaxis.set_major_formatter(fmt_smarter)
+
 def plot_setup(mt_shrink_factor=0.7,mt_sup1=0.8):
     """
     Sets up the plotting options as we like them
@@ -77,7 +111,6 @@ def plot_setup(mt_shrink_factor=0.7,mt_sup1=0.8):
                       "style": 'normal',
                       'family':'sans-serif'})
     plt.rcParams['font.family'] = 'sans-serif'
-    mpl.rcParams['text.latex.unicode'] = True
     mpl.rcParams['mathtext.fontset'] = 'custom'
     mpl.rcParams['mathtext.rm'] = '{}'.format(default_font)
     # anything that is italic should *also* be bold 
@@ -101,12 +134,45 @@ def plot_setup(mt_shrink_factor=0.7,mt_sup1=0.8):
     base_font.sup1 = mt_sup1
 
 
+def sanitize_text_dict(kw):
+    to_ret = dict(**kw)
+    # they changed verticalalignment in v3 for some reason
+    if mpl_major_version > 2:
+        if 'verticalalignment' in to_ret and to_ret['verticalalignment'] == 'lower':
+            to_ret['verticalalignment'] = 'bottom'
+        if 'verticalalignment' in to_ret and to_ret['verticalalignment'] == 'upper':
+            to_ret['verticalalignment'] = 'top'
+    return to_ret
+
 
 def upright_mu(unit=u""):
     """
-    Returns: an upright mu, optionally follow by <unit>. Recquires unicode. 
+    Returns: an upright mu (micron), optionally follow by <unit>.
+    Recquires unicode.
     """
     return u"\u03bc" + unit
+
+def kbT(add_parenthesis=False):
+    """
+    :param add_parenthesis: if true, return like (k_B T), otherwise no parenth
+    :return: boltzmann string, formatted properly.
+    """
+    to_ret = "$k_\mathbf{B}T$"
+    if add_parenthesis:
+        to_ret = "(" + to_ret + ")"
+    return to_ret
+
+def G_0(substring="0",add_kbT=False,add_parenthesis=True):
+    """
+    :param substring: what to put in the subscript
+    :param add_kT: if true, add kbT
+    :param add_parenthesis:  see kbT
+    :return: G_0, with kbT if add_kT is true
+    """
+    str = "$G_\mathbf{" + substring + "}$"
+    if add_kbT:
+        str += " " + kbT(add_parenthesis=add_parenthesis)
+    return str
 
 def label_axes(fig, labels=None, loc=None, add_bold=False,
                axis_func= lambda x: x,**kwargs):
@@ -137,7 +203,7 @@ def label_axes(fig, labels=None, loc=None, add_bold=False,
     axes = axis_func(fig.axes)
     n_ax = len(axes)
     if loc is None:
-        loc = (-0.2, 0.95)
+        loc = [(-0.2, 0.95) for _ in axes]
     if (isinstance(loc,tuple)):
         loc = [loc for _ in range(n_ax)]
     for ax, lab,loc_tmp in zip(axes, labels,loc):
@@ -161,7 +227,7 @@ def label_tom(fig,labels=None, loc=None,fontsize=g_font_subplot_label,
                      fontsize=fontsize,**kwargs)
     label_axes(fig,labels=labels,loc=loc,**text_args)
     
-def FormatImageAxis(ax=None):
+def format_image_axis(ax=None,remove_frame=True):
     """
     Formats the given (default current) axis for displaying an image 
     (no ticks,etc)
@@ -171,14 +237,18 @@ def FormatImageAxis(ax=None):
          aspect: passed to the axis
     """
     ax = gca(ax)
-    # Turn off axes and set axes limits
-    ax.axis('off')
+    no_x_label(ax)
+    no_x_ticks(ax)
+    no_y_label(ax)
+    no_y_ticks(ax)
+    if remove_frame:
+        ax.axis('off')
 
 def _remove_labels(ax):
     ax.set_ticklabels([])
     # if we remove the tick labels, then we bring the label (e.g. y axis name)
     # down 
-    ax.labelpad=-1
+    ax.labelpad=0.5
 
 def _remove_ticks(ax):
     ax.set_ticks([])
@@ -216,6 +286,14 @@ def no_x_ticks(ax=None):
 def no_y_ticks(ax=None):
     ax = gca(ax)
     _remove_ticks(ax.get_yaxis())
+
+def no_z_label(ax=None):
+    """
+    :param ax: axis to use. defaults to gca
+    :return: nothing, removed z tick labels 
+    """
+    ax = gca(ax)
+    _remove_ticks(ax.zaxis)
     
 def no_x_anything(ax=None):
     ax = gca(ax)
@@ -229,14 +307,32 @@ def no_y_anything(ax=None):
     no_y_axis(ax)
     no_y_grid(ax)    
     no_y_label(ax)   
-    _remove_ticks(ax.get_yaxis()) 
+    _remove_ticks(ax.get_yaxis())
 
-def x_label_on_top(ax=None,ticks_on_bottom='off'):
+def _format_axis(axis,position,**kw):
+    axis.set_label_position(position)
+    axis.set_tick_params(which='major',**kw)
+    axis.set_tick_params(which='minor',**kw)
+
+def x_label_on_top(ax=None,ticks_on_bottom=False):
+    """
+    :param ax: axis
+    :return:  nothing, moves the x label and ticks to the top
+    """
     ax = gca(ax)
-    ax.xaxis.set_label_position('top')
-    tick_dict = dict(labeltop='on',labelbottom=ticks_on_bottom)
-    ax.xaxis.set_tick_params(which='major',**tick_dict)
-    ax.xaxis.set_tick_params(which='minor',**tick_dict)
+    axis = ax.xaxis
+    tick_dict = dict(labeltop=True,labelbottom=ticks_on_bottom)
+    _format_axis(axis,position="top",**tick_dict)
+
+def y_label_on_right(ax=None):
+    """
+    :param ax: axis
+    :return:  nothing, moves the y label and ticks to the right side
+    """
+    ax = gca(ax)
+    tick_dict = dict(labelright=True,labelleft=False)
+    _format_axis(ax.yaxis,position="right",**tick_dict)
+
 
 
 def AddSubplotLabels(fig=None,axs=None,skip=0,
@@ -266,7 +362,7 @@ def AddSubplotLabels(fig=None,axs=None,skip=0,
 
 
 def _LegendAndSave(Fig,SaveName,loc="upper right",frameon=True,close=False,
-                  tight=True,**kwargs):
+                  tight=True,use_legend=True,handlelength=1,**kwargs):
     """
     Refreshes the legend on the given figure, saves it *without* closing
     by default
@@ -278,7 +374,8 @@ def _LegendAndSave(Fig,SaveName,loc="upper right",frameon=True,close=False,
     Returns:
         Nothing
     """
-    legend(loc=loc,frameon=frameon)
+    if use_legend:
+        legend(loc=loc,frameon=frameon,handlelength=handlelength)
     savefig(Fig,SaveName,close=close,tight=tight,**kwargs)
 
 def legend_and_save(Fig,Base,Number=0,ext=".png",**kwargs):
@@ -323,7 +420,7 @@ def colorbar(label,labelpad=15,rotation=270,fontsize=g_font_legend,
     return cbar
 
 def legend(loc=None,frameon=False,ncol=1,
-           handlelength=1,handletextpad=1,ax=None,
+           handlelength=1,handletextpad=0.3,ax=None,
            bbox_to_anchor=None,fancybox=False,markerscale=1,color='k',
            numpoints=1,scatterpoints=1,
            font_dict=dict(weight='bold',size=g_font_legend),**kwargs):
@@ -437,7 +534,7 @@ def lazyLabel(xlab,ylab,titLab,
               tick_kwargs=dict(add_minor=True),
               legend_kwargs=dict(frameon=False,loc='best'),
               title_kwargs=dict(),
-              useLegend=True,zlab=None,ax=None):
+              useLegend=None,zlab=None,ax=None):
     """
     Easy method of setting the x,y, and title, and adding a legend
     
@@ -458,6 +555,13 @@ def lazyLabel(xlab,ylab,titLab,
          nothings
     """
     ax = gca(ax)
+    handles, labels = ax.get_legend_handles_labels()
+    if useLegend is None and len(handles) > 0:
+        # then we should do a legend (default behavior)
+        useLegend = True
+    elif useLegend is None:
+        # no point in having a legend; no handles
+        useLegend = False
     # set the labels and title
     xlabel(xlab,ax=ax,**axis_kwargs)
     ylabel(ylab,ax=ax,**axis_kwargs)
@@ -534,7 +638,7 @@ def axis_locator(ax,n_major,n_minor):
     """
     scale = ax.get_scale()
     if (scale == 'log'):
-        subs = [1,] if n_minor <= 1 else np.linspace(1,n_minor+1,n_minor)
+        subs = [1, ] if n_minor <= 1 else np.linspace(1, 10, 10)
         ax.set_major_locator(LogLocator(numticks=n_major,subs=subs))
     else:
         ax.set_major_locator(MaxNLocator(n_major))
@@ -543,7 +647,7 @@ def axis_locator(ax,n_major,n_minor):
             n_minor_per_major = int(np.round(n_minor/n_major))
             ax.set_minor_locator(AutoMinorLocator(n_minor_per_major))
 
-def tom_ticks(ax=None,num_major=4,num_minor=0,**kwargs):
+def tom_ticks(ax=None,num_major=4,num_minor=0,fontsize=g_font_label,**kwargs):
     """
     Convenience wrapper for tick_axis_number to make ticks like tom likes
 
@@ -560,9 +664,10 @@ def tom_ticks(ax=None,num_major=4,num_minor=0,**kwargs):
                      num_x_minor=num_minor,
                      num_y_major=num_major,
                      num_y_minor=num_minor,**kwargs)
-    if (num_minor == 0):                     
-        ax.tick_params(which='minor',right=False,left=False,top=False,
-                       bottom=False,axis='both')
+    if (num_minor == 0):
+        ax.tick_params(which='minor', right=False, left=False,top=False,
+                       bottom = False, axis = 'both')
+    tickAxisFont(ax=ax,fontsize=fontsize)
                     
     
 def tick_axis_number(ax=None,num_x_major=5,num_x_minor=None,num_y_major=5,
@@ -718,7 +823,7 @@ def color_x_tick_minor_labels(ax,colors_cat):
         t.set_color(colors_cat[i])
     
 def secondAxis(ax,label,limits,secondY =True,color="Black",scale=None,
-               tick_color='k'):
+               tick_color='k',tick_axis_kw=dict()):
     """
     Adds a second axis to the named axis
 
@@ -748,7 +853,7 @@ def secondAxis(ax,label,limits,secondY =True,color="Black",scale=None,
         lab = ylabel(label,ax=ax2)
         tickLabels = ax2.get_yticklabels()
         tickLims =  ax2.get_yticks()
-        axis_opt = dict(axis=axis,left=False)
+        axis_opt = dict(axis=axis,left=False,**tick_axis_kw)
         other_axis_opt = dict(axis=axis,right=False)
         ax.yaxis.tick_left()
     else:
@@ -759,7 +864,7 @@ def secondAxis(ax,label,limits,secondY =True,color="Black",scale=None,
         lab = xlabel(label,ax=ax2)
         tickLabels = ax2.get_xticklabels()
         tickLims =  ax2.get_xticks()
-        axis_opt = dict(axis=axis,bottom=False)
+        axis_opt = dict(axis=axis,bottom=False,**tick_axis_kw)
         other_axis_opt = dict(axis=axis,top=False)
     color_axis_ticks(color=tick_color,spine_name=spines,axis_name=axis,ax=ax2)          
     [i.set_color(color) for i in tickLabels]
@@ -780,7 +885,7 @@ def pm(stdOrMinMax,mean=None,fmt=".3g"):
     return ("{:"+ fmt + "}+/-{:.2g}").format(mean,delta)
 
 def savefig(figure,fileName,close=True,tight=True,subplots_adjust=None,
-            bbox_inches='tight',pad=1,pad_inches=0.02,**kwargs):
+            bbox_inches='tight',pad=1,pad_inches=0.01,**kwargs):
     """
     Saves the given figure with the options and filenames
     
@@ -795,7 +900,7 @@ def savefig(figure,fileName,close=True,tight=True,subplots_adjust=None,
         nothing
     """
     if (tight):
-        plt.tight_layout(pad=pad)
+        figure.tight_layout(pad=pad)
     if (subplots_adjust is not None):
         plt.subplots_adjust(**subplots_adjust)
     baseName = util.getFileFromPath(fileName)
@@ -844,7 +949,6 @@ def tom_text_rendering():
     g_tom_text_rendering['on'] = True
     # we need latex and unicode to be safe
     mpl.rc('text', usetex=True)
-    mpl.rcParams['text.latex.unicode'] =True
     """
     make the normal font Helvetica :
     stackoverflow.com/questions/11367736/matplotlib-consistent-font-using-latex  
@@ -914,15 +1018,40 @@ def save_png_and_svg(fig,base,**kwargs):
     """
     save_twice(fig,base +".png",base+".svg",**kwargs)
     
-def save_tom(fig,base,**kwargs):
+def save_tom(fig,base,save_tiff=False,save_pdf=False,**kwargs):
     """
     Saves however tom would like me to 
     
     2017-10-12: he wants jpeg.
     """
-    savefig(fig,base + ".tiff",close=False,**kwargs)   
+    if save_tiff:
+        savefig(fig,base + ".tiff",close=False,**kwargs)
+    if save_pdf:
+        savefig(fig,base + ".pdf",close=False,**kwargs)
     save_twice(fig,base +".jpeg",base+".svg",**kwargs)
-    
+
+
+def make_image_flush(fig,ax_image,ax_flush):
+    """
+    :param fig: figure
+    :param ax_image: image axis
+    :param ax_flush: axis we want the image to be flush with.
+    :return:  nothing , updated the figure
+    """
+    ax = ax_flush
+    fig.canvas.draw()
+    xlabel_bbox = ax.xaxis.get_tightbbox(fig.canvas.get_renderer())
+    xlabel_bbox = xlabel_bbox.transformed(fig.transFigure.inverted())
+    bbox1 = ax.get_position().union((ax.get_position(), xlabel_bbox))
+    bbox2 = ax_image.get_position()
+    aspect = bbox2.height / bbox2.width
+    bbox3 = mtrans.Bbox.from_bounds(
+        bbox2.x0 - (bbox1.height / aspect - bbox2.width) / 2.,
+        bbox1.y0, bbox1.height / aspect, bbox1.height)
+    ax_image.set_position(bbox3)
+    fig.canvas.draw()
+
+
 # legacy API. plan is now to mimic matplotlib 
 def colorCyc(num,cmap = plt.cm.winter):
     cmap(num,cmap)
