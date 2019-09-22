@@ -374,7 +374,7 @@ def _LegendAndSave(Fig,SaveName,loc="upper right",frameon=True,close=False,
     Returns:
         Nothing
     """
-    if use_legend:
+    if use_legend and legend_is_useable():
         legend(loc=loc,frameon=frameon,handlelength=handlelength)
     savefig(Fig,SaveName,close=close,tight=tight,**kwargs)
 
@@ -529,6 +529,11 @@ def title(lab,fontsize=g_font_title,fontweight='bold',ax=None,**kwargs):
 def gca(ax=None):
     return ax if ax is not None else plt.gca()
 
+def legend_is_useable(ax=None):
+    ax = gca(ax)
+    handles, labels = ax.get_legend_handles_labels()
+    return len(handles) > 0
+
 def lazyLabel(xlab,ylab,titLab,
               axis_kwargs=dict(),
               tick_kwargs=dict(add_minor=True),
@@ -555,8 +560,7 @@ def lazyLabel(xlab,ylab,titLab,
          nothings
     """
     ax = gca(ax)
-    handles, labels = ax.get_legend_handles_labels()
-    if useLegend is None and len(handles) > 0:
+    if useLegend is None and legend_is_useable():
         # then we should do a legend (default behavior)
         useLegend = True
     elif useLegend is None:
