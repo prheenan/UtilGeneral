@@ -393,8 +393,7 @@ def autolabel(rects,label_func=lambda i,r: "{:.3g}".format(r.get_height()),
 
 
 def broken_axis(f_plot,range1,range2,ax1,ax2,fudge_marker_pct_x=0.015,
-                linewidths=0.3,s=40,
-                marker=r'$\mathrm{\u222B}$'):
+                linewidths=0.3,s=40,marker=u"""$∫$"""):
     """
     :param f_plot: takes in an axis and a number, plots the data
     :param range1: range for ax1
