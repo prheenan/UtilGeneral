@@ -133,8 +133,8 @@ def _triangle_patch(x,y,width,height,fig,transform=None,color='g',alpha=0.5,
     triangle_width = width
     triangle_height = height
     if reversed:
-        v1 = [triangle_x + triangle_width, triangle_y],
-        v2 = [triangle_x + triangle_width, triangle_y + triangle_height],
+        v1 = [triangle_x + triangle_width, triangle_y]
+        v2 = [triangle_x + triangle_width, triangle_y + triangle_height]
 
     else:
         v1 = [triangle_x, triangle_y + triangle_height]
