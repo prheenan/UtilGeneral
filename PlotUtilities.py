@@ -67,9 +67,12 @@ class TomStrFormatter(Formatter):
         Only the value `x` is formatted. The position is ignored.
         """
         if x == 0:
-            return "0"
+            to_ret = "0"
         else:
-            return self.fmt % x
+            to_ret = self.fmt % x
+        # get rid of any extra spaces.
+        to_ret = to_ret.replace(r" ", r"")
+        return to_ret
 
 
 _uppercase = ["{:s}".format(s.upper()) for s in string.ascii_uppercase]
@@ -90,14 +93,14 @@ def math_it(s,add_dollars=False):
         to_ret = "$" + to_ret + "$"
     return to_ret 
 
-def tom_tick_format(ax=None,x=True,y=True,fmt="%4.3g"):
+
+def tom_tick_format(ax=None,x=True,y=True,fmt="%4.4g"):
     ax = gca(ax)
     fmt_smarter = TomStrFormatter(fmt)
     if x:
         ax.xaxis.set_major_formatter(fmt_smarter)
     if y:
         ax.yaxis.set_major_formatter(fmt_smarter)
-
 def plot_setup(mt_shrink_factor=0.7,mt_sup1=0.8):
     """
     Sets up the plotting options as we like them
