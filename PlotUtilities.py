@@ -1025,17 +1025,23 @@ def save_png_and_svg(fig,base,**kwargs):
     """
     save_twice(fig,base +".png",base+".svg",**kwargs)
     
-def save_tom(fig,base,save_tiff=False,save_pdf=False,**kwargs):
+def save_tom(fig,base,save_tiff=False,save_pdf=False,save_png=False,
+             save_jpeg=True,**kwargs):
     """
     Saves however tom would like me to 
     
     2017-10-12: he wants jpeg.
     """
+    kw_prev = dict(close=False,**kwargs)
     if save_tiff:
-        savefig(fig,base + ".tiff",close=False,**kwargs)
+        savefig(fig,base + ".tiff",**kw_prev)
     if save_pdf:
-        savefig(fig,base + ".pdf",close=False,**kwargs)
-    save_twice(fig,base +".jpeg",base+".svg",**kwargs)
+        savefig(fig,base + ".pdf",**kw_prev)
+    if save_png:
+        savefig(fig,base + ".png",**kw_prev)
+    if save_jpeg:
+        savefig(fig,base + ".jpeg",**kw_prev)
+    savefig(fig,base+".svg",close=True,**kwargs)
 
 
 def make_image_flush(fig,ax_image,ax_flush):
