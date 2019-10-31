@@ -561,9 +561,10 @@ def _scale_bar(text,xy_text,xy_line,ax=plt.gca(),
     y_text += y_diff * fudge_text_pct['y']   
     # POST: shifted     
     xy_text = [x_text,y_text]
+    annotate_kw = sanitize_text_dict(font_kwargs)
     if not no_bar:
         t = Annotations._annotate(ax=ax,s=text,xy=xy_text,
-                                  **sanitize_text_dict(font_kwargs))
+                                  **annotate_kw)
         ax.plot(x_draw,y_draw,**line_kwargs)
     else:
         t = None
