@@ -95,7 +95,7 @@ def _header(record,comment="#",newline = "\n"):
     names_y = [_name_format(record,is_x=False,i=i) for i in range(record.n_y)]
     line_labels = join_str_header.join([join_str_header.join(names_x), \
                                        join_str_header.join(names_y)])
-    lines = ["(c) Patrick Heenan "] + [line_labels]
+    lines = ["by Patrick Heenan "] + [line_labels]
     # add the comment string infront of each line
     for i,_ in enumerate(lines):
         lines[i] = comment + lines[i]
