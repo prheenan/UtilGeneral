@@ -473,6 +473,7 @@ def connect_bbox(bbox1, bbox2,
     """
     if prop_patches is None:
         prop_patches = prop_lines.copy()
+        prop_patches["alpha"] = 0
     if prop_patches_2 is None:
         prop_patches_2 = dict(**prop_patches)
     c1 = BboxConnector(bbox1, bbox2, loc1=loc1a, loc2=loc2a, **prop_lines)
